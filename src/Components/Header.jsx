@@ -8,14 +8,26 @@ export default function Header() {
 
   return (
     <header className="bg-black">
-      <div className="container mx-auto flex items-center justify-center gap-6 px-4 py-4">
-        {/* logo */}
-        <Link to="/" className="flex items-center gap-2">
+      {/* 1️⃣  relative so the logo can go absolute on mobile */}
+      <div className="relative container mx-auto flex items-center justify-center gap-6 px-4 py-4">
+        {/* 2️⃣  logo: absolute-left on mobile, normal in flow from md-up  */}
+        <Link
+          to="/"
+          className="flex items-center gap-2
+                     absolute left-4 top-1/2 -translate-y-1/2
+                     md:static md:translate-y-0"
+        >
           <img src={PlanieLogo} alt="Planie logo" className="h-10 w-auto" />
         </Link>
 
-        {/* navigation */}
-        <nav className="flex gap-6">
+        {/* 3️⃣  Nav takes full width on mobile and centers its own items. */}
+        {/*    On desktop, it reverts to auto width to be centered with the logo. */}
+        <nav
+          className="flex items-center gap-6
+                     w-full justify-center      /* Mobile: nav is full-width, centers its children */
+                     md:w-auto md:justify-start 
+                     ml-5 /* Desktop: nav is auto-width, children align to start (or use md:justify-center if preferred) */"
+        >
           <NavLink
             to="/"
             end

@@ -1,9 +1,29 @@
+import WaveHomeTop from "../Assets/Images/WaveHomeTop2.png";
+
 export default function HomePage() {
   return (
     <section>
       {/* Hero */}
-      <div className="bg-indigo-600 text-white">
-        <div className="container mx-auto px-4 py-20 text-center">
+      <div className="relative bg-white text-gray-900 overflow-hidden">
+        {/* decorative wave */}
+        <div className="absolute inset-x-0 top-0 overflow-hidden leading-none select-none pointer-events-none">
+          {/* two copies for endless scroll */}
+          <img
+            src={WaveHomeTop}
+            aria-hidden="true"
+            alt="decorative wave"
+            className="w-[200%] md:w-full animate-wave"
+          />
+          <img
+            src={WaveHomeTop}
+            aria-hidden="true"
+            alt="decorative wave copy"
+            className="absolute left-1/2 top-0 w-[200%] md:hidden animate-wave"
+          />
+        </div>
+
+        {/* hero content */}
+        <div className="container mx-auto px-4 pt-32 pb-24 md:pt-48 md:pb-32 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Welcome to Planie
           </h1>
@@ -12,7 +32,7 @@ export default function HomePage() {
           </p>
           <a
             href="#features"
-            className="inline-block bg-white text-indigo-600 font-semibold px-6 py-3 rounded-full shadow hover:bg-indigo-50 transition"
+            className="inline-block bg-indigo-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-indigo-700 transition"
           >
             Get Started
           </a>
