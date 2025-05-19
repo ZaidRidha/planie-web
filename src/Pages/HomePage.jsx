@@ -1,7 +1,7 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
 import MapImage1 from "../Assets/Images/MapImage3.png";
-
+import FeaturesSection from "../Sections/FeaturesSection";
 export default function HomePage() {
   return (
     <section className="w-full">
@@ -19,7 +19,7 @@ export default function HomePage() {
       </div>
 
       {/* Logo & Tagline */}
-      <div className="w-full text-center pt-[3.5rem] pb-20">
+      <div className="w-full text-center pt-[3.0rem] pb-20">
         {/* If available, consider swapping to an SVG logo for crisp scaling */}
         <img
           src={PlanieLogo2}
@@ -45,11 +45,10 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center pb-[3.0rem]">
         <img src={MapImage1} alt="Map illustration" />
       </div>
 
-        
       <div className="w-full max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-center gap-6 py-16 px-4">
         {/* Text */}
         <div className="text-center md:text-left">
@@ -78,9 +77,10 @@ export default function HomePage() {
         </form>
       </div>
 
-    
-      
-  
+      {/* Divider */}
+      <div className="w-4/5 h-1 bg-gray-200 mx-auto [3.5rem]" />
+
+      <FeaturesSection />
     </section>
   );
 }
