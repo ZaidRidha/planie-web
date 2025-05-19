@@ -11,7 +11,7 @@ export default function HomePage() {
             src={WaveHomeTop}
             aria-hidden="true"
             alt="decorative wave"
-            className="w-[200%] h-full object-cover animate-wave"
+            className=""
           />
         </div>
 

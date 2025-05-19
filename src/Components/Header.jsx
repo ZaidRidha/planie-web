@@ -8,21 +8,31 @@ export default function Header() {
 
   return (
     <header className="bg-black">
-      {/*  relative so the nav can centre itself absolutely on smaller screens */}
-      <div className="relative container mx-auto grid grid-cols-3 items-center px-4 py-4">
-        {/* ─── Col 1: Logo ─────────────────────────────── */}
+      {/* Grid:  1fr  auto  1fr  →   nav stays dead-centre, logo hugs it */}
+      <div
+        className="
+          relative container mx-auto
+          grid grid-cols-3 md:grid-cols-[1fr_auto_1fr] items-center
+          px-4 py-4
+        "
+      >
+        {/* ─── Logo ─────────────────────────────────────────────── */}
         <Link
           to="/"
-          className="flex items-center gap-2 justify-self-start
-                     col-start-1"
+          className="
+            flex items-center gap-2
+            justify-self-start md:justify-self-end md:pr-10
+          "
         >
           <img src={PlanieLogo} alt="Planie logo" className="h-10 w-auto" />
         </Link>
 
-        {/* ─── Col 2: Nav – always dead-centre ─────────── */}
+        {/* ─── Nav (always perfectly centred) ───────────────────── */}
         <nav
-          className="flex gap-6 justify-self-center
-                     w-full justify-center md:w-auto"
+          className="
+            flex gap-6
+            w-full justify-center md:w-auto md:justify-self-center
+          "
         >
           <NavLink
             to="/"
