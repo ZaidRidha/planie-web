@@ -57,10 +57,10 @@ export default function FeaturesSection() {
             <img
               src={image}
               alt={title}
-              className="h-20 w-20 mb-4 object-contain"
+              className="h-32 w-32 mb-6 object-contain" 
             />
-            <h3 className="text-lg font-semibold mb-2">{title}</h3>
-            <p className="text-gray-600 text-sm leading-relaxed">{text}</p>
+            <h3 className="text-xl font-semibold mb-3">{title}</h3>
+            <p className="text-gray-600 text-base leading-relaxed">{text}</p>
           </div>
         ))}
       </div>
