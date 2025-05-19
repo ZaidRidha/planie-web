@@ -1,29 +1,22 @@
-import WaveHomeTop from "../Assets/Images/WaveHomeTop2.png";
+import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 
 export default function HomePage() {
   return (
     <section>
       {/* Hero */}
-      <div className="relative bg-white text-gray-900 overflow-hidden">
-        {/* decorative wave */}
-        <div className="absolute inset-x-0 top-0 overflow-hidden leading-none select-none pointer-events-none">
-          {/* two copies for endless scroll */}
+      <div className="">
+        {/* decorative wave – lowered height */}
+        <div className="">
           <img
             src={WaveHomeTop}
             aria-hidden="true"
             alt="decorative wave"
-            className="w-[200%] md:w-full animate-wave"
-          />
-          <img
-            src={WaveHomeTop}
-            aria-hidden="true"
-            alt="decorative wave copy"
-            className="absolute left-1/2 top-0 w-[200%] md:hidden animate-wave"
+            className="w-[200%] h-full object-cover animate-wave"
           />
         </div>
 
         {/* hero content */}
-        <div className="container mx-auto px-4 pt-32 pb-24 md:pt-48 md:pb-32 text-center relative z-10">
+        <div className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Welcome to Planie
           </h1>
