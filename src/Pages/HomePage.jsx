@@ -19,7 +19,7 @@ export default function HomePage() {
       </div>
 
       {/* Logo & Tagline */}
-      <div className="w-full text-center pt-[4.5rem] pb-20">
+      <div className="w-full text-center pt-[3.5rem] pb-20">
         {/* If available, consider swapping to an SVG logo for crisp scaling */}
         <img
           src={PlanieLogo2}
@@ -46,12 +46,41 @@ export default function HomePage() {
       </div>
 
       <div className="w-full flex justify-center">
-        <img
-          src={MapImage1}
-          alt="Map illustration"
-       
-        />
+        <img src={MapImage1} alt="Map illustration" />
       </div>
+
+        
+      <div className="w-full max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-center gap-6 py-16 px-4">
+        {/* Text */}
+        <div className="text-center md:text-left">
+          <h2 className="text-2xl font-semibold mb-1">Interested?</h2>
+          <p className="text-gray-600">Join our mailing list</p>
+        </div>
+
+        {/* Form */}
+        <form
+          className="flex w-full max-w-sm" // constrain width
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <input
+            type="email"
+            placeholder="Email Address"
+            aria-label="Email Address"
+            required
+            className="flex-grow rounded-l-full px-4 py-3 bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            type="submit"
+            className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-r-full whitespace-nowrap"
+          >
+            Sign up
+          </button>
+        </form>
+      </div>
+
+    
+      
+  
     </section>
   );
 }
