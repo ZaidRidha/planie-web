@@ -79,7 +79,11 @@ export default function HomePage() {
       {/* Divider */}
       <div className="w-4/5 h-1 bg-gray-200 mx-auto [3.5rem]" />
 
-      <FeaturesSection />
+      <div className="mb-20">
+        {" "}
+        {/* Adjust mb-20 (5rem) as needed, e.g., mb-16 (4rem), mb-24 (6rem) */}
+        <FeaturesSection />
+      </div>
     </section>
   );
 }
