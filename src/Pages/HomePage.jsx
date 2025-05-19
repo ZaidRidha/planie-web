@@ -1,4 +1,5 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
+import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
 
 export default function HomePage() {
   return (
@@ -14,51 +15,19 @@ export default function HomePage() {
             className="w-full"
           />
         </div>
-
-        {/* hero content */}
-        <div className="w-full px-4 pt-24 pb-16 md:pt-32 md:pb-24 text-center relative z-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Welcome to Planie
-          </h1>
-          <p className="text-lg md:text-2xl mb-8">
-            Simplify your planning and collaboration with intuitive tools.
-          </p>
-          <a
-            href="#features"
-            className="inline-block bg-indigo-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-indigo-700 transition"
-          >
-            Get Started
-          </a>
-        </div>
       </div>
 
-      {/* Features */}
-      <div id="features" className="w-full px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
-        <div className="grid gap-8 md:grid-cols-3">
-          {[
-            {
-              title: "Drag-and-drop Tasks",
-              text: "Organize milestones effortlessly.",
-            },
-            {
-              title: "Real-time Collaboration",
-              text: "Comment and share updates instantly.",
-            },
-            {
-              title: "Insightful Analytics",
-              text: "Track progress and stay on schedule.",
-            },
-          ].map(({ title, text }) => (
-            <div
-              key={title}
-              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition"
-            >
-              <h3 className="text-xl font-semibold mb-2">{title}</h3>
-              <p className="text-gray-600">{text}</p>
-            </div>
-          ))}
-        </div>
+      {/* Logo & Tagline */}
+      <div className="w-full text-center pt-28">
+        {/* If available, consider swapping to an SVG logo for crisp scaling */}
+        <img
+          src={PlanieLogo2}
+          alt="Planie logo"
+          className="mx-auto h-32 w-auto md:h-245 object-contain"
+        />
+        <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
+          Start here, go anywhere
+        </p>
       </div>
     </section>
   );
