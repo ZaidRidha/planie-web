@@ -49,16 +49,15 @@ export default function HomePage() {
         <img src={MapImage1} alt="Map illustration" />
       </div>
 
-      <div className="w-full max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-center gap-6 py-16 px-4">
-        {/* Text */}
+      <div className="w-full max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-center gap-6 py-16 px-4 pb-[6.75rem]">
         <div className="text-center md:text-left">
-          <h2 className="text-2xl font-semibold mb-1">Interested?</h2>
-          <p className="text-gray-600">Join our mailing list</p>
+          <h2 className="text-3xl font-semibold mb-1">Interested?</h2>
+          <p className="text-lg text-gray-600">Join our mailing list</p>
         </div>
 
-        {/* Form */}
+        {/* Form - INCREASED FONT SIZE */}
         <form
-          className="flex w-full max-w-sm" // constrain width
+          className="flex w-full max-w-sm"
           onSubmit={(e) => e.preventDefault()}
         >
           <input
@@ -66,11 +65,11 @@ export default function HomePage() {
             placeholder="Email Address"
             aria-label="Email Address"
             required
-            className="flex-grow rounded-l-full px-4 py-3 bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-grow rounded-l-full px-4 py-3 bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg"
           />
           <button
             type="submit"
-            className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-r-full whitespace-nowrap"
+            className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-r-full whitespace-nowrap text-lg"
           >
             Sign up
           </button>
