@@ -19,7 +19,7 @@ export default function HomePage() {
       </div>
 
       {/* Logo & Tagline */}
-      <div className="w-full text-center pt-28 pb-20">
+      <div className="w-full text-center pt-[4.5rem] pb-20">
         {/* If available, consider swapping to an SVG logo for crisp scaling */}
         <img
           src={PlanieLogo2}
@@ -45,9 +45,10 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="">
+      <div className="w-full flex justify-center">
         <img
           src={MapImage1}
+          alt="Map illustration"
        
         />
       </div>
