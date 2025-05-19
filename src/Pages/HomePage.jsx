@@ -28,6 +28,17 @@ export default function HomePage() {
         <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
           Start here, go anywhere
         </p>
+        
+        {/* AI description text */}
+        <p className="mt-4 mx-auto max-w-2xl" 
+           style={{ 
+             color: "#777", 
+             fontSize: "20px", 
+             fontWeight: 500, 
+             lineHeight: "normal" 
+           }}>
+          Utilize cutting edge AI-Powered Itinerary generator, and discover exciting places anywhere you go all within minutes.
+        </p>
       </div>
     </section>
   );
