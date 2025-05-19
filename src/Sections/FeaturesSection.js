@@ -54,12 +54,16 @@ export default function FeaturesSection() {
             key={title}
             className="flex flex-col items-center text-center max-w-xs mx-auto"
           >
+            {/* Consistent icon size */}
             <img
               src={image}
               alt={title}
-              className="h-32 w-32 mb-6 object-contain" 
+              className="h-40 w-40 mb-6 object-contain"
             />
-            <h3 className="text-xl font-semibold mb-3">{title}</h3>
+            {/* Fixed-height title to align cards */}
+            <h3 className="text-xl font-semibold mb-3 leading-tight min-h-[3.5rem]">
+              {title}
+            </h3>
             <p className="text-gray-600 text-base leading-relaxed">{text}</p>
           </div>
         ))}
