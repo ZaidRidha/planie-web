@@ -2,21 +2,21 @@ import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 
 export default function HomePage() {
   return (
-    <section>
+    <section className="w-full">
       {/* Hero */}
-      <div className="">
+      <div className="w-full">
         {/* decorative wave – lowered height */}
-        <div className="">
+        <div className="w-full">
           <img
             src={WaveHomeTop}
             aria-hidden="true"
             alt="decorative wave"
-            className=""
+            className="w-full"
           />
         </div>
 
         {/* hero content */}
-        <div className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 text-center relative z-10">
+        <div className="w-full px-4 pt-24 pb-16 md:pt-32 md:pb-24 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Welcome to Planie
           </h1>
@@ -33,7 +33,7 @@ export default function HomePage() {
       </div>
 
       {/* Features */}
-      <div id="features" className="container mx-auto px-4 py-16">
+      <div id="features" className="w-full px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
         <div className="grid gap-8 md:grid-cols-3">
           {[
