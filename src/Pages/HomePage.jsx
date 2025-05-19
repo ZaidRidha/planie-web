@@ -1,5 +1,6 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
+import MapImage1 from "../Assets/Images/MapImage3.png";
 
 export default function HomePage() {
   return (
@@ -18,7 +19,7 @@ export default function HomePage() {
       </div>
 
       {/* Logo & Tagline */}
-      <div className="w-full text-center pt-28">
+      <div className="w-full text-center pt-28 pb-20">
         {/* If available, consider swapping to an SVG logo for crisp scaling */}
         <img
           src={PlanieLogo2}
@@ -28,17 +29,27 @@ export default function HomePage() {
         <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
           Start here, go anywhere
         </p>
-        
+
         {/* AI description text */}
-        <p className="mt-4 mx-auto max-w-2xl" 
-           style={{ 
-             color: "#777", 
-             fontSize: "20px", 
-             fontWeight: 500, 
-             lineHeight: "normal" 
-           }}>
-          Utilize cutting edge AI-Powered Itinerary generator, and discover exciting places anywhere you go all within minutes.
+        <p
+          className="mt-4 mx-auto max-w-2xl"
+          style={{
+            color: "#777",
+            fontSize: "20px",
+            fontWeight: 500,
+            lineHeight: "normal",
+          }}
+        >
+          Utilize cutting edge AI-Powered Itinerary generator, and discover
+          exciting places anywhere you go all within minutes.
         </p>
+      </div>
+
+      <div className="">
+        <img
+          src={MapImage1}
+       
+        />
       </div>
     </section>
   );
