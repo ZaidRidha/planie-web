@@ -8,14 +8,14 @@ export default function Header() {
 
   return (
     <header className="bg-black">
-      <div className="container mx-auto flex items-center px-4 py-4">
-        {/* Logo positioned left */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
+      <div className="container mx-auto flex items-center justify-center gap-6 px-4 py-4">
+        {/* logo */}
+        <Link to="/" className="flex items-center gap-2">
           <img src={PlanieLogo} alt="Planie logo" className="h-10 w-auto" />
         </Link>
 
-        {/* Navigation centred */}
-        <nav className="flex-1 flex justify-center gap-6">
+        {/* navigation */}
+        <nav className="flex gap-6">
           <NavLink
             to="/"
             end
