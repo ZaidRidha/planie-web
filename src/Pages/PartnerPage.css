@@ -1,0 +1,13 @@
+.partner-hero-title {
+  font-size: 52px;
+  font-weight: 600;
+  color: #FF4040;
+  margin: 0; /* reset any default margins if you like */
+}
+
+/* Mobile override: screens ≤ 640px */
+@media (max-width: 640px) {
+  .partner-hero-title {
+    font-size: 30px; /* adjust to taste */
+  }
+}

@@ -1,6 +1,7 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 
 import CheckCircle from "../Assets/Images/CheckCircle.png";
+import "./PartnerPage.css"; // Import your CSS file
 
 export default function PartnerPage() {
   return (
@@ -20,13 +21,7 @@ export default function PartnerPage() {
 
       {/* Partner headline */}
       <div className="w-full text-center py-16">
-        <h2
-          style={{
-            fontSize: "52px",
-            fontWeight: 600,
-            color: "#FF4040",
-          }}
-        >
+        <h2 className="partner-hero-title">
           Put Your Brand on the Map – Literally.
         </h2>
         <p
@@ -129,11 +124,11 @@ export default function PartnerPage() {
           >
             Join the Partner Program
           </h2>
-          <div className="mb-6"> 
-          <p className="">Lock in early-bird rates today.</p>
-          <p className="text-red-500 mb-6">
-            Early bird partners will have access to 3 months free!
-          </p>
+          <div className="mb-6">
+            <p className="">Lock in early-bird rates today.</p>
+            <p className="text-red-500 mb-6">
+              Early bird partners will have access to 3 months free!
+            </p>
           </div>
 
           <form className="space-y-4">
