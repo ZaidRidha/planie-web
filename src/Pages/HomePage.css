@@ -19,5 +19,6 @@
   .hero-description {
     font-size: 16px; /* scale down your description on mobile */
     margin-top: 10px;
+    width: 85%;
   }
 }
