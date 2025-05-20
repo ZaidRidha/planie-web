@@ -24,15 +24,7 @@ export default function PartnerPage() {
         <h2 className="partner-hero-title">
           Put Your Brand on the Map – Literally.
         </h2>
-        <p
-          className="mt-4 mx-auto max-w-2xl"
-          style={{
-            fontSize: "20px",
-            fontWeight: 500,
-            color: "#777777",
-            lineHeight: "normal",
-          }}
-        >
+        <p className="partner-description mx-auto">
           Whether you're a local gem or a global brand, Planie connects you with
           high-intent travelers right when they're ready to explore.
         </p>

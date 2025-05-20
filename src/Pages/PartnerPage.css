@@ -5,9 +5,26 @@
   margin: 0; /* reset any default margins if you like */
 }
 
+.partner-description {
+  color: #777777;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: normal;
+  margin-top: 1rem;   /* roughly matches your mt-4 */
+  max-width: 60ch;    /* about 2xl tailwind width */
+}
+
 /* Mobile override: screens ≤ 640px */
 @media (max-width: 640px) {
   .partner-hero-title {
     font-size: 30px; /* adjust to taste */
+    width: 80%;
+    justify-self: center;
+  }
+
+   .partner-description {
+    font-size: 16px;
+    width: 80%;  /* shrink on mobile */
+    justify-self: center;
   }
 }
