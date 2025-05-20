@@ -95,7 +95,7 @@ export default function PartnerPage() {
                 <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-medium">
+                <p className="last-item">
                   Proprietary affinity matrix intelligently connects your
                   business with travelers whose interests align
                 </p>

@@ -20,6 +20,11 @@
   /* default text-align: left */
 }
 
+.last-item{
+    font-weight: 500;
+
+}
+
 /* Mobile override: screens ≤ 640px */
 @media (max-width: 640px) {
   .partner-hero-title {
@@ -36,5 +41,9 @@
 
    .why-partner-title {
     text-align: center;
+  }
+
+  .last-item{
+    margin-bottom: 40px;
   }
 }
