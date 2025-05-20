@@ -1,6 +1,5 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
-import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
-import MapImage1 from "../Assets/Images/MapImage3.png";
+
 import CheckCircle from "../Assets/Images/CheckCircle.png";
 
 export default function PartnerPage() {
