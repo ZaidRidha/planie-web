@@ -44,9 +44,9 @@ export default function PartnerPage() {
       </div>
 
       {/* Two-column partner benefits and signup section */}
-      <div className="w-full max-w-6xl mx-auto px-4 py-16 flex flex-col md:flex-row gap-8">
+      <div className="w-full max-w-6xl mx-auto px-4 py-16 flex flex-col md:flex-row md:justify-between gap-8">
         {/* Left column - Why Partner */}
-        <div className="w-full md:w-1/2">
+        <div className="w-full md:w-5/12">
           <h2
             className="text-3xl font-semibold mb-4"
             style={{ color: "#FF4040" }}
@@ -122,7 +122,7 @@ export default function PartnerPage() {
 
         {/* Right column - Signup form */}
         {/* Right column - Signup form */}
-        <div className="w-full md:w-1/2 bg-white rounded-lg shadow-sm">
+        <div className="w-full md:w-5/12 bg-white rounded-lg shadow-sm">
           <h2
             className="text-3xl font-semibold mb-4"
             style={{ color: "#FF4040" }}
