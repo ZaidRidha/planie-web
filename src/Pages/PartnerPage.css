@@ -1,7 +1,7 @@
 .partner-hero-title {
   font-size: 52px;
   font-weight: 600;
-  color: #FF4040;
+
   margin: 0; /* reset any default margins if you like */
 }
 
@@ -15,7 +15,7 @@
 }
 
 .why-partner-title {
-  color: #FF4040;       /* keep your brand red */
+  color: #ff2b2b;       /* keep your brand red */
   margin-bottom: 1rem;  /* same as mb-4 */
   /* default text-align: left */
 }
