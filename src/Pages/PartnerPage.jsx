@@ -1,9 +1,34 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
-
+import React, { useState } from 'react';
 import CheckCircle from "../Assets/Images/CheckCircle.png";
 import "./PartnerPage.css"; // Import your CSS file
 
 export default function PartnerPage() {
+  const features = [
+    {
+      id: "matrix",
+      title: "Matrix affinity",
+      description:
+        "Matrix Affinity connects your business with travelers who are actively looking for what you offer – boosting visibility, engagement, and conversions effortlessly.",
+    },
+    {
+      id: "intent",
+      title: "Built for intent, not interruption",
+      description:
+        "We serve your brand at the exact moment users are seeking recommendations, ensuring you reach high-intent audiences without disrupting their experience.",
+    },
+    {
+      id: "ai",
+      title: "AI Enhanced, User centric",
+      description:
+        "Our AI-driven recommendations personalize the journey, placing your brand at the heart of each traveler’s curated plan.",
+    },
+  ];
+
+  const [activeFeatureId, setActiveFeatureId] = useState(features[0].id);
+
+  // Find the currently active feature object
+  const activeFeature = features.find((f) => f.id === activeFeatureId);
   return (
     <section className="w-full">
       {/* Hero */}
@@ -182,42 +207,42 @@ export default function PartnerPage() {
       </div>
 
       {/* How We're Different section */}
-      <div className="w-full max-w-6xl mx-auto px-4 py-16 ">
-        <h2
-          className="text-4xl font-semibold mb-20 text-center"
-          style={{ color: "#FF4040", fontFamily: "'Poppins', sans-serif" }}
-        >
-          How We're Different
-        </h2>
+    <div className="w-full max-w-6xl mx-auto px-4 py-16">
+      <h2
+        className="text-4xl font-semibold mb-20 text-center"
+        style={{ color: '#FF4040', fontFamily: "'Poppins', sans-serif" }}
+      >
+        How We&apos;re Different
+      </h2>
 
-        <div className="flex flex-col md:flex-row gap-10 items-center">
-          {/* Left column - Feature buttons */}
-          <div className="w-full md:w-1/2 space-y-4">
-            <button className="w-full py-6 px-6 rounded-lg bg-red-500 text-white text-xl font-medium text-center">
-              Matrix affinity
+      <div className="flex flex-col md:flex-row gap-10 items-center">
+        {/* Left column - Feature buttons */}
+        <div className="w-full md:w-1/2 space-y-4">
+          {features.map(feature => (
+            <button
+              key={feature.id}
+              onClick={() => setActiveFeatureId(feature.id)}
+              className={`w-full py-6 px-6 rounded-lg text-xl font-medium text-center transition-all duration-200 ${
+                feature.id === activeFeatureId
+                  ? 'bg-red-500 text-white'
+                  : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
+            >
+              {feature.title}
             </button>
+          ))}
+        </div>
 
-            <button className="w-full py-6 px-6 rounded-lg bg-gray-400 text-white text-xl font-medium text-center">
-              Built for intent, not interruption
-            </button>
-
-            <button className="w-full py-6 px-6 rounded-lg bg-gray-400 text-white text-xl font-medium text-center">
-              AI Enhanced, User centric
-            </button>
-          </div>
-
-          {/* Right column - Feature description */}
-          <div className="w-full md:w-1/2">
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
-              <p className="text-xl font-medium text-center">
-                Matrix Affinity connects your business with travelers who are
-                actively looking for what you offer - boosting visibility,
-                engagement, and conversions effortlessly.
-              </p>
-            </div>
+        {/* Right column - Feature description */}
+        <div className="w-full md:w-1/2">
+          <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <p className="text-xl font-medium text-center">
+              {activeFeature.description}
+            </p>
           </div>
         </div>
       </div>
+    </div>
     </section>
   );
 }
