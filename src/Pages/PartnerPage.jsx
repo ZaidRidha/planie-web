@@ -189,6 +189,41 @@ export default function PartnerPage() {
             </div>
           </form>
         </div>
+
+        
+      </div>
+
+         {/* How We're Different section */}
+      <div className="w-full max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-4xl font-semibold mb-12 text-center" style={{ color: "#FF4040", fontFamily: "'Poppins', sans-serif" }}>
+          How We're Different
+        </h2>
+        
+        <div className="flex flex-col md:flex-row gap-10 items-center">
+          {/* Left column - Feature buttons */}
+          <div className="w-full md:w-1/2 space-y-4">
+            <button className="w-full py-6 px-6 rounded-lg bg-red-500 text-white text-xl font-medium text-center">
+              Matrix affinity
+            </button>
+            
+            <button className="w-full py-6 px-6 rounded-lg bg-gray-400 text-white text-xl font-medium text-center">
+              Built for intent, not interruption
+            </button>
+            
+            <button className="w-full py-6 px-6 rounded-lg bg-gray-400 text-white text-xl font-medium text-center">
+              AI Enhanced, User centric
+            </button>
+          </div>
+          
+          {/* Right column - Feature description */}
+          <div className="w-full md:w-1/2">
+            <div className="bg-white p-8 rounded-2xl shadow-lg">
+              <p className="text-xl font-medium text-center">
+                Matrix Affinity connects your business with travelers who are actively looking for what you offer - boosting visibility, engagement, and conversions effortlessly.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
