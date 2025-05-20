@@ -1,6 +1,7 @@
 import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
 import MapImage1 from "../Assets/Images/MapImage3.png";
+import CheckCircle from "../Assets/Images/CheckCircle.png";
 
 export default function PartnerPage() {
   return (
@@ -17,47 +18,11 @@ export default function PartnerPage() {
           />
         </div>
       </div>
-
-      {/* Logo & Tagline */}
-      <div className="w-full text-center pt-[3.0rem] pb-20">
-        {/* If available, consider swapping to an SVG logo for crisp scaling */}
-        <img
-          src={PlanieLogo2}
-          alt="Planie logo"
-          className="mx-auto h-32 w-auto md:h-245 object-contain"
-        />
-        <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
-          Start here, go anywhere
-        </p>
-
-        {/* AI description text */}
-        <p
-          className="mt-4 mx-auto max-w-2xl"
-          style={{
-            color: "#777",
-            fontSize: "20px",
-            fontWeight: 500,
-            lineHeight: "normal",
-          }}
-        >
-          Utilize cutting edge AI-Powered Itinerary generator, and discover
-          exciting places anywhere you go all within minutes.
-        </p>
-      </div>
-
-      <div className="w-full flex justify-center pb-[3.0rem]">
-        <img
-          src={MapImage1}
-          alt="Map illustration"
-          className="w-4/5 md:w-3/4 lg:w-2/3 h-auto"
-        />
-      </div>
-      
       {/* Partner headline */}
-      <div className="w-full text-center my-12">
+      <div className="w-full text-center my-12 mt-20 mb-20">
         <h2 
           style={{ 
-            fontSize: "40px", 
+            fontSize: "52px", 
             fontWeight: 600, 
             color: "#FF4040" 
           }}
@@ -92,10 +57,8 @@ export default function PartnerPage() {
           {/* Benefit items */}
           <div className="space-y-4">
             <div className="flex items-start">
-              <div className="mt-1 mr-3 h-6 w-6 rounded-full bg-red-400 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              <div className="mr-3 flex-shrink-0">
+                <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
                 <p className="font-medium">Be featured in AI-generated plans used by real travelers</p>
@@ -103,10 +66,8 @@ export default function PartnerPage() {
             </div>
             
             <div className="flex items-start">
-              <div className="mt-1 mr-3 h-6 w-6 rounded-full bg-red-400 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              <div className="mr-3 flex-shrink-0">
+                <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
                 <p className="font-medium">Native placements - your brand blends into the experience</p>
@@ -114,10 +75,8 @@ export default function PartnerPage() {
             </div>
             
             <div className="flex items-start">
-              <div className="mt-1 mr-3 h-6 w-6 rounded-full bg-red-400 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              <div className="mr-3 flex-shrink-0">
+                <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
                 <p className="font-medium">Geo-targeting ensures you're seen by the right audience</p>
@@ -125,10 +84,8 @@ export default function PartnerPage() {
             </div>
             
             <div className="flex items-start">
-              <div className="mt-1 mr-3 h-6 w-6 rounded-full bg-red-400 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              <div className="mr-3 flex-shrink-0">
+                <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
                 <p className="font-medium">Real-time analytics to track visibility and engagement</p>
@@ -136,10 +93,8 @@ export default function PartnerPage() {
             </div>
             
             <div className="flex items-start">
-              <div className="mt-1 mr-3 h-6 w-6 rounded-full bg-red-400 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+              <div className="mr-3 flex-shrink-0">
+                <img src={CheckCircle} alt="Check" className="h-6 w-6" />
               </div>
               <div>
                 <p className="font-medium">Proprietary affinity matrix intelligently connects your business with travelers whose interests align</p>
