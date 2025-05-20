@@ -124,15 +124,17 @@ export default function PartnerPage() {
         {/* Right column - Signup form */}
         <div className="w-full md:w-1/2 bg-white rounded-lg shadow-sm">
           <h2
-            className="text-3xl font-semibold mb-2"
+            className="text-3xl font-semibold mb-4"
             style={{ color: "#FF4040" }}
           >
             Join the Partner Program
           </h2>
-          <p className="mb-2">Lock in early-bird rates today.</p>
+          <div className="mb-6"> 
+          <p className="">Lock in early-bird rates today.</p>
           <p className="text-red-500 mb-6">
             Early bird partners will have access to 3 months free!
           </p>
+          </div>
 
           <form className="space-y-4">
             <div>
