@@ -122,7 +122,7 @@ export default function PartnerPage() {
 
         {/* Right column - Signup form */}
         {/* Right column - Signup form */}
-        <div className="w-full md:w-5/12 bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 transition-all hover:shadow-xl">
           <h2
             className="text-3xl font-semibold mb-4"
             style={{ color: "#FF4040" }}
