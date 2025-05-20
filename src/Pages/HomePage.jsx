@@ -24,7 +24,7 @@ export default function HomePage() {
         <img
           src={PlanieLogo2}
           alt="Planie logo"
-          className="mx-auto h-32 w-auto md:h-245 object-contain"
+          className="mx-auto w-auto h-20 md:h-32 object-contain"
         />
         <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
           Start here, go anywhere

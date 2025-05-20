@@ -198,9 +198,9 @@ export default function PartnerPage() {
       </div>
 
       {/* How We're Different section */}
-      <div className="w-full max-w-6xl mx-auto px-4 py-16">
+      <div className="w-full max-w-6xl mx-auto px-4 py-16 ">
         <h2
-          className="text-4xl font-semibold mb-12 text-center"
+          className="text-4xl font-semibold mb-20 text-center"
           style={{ color: "#FF4040", fontFamily: "'Poppins', sans-serif" }}
         >
           How We're Different
