@@ -46,9 +46,12 @@ export default function HomePage() {
       </div>
 
       <div className="w-full flex justify-center pb-[3.0rem]">
-        <img src={MapImage1} alt="Map illustration" />
+        <img
+          src={MapImage1}
+          alt="Map illustration"
+          className="w-4/5 md:w-3/4 lg:w-2/3 h-auto"
+        />
       </div>
-
       <div className="w-full my-8">
         <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 py-16 px-6">
           {/* Text section */}
