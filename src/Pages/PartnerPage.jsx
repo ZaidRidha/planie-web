@@ -18,8 +18,9 @@ export default function PartnerPage() {
           />
         </div>
       </div>
+      
       {/* Partner headline */}
-      <div className="w-full text-center my-12 mt-20 mb-20">
+      <div className="w-full text-center py-16">
         <h2
           style={{
             fontSize: "52px",
@@ -44,7 +45,7 @@ export default function PartnerPage() {
       </div>
 
       {/* Two-column partner benefits and signup section */}
-      <div className="w-full max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-8">
+      <div className="w-full max-w-6xl mx-auto px-4 py-16 flex flex-col md:flex-row gap-8">
         {/* Left column - Why Partner */}
         <div className="w-full md:w-1/2">
           <h2
@@ -189,11 +190,9 @@ export default function PartnerPage() {
             </div>
           </form>
         </div>
-
-        
       </div>
 
-         {/* How We're Different section */}
+      {/* How We're Different section */}
       <div className="w-full max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-4xl font-semibold mb-12 text-center" style={{ color: "#FF4040", fontFamily: "'Poppins', sans-serif" }}>
           How We're Different
