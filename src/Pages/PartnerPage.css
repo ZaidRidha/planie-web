@@ -14,6 +14,12 @@
   max-width: 60ch;    /* about 2xl tailwind width */
 }
 
+.why-partner-title {
+  color: #FF4040;       /* keep your brand red */
+  margin-bottom: 1rem;  /* same as mb-4 */
+  /* default text-align: left */
+}
+
 /* Mobile override: screens ≤ 640px */
 @media (max-width: 640px) {
   .partner-hero-title {
@@ -26,5 +32,9 @@
     font-size: 16px;
     width: 80%;  /* shrink on mobile */
     justify-self: center;
+  }
+
+   .why-partner-title {
+    text-align: center;
   }
 }
