@@ -1,0 +1,23 @@
+.hero-title {
+  font-size: 40px;
+  font-weight: 500; /* matches your font-medium */
+  margin-top: 2rem; /* roughly your mt-8 */
+}
+
+.hero-description {
+  color: #777;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 24px; /* whatever smaller size you like */
+  }
+
+  .hero-description {
+    font-size: 16px; /* scale down your description on mobile */
+    margin-top: 10px;
+  }
+}

@@ -2,6 +2,7 @@ import WaveHomeTop from "../Assets/Images/WavePartnerTop.png";
 import PlanieLogo2 from "../Assets/Images/PlanieLogo2.png";
 import MapImage1 from "../Assets/Images/MapImage3.png";
 import FeaturesSection from "../Sections/FeaturesSection";
+import "./HomePage.css"; // Import your CSS file
 export default function HomePage() {
   return (
     <section className="w-full">
@@ -26,20 +27,10 @@ export default function HomePage() {
           alt="Planie logo"
           className="mx-auto w-auto h-20 md:h-32 object-contain"
         />
-        <p className="mt-8 font-medium" style={{ fontSize: "40px" }}>
-          Start here, go anywhere
-        </p>
+        <p className="hero-title">Start here, go anywhere</p>
 
         {/* AI description text */}
-        <p
-          className="mt-4 mx-auto max-w-2xl"
-          style={{
-            color: "#777",
-            fontSize: "20px",
-            fontWeight: 500,
-            lineHeight: "normal",
-          }}
-        >
+        <p className="hero-description mt-4 mx-auto max-w-2xl">
           Utilize cutting edge AI-Powered Itinerary generator, and discover
           exciting places anywhere you go all within minutes.
         </p>
