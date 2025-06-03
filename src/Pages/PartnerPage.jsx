@@ -27,6 +27,33 @@ export default function PartnerPage() {
 
   const [activeFeatureId, setActiveFeatureId] = useState(features[0].id);
 
+  const handlePartnerSubmit = async (e) => {
+    e.preventDefault();
+
+    const business = e.target.business.value;
+    const email = e.target.email.value;
+    const websiteOrInstagram = e.target.website.value;
+
+    try {
+      const res = await fetch("https://api-t3s43pydha-uc.a.run.app/partner-program", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ business, email, websiteOrInstagram }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.error || "Submission failed");
+
+      alert("Thanks for applying!");
+      e.target.reset();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
   // Find the currently active feature object
   const activeFeature = features.find((f) => f.id === activeFeatureId);
   return (
@@ -145,7 +172,7 @@ export default function PartnerPage() {
             </p>
           </div>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handlePartnerSubmit}>
             <div>
               <label
                 htmlFor="business"

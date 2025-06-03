@@ -58,14 +58,27 @@ export default function HomePage() {
           {/* Form with enhanced interactivity */}
           <form
             className="flex w-full max-w-sm flex-col sm:flex-row"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              // You can add actual form submission logic here
               const email = e.target.email.value;
-              if (email) {
-                // Show success message
+
+              try {
+                const res = await fetch("https://api-t3s43pydha-uc.a.run.app/mailing-list", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ email }),
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) throw new Error(result.error || "Submission failed");
+
                 alert(`Thanks for signing up with ${email}!`);
                 e.target.reset();
+              } catch (err) {
+                alert("Error: " + err.message);
               }
             }}
           >
