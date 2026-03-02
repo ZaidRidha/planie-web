@@ -9,7 +9,10 @@
       "WebFetch(domain:web.archive.org)",
       "WebFetch(domain:apps.apple.com)",
       "WebFetch(domain:play.google.com)",
-      "Bash(npx react-scripts:*)"
+      "Bash(npx react-scripts:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

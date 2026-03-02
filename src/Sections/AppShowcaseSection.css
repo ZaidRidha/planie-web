@@ -1,0 +1,122 @@
+/* ═══════════════════════════════════════════════════════
+   App Showcase — Entrance Animation
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes showcaseFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.showcase-animate {
+  opacity: 0;
+  animation: showcaseFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.showcase-delay-1 { animation-delay: 0.1s; }
+.showcase-delay-2 { animation-delay: 0.25s; }
+.showcase-delay-3 { animation-delay: 0.45s; }
+
+/* ═══════════════════════════════════════════════════════
+   Embla Carousel Overrides
+   ═══════════════════════════════════════════════════════ */
+
+.showcase-carousel {
+  overflow: hidden;
+}
+
+.showcase-carousel__container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.showcase-carousel__slide {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0 12px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.showcase-carousel__slide:not(.is-active) {
+  transform: scale(0.88);
+  opacity: 0.5;
+}
+
+.showcase-carousel__slide.is-active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Dot Indicators
+   ═══════════════════════════════════════════════════════ */
+
+.showcase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: #D1D5DB;
+  transition: all 0.3s ease;
+}
+
+.showcase-dot.is-active {
+  background: #FF4040;
+  width: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Arrow Buttons
+   ═══════════════════════════════════════════════════════ */
+
+.showcase-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #E5E7EB;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #11181C;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.showcase-arrow:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  box-shadow: 0 4px 16px rgba(255,64,64,0.12);
+}
+
+.showcase-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced Motion
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-animate {
+    opacity: 1;
+    animation: none;
+  }
+  .showcase-carousel__slide {
+    transition: none;
+  }
+  .showcase-dot {
+    transition: none;
+  }
+}

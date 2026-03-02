@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import FeaturesSection from "../Sections/FeaturesSection";
+import AppShowcaseSection from "../Sections/AppShowcaseSection";
 import "./HomePage.css";
 
 /* ═══════════════════════════════════════════════════════
@@ -362,6 +363,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ─── App Showcase ─── */}
+      <AppShowcaseSection />
 
       {/* ─── Divider ─── */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />

@@ -1,51 +1,244 @@
-.partner-hero-title {
-  font-size: 52px;
-  font-weight: 600;
+/* ═══════════════════════════════════════════════════════
+   Partner Page — Entrance Animations
+   ═══════════════════════════════════════════════════════ */
 
-  margin: 0; /* reset any default margins if you like */
-}
-
-.partner-description {
-  color: #777777;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: normal;
-  margin-top: 1rem;   /* roughly matches your mt-4 */
-  max-width: 60ch;    /* about 2xl tailwind width */
-}
-
-.why-partner-title {
-  color: #ff2b2b;       /* keep your brand red */
-  margin-bottom: 1rem;  /* same as mb-4 */
-  /* default text-align: left */
-}
-
-.last-item{
-    font-weight: 500;
-
-}
-
-/* Mobile override: screens ≤ 640px */
-@media (max-width: 640px) {
-  .partner-hero-title {
-    font-size: 30px;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center; /* Ensure text alignment is explicitly set */
+@keyframes partnerFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
   }
-
-   .partner-description {
-    font-size: 16px;
-    width: 80%;  /* shrink on mobile */
-    justify-self: center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-   .why-partner-title {
-    text-align: center;
+.partner-animate {
+  opacity: 0;
+  animation: partnerFadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.partner-delay-1 { animation-delay: 0.1s; }
+.partner-delay-2 { animation-delay: 0.3s; }
+.partner-delay-3 { animation-delay: 0.5s; }
+
+/* ═══════════════════════════════════════════════════════
+   Orbital Graphic — Concentric Rings
+   ═══════════════════════════════════════════════════════ */
+
+.ring-center {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 64, 64, 0.35) 0%, rgba(255, 64, 64, 0.12) 60%, transparent 100%);
+  animation: ringPulse 4s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+  .ring-center {
+    width: 160px;
+    height: 160px;
   }
+}
 
-  .last-item{
-    margin-bottom: 40px;
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 64, 64, 0.25);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ring-1-size {
+  width: 260px;
+  height: 260px;
+}
+
+.ring-2-size {
+  width: 400px;
+  height: 400px;
+}
+
+.ring-3-size {
+  width: 540px;
+  height: 540px;
+}
+
+@media (min-width: 768px) {
+  .ring-1-size {
+    width: 320px;
+    height: 320px;
+  }
+  .ring-2-size {
+    width: 480px;
+    height: 480px;
+  }
+  .ring-3-size {
+    width: 640px;
+    height: 640px;
+  }
+}
+
+/* Pulse animation — each ring gently breathes at staggered times */
+@keyframes ringPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+.ring-pulse-1 {
+  animation: ringPulse 4s ease-in-out infinite;
+  animation-delay: 0s;
+  border-color: rgba(255, 64, 64, 0.4);
+}
+
+.ring-pulse-2 {
+  animation: ringPulse 5s ease-in-out infinite;
+  animation-delay: 1s;
+  border-color: rgba(255, 64, 64, 0.25);
+}
+
+.ring-pulse-3 {
+  animation: ringPulse 6s ease-in-out infinite;
+  animation-delay: 2s;
+  border-color: rgba(255, 64, 64, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Orbital Graphic — Spinning Icon Ring
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes orbitCounterSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+.orbit-spin {
+  width: 260px;
+  height: 260px;
+  animation: orbitSpin 50s linear infinite;
+}
+
+.orbit-counterspin {
+  animation: orbitCounterSpin 50s linear infinite;
+}
+
+@media (min-width: 768px) {
+  .orbit-spin {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+/* Each icon is placed on the ring edge via rotate + translate */
+.orbit-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  transform: rotate(var(--angle)) translateX(130px);
+}
+
+@media (min-width: 768px) {
+  .orbit-icon {
+    transform: rotate(var(--angle)) translateX(200px);
+  }
+}
+
+.orbit-icon-inner {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: white;
+  border: 1.5px solid rgba(255, 64, 64, 0.25);
+  color: #FF4040;
+  box-shadow: 0 4px 20px rgba(255, 64, 64, 0.18);
+  opacity: 0;
+  animation: iconFadeIn 0.7s ease forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes iconFadeIn {
+  from {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-360deg) scale(1);
+  }
+}
+
+/* keep icons upright — counter-rotation matches orbit */
+.orbit-icon-inner.orbit-counterspin {
+  animation: orbitCounterSpin 50s linear infinite, iconFadeIn 0.7s ease forwards;
+  animation-delay: 0s, var(--delay);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Dashed Connection Lines — very slow counter-rotation
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes dashSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+.dash-spin {
+  animation: dashSpin 90s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Benefit Cards
+   ═══════════════════════════════════════════════════════ */
+
+.benefit-card {
+  cursor: default;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced Motion — respect user preference
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-animate {
+    opacity: 1;
+    animation: none;
+  }
+  .orbit-spin,
+  .orbit-counterspin,
+  .orbit-icon-inner.orbit-counterspin,
+  .dash-spin {
+    animation: none;
+  }
+  .ring-pulse-1,
+  .ring-pulse-2,
+  .ring-pulse-3 {
+    animation: none;
+  }
+  .orbit-icon-inner {
+    opacity: 1;
+    animation: none;
   }
 }

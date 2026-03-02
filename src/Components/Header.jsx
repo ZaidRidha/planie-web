@@ -16,7 +16,6 @@ export default function Header() {
   const navItems = [
     { label: "Home", to: "/" },
     { label: "Partners", to: "/partners" },
-    { label: "Blog", to: "/blog" },
   ];
 
   return (
@@ -27,8 +26,8 @@ export default function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-10">
-        <div className="flex items-center justify-between h-[72px]">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10">
+        <div className="relative flex items-center justify-between h-[72px]">
           {/* ─── Logo ─── */}
           <Link to="/" className="relative z-10 shrink-0 group">
             <img
@@ -38,8 +37,8 @@ export default function Header() {
             />
           </Link>
 
-          {/* ─── Desktop Nav ─── */}
-          <nav className="hidden md:flex items-center gap-10">
+          {/* ─── Desktop Nav (truly centered) ─── */}
+          <nav className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
             {navItems.map(({ label, to }) => (
               <NavLink
                 key={label}
