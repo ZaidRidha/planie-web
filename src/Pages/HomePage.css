@@ -1,24 +1,76 @@
-.hero-title {
-  font-size: 40px;
-  font-weight: 500; /* matches your font-medium */
-  margin-top: 2rem; /* roughly your mt-8 */
-}
+/* ═══════════════════════════════════════════════════════
+   Hero Entrance Animations
+   ═══════════════════════════════════════════════════════ */
 
-.hero-description {
-  color: #777;
-  font-size: 20px;
-  font-weight: 500;
-  line-height: normal;
-}
-
-@media (max-width: 640px) {
-  .hero-title {
-    font-size: 24px; /* whatever smaller size you like */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .hero-description {
-    font-size: 16px; /* scale down your description on mobile */
-    margin-top: 10px;
-    width: 85%;
+.hero-animate {
+  opacity: 0;
+  animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-delay-1 { animation-delay: 0.1s; }
+.hero-delay-2 { animation-delay: 0.25s; }
+.hero-delay-3 { animation-delay: 0.42s; }
+.hero-delay-4 { animation-delay: 0.58s; }
+.hero-delay-5 { animation-delay: 0.75s; }
+
+/* ═══════════════════════════════════════════════════════
+   Floating Illustrations
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+@keyframes floatReverse {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(12px); }
+}
+
+.illustration-float {
+  animation: float 7s ease-in-out infinite;
+}
+
+.illustration-float-reverse {
+  animation: floatReverse 8s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Feature Strip Chips
+   ═══════════════════════════════════════════════════════ */
+
+.feature-chip {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.feature-chip:active {
+  transform: scale(0.97);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced Motion — respect user preference
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate {
+    opacity: 1;
+    animation: none;
+  }
+  .illustration-float,
+  .illustration-float-reverse {
+    animation: none;
   }
 }

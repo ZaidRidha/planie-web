@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.stippl.io)",
+      "WebFetch(domain:www.wandrly.app)",
+      "WebFetch(domain:www.producthunt.com)",
+      "WebFetch(domain:www.ibextrails.com)",
+      "WebFetch(domain:web.archive.org)",
+      "WebFetch(domain:apps.apple.com)",
+      "WebFetch(domain:play.google.com)",
+      "Bash(npx react-scripts:*)"
+    ]
+  }
+}
