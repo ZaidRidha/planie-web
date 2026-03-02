@@ -90,16 +90,16 @@ const orbitIcons = [
 const OrbitalGraphic = () => (
   <div className="orbital-container absolute inset-0 pointer-events-none" aria-hidden="true">
     {/* Pulsing concentric rings */}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2">
       {/* Solid red center glow */}
-      <div className="ring-center" />
-      <div className="ring ring-1-size ring-pulse-1" />
-      <div className="ring ring-2-size ring-pulse-2" />
-      <div className="ring ring-3-size ring-pulse-3" />
+      <div className="orbit-ring-center" />
+      <div className="orbit-ring orbit-ring-1 orbit-ring-pulse-1" />
+      <div className="orbit-ring orbit-ring-2 orbit-ring-pulse-2" />
+      <div className="orbit-ring orbit-ring-3 orbit-ring-pulse-3" />
     </div>
 
     {/* Orbiting icons */}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 orbit-spin">
+    <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 orbit-spin">
       {orbitIcons.map(({ Icon, angle, delay }, i) => (
         <div
           key={i}
@@ -117,7 +117,7 @@ const OrbitalGraphic = () => (
     </div>
 
     {/* Dashed connection lines radiating from center */}
-    <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[620px] md:h-[620px] dash-spin" viewBox="0 0 620 620" fill="none">
+    <svg className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[620px] md:h-[620px] dash-spin" viewBox="0 0 620 620" fill="none">
       {[0, 60, 120, 180, 240, 300].map((angle) => (
         <line
           key={angle}
@@ -157,12 +157,6 @@ export default function PartnerPage() {
 
         {/* Hero content */}
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-          {/* Badge */}
-          <div className="partner-animate partner-delay-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF4040]/[0.07] text-[#FF4040] text-sm font-semibold mb-6">
-            <Megaphone size={14} strokeWidth={2.2} />
-            Partner Program
-          </div>
-
           <h1 className="partner-animate partner-delay-1">
             <span className="block text-[clamp(2.5rem,5.5vw,4.25rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#11181C]">
               Become a{" "}

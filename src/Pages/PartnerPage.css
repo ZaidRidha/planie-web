@@ -26,7 +26,7 @@
    Orbital Graphic — Concentric Rings
    ═══════════════════════════════════════════════════════ */
 
-.ring-center {
+.orbit-ring-center {
   position: absolute;
   width: 120px;
   height: 120px;
@@ -39,13 +39,13 @@
 }
 
 @media (min-width: 768px) {
-  .ring-center {
+  .orbit-ring-center {
     width: 160px;
     height: 160px;
   }
 }
 
-.ring {
+.orbit-ring {
   position: absolute;
   border-radius: 50%;
   border: 2px solid rgba(255, 64, 64, 0.25);
@@ -54,31 +54,31 @@
   transform: translate(-50%, -50%);
 }
 
-.ring-1-size {
+.orbit-ring-1 {
   width: 260px;
   height: 260px;
 }
 
-.ring-2-size {
+.orbit-ring-2 {
   width: 400px;
   height: 400px;
 }
 
-.ring-3-size {
+.orbit-ring-3 {
   width: 540px;
   height: 540px;
 }
 
 @media (min-width: 768px) {
-  .ring-1-size {
+  .orbit-ring-1 {
     width: 320px;
     height: 320px;
   }
-  .ring-2-size {
+  .orbit-ring-2 {
     width: 480px;
     height: 480px;
   }
-  .ring-3-size {
+  .orbit-ring-3 {
     width: 640px;
     height: 640px;
   }
@@ -96,19 +96,19 @@
   }
 }
 
-.ring-pulse-1 {
+.orbit-ring-pulse-1 {
   animation: ringPulse 4s ease-in-out infinite;
   animation-delay: 0s;
   border-color: rgba(255, 64, 64, 0.4);
 }
 
-.ring-pulse-2 {
+.orbit-ring-pulse-2 {
   animation: ringPulse 5s ease-in-out infinite;
   animation-delay: 1s;
   border-color: rgba(255, 64, 64, 0.25);
 }
 
-.ring-pulse-3 {
+.orbit-ring-pulse-3 {
   animation: ringPulse 6s ease-in-out infinite;
   animation-delay: 2s;
   border-color: rgba(255, 64, 64, 0.15);
@@ -129,20 +129,13 @@
 }
 
 .orbit-spin {
-  width: 260px;
-  height: 260px;
+  width: 0;
+  height: 0;
   animation: orbitSpin 50s linear infinite;
 }
 
 .orbit-counterspin {
   animation: orbitCounterSpin 50s linear infinite;
-}
-
-@media (min-width: 768px) {
-  .orbit-spin {
-    width: 400px;
-    height: 400px;
-  }
 }
 
 /* Each icon is placed on the ring edge via rotate + translate */
@@ -154,12 +147,12 @@
   height: 44px;
   margin-left: -22px;
   margin-top: -22px;
-  transform: rotate(var(--angle)) translateX(130px);
+  transform: rotate(var(--angle)) translateX(200px);
 }
 
 @media (min-width: 768px) {
   .orbit-icon {
-    transform: rotate(var(--angle)) translateX(200px);
+    transform: rotate(var(--angle)) translateX(240px);
   }
 }
 
@@ -232,9 +225,9 @@
   .dash-spin {
     animation: none;
   }
-  .ring-pulse-1,
-  .ring-pulse-2,
-  .ring-pulse-3 {
+  .orbit-ring-pulse-1,
+  .orbit-ring-pulse-2,
+  .orbit-ring-pulse-3 {
     animation: none;
   }
   .orbit-icon-inner {
