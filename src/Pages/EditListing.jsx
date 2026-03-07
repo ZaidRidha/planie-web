@@ -18,7 +18,7 @@ import {
   CreditCard,
   CheckCircle,
 } from "lucide-react";
-import PlanieLogo from "../Assets/Images/PlanieLogo1.png";
+import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 

@@ -30,8 +30,18 @@ import {
   Trash2,
   ExternalLink,
   Clock,
+  User,
+  Building2,
+  Mail,
+  Phone,
+  Globe,
+  Bell,
+  BellOff,
+  Lock,
+  Shield,
+  ChevronDown,
 } from "lucide-react";
-import PlanieLogo from "../Assets/Images/PlanieLogo1.png";
+import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import "./PartnerDashboard.css";
 
 /* ─── Animated counter ─── */
@@ -215,6 +225,7 @@ const plans = [
 const statusFilters = ["All", "Active", "Pending", "Inactive"];
 
 function ListingsTab() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
@@ -323,7 +334,7 @@ function ListingsTab() {
                     </button>
                     {openMenu === l.name && (
                       <div className="pd-ml-card-dropdown">
-                        <button className="pd-ml-dropdown-item">
+                        <button className="pd-ml-dropdown-item" onClick={() => navigate(`/partners/edit-listing/${toSlug(l.name)}`)}>
                           <Pencil size={14} /> Edit Listing
                         </button>
                         <button className="pd-ml-dropdown-item">
@@ -507,6 +518,205 @@ function BillingTab() {
   );
 }
 
+/* ─── Settings Tab ─── */
+function SettingsTab() {
+  const [notifs, setNotifs] = useState({
+    newBookings: true,
+    weeklyReport: true,
+    listingUpdates: false,
+    promotions: false,
+  });
+
+  const [profileOpen, setProfileOpen] = useState(true);
+  const [notifsOpen, setNotifsOpen] = useState(true);
+  const [securityOpen, setSecurityOpen] = useState(true);
+
+  const toggleNotif = (key) =>
+    setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const notifItems = [
+    { key: "newBookings", label: "New bookings & inquiries", desc: "Get notified when a traveler books or contacts you" },
+    { key: "weeklyReport", label: "Weekly performance report", desc: "Receive a summary of your listings' performance every Monday" },
+    { key: "listingUpdates", label: "Listing review updates", desc: "Notifications when your listings are approved or need changes" },
+    { key: "promotions", label: "Promotions & tips", desc: "Occasional tips to improve your listings and grow your business" },
+  ];
+
+  return (
+    <>
+      <header className="pd-head pd-anim pd-a1">
+        <div>
+          <h1 className="pd-title">Settings</h1>
+          <p className="pd-subtitle">Manage your account preferences and security</p>
+        </div>
+      </header>
+
+      {/* ── Business Profile ── */}
+      <div className="pd-set-section pd-anim pd-a2">
+        <button className="pd-set-section-header" onClick={() => setProfileOpen(!profileOpen)}>
+          <div className="pd-set-section-left">
+            <div className="pd-set-section-icon">
+              <Building2 size={18} strokeWidth={1.7} />
+            </div>
+            <div>
+              <h3 className="pd-set-section-title">Business Profile</h3>
+              <p className="pd-set-section-desc">Your business information visible to travelers</p>
+            </div>
+          </div>
+          <ChevronDown size={18} className={`pd-set-chevron${profileOpen ? " pd-set-chevron--open" : ""}`} />
+        </button>
+
+        {profileOpen && (
+          <div className="pd-set-section-body">
+            <div className="pd-set-field-grid">
+              <div className="pd-set-field">
+                <label className="pd-set-label">Business Name</label>
+                <div className="pd-set-input-wrap">
+                  <Building2 size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" defaultValue="Sunset Hospitality Group" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Contact Email</label>
+                <div className="pd-set-input-wrap">
+                  <Mail size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="email" className="pd-set-input" defaultValue="hello@sunsethospitality.com" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Phone Number</label>
+                <div className="pd-set-input-wrap">
+                  <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="tel" className="pd-set-input" defaultValue="+971 4 123 4567" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Website</label>
+                <div className="pd-set-input-wrap">
+                  <Globe size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="url" className="pd-set-input" defaultValue="https://sunsethospitality.com" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pd-set-field" style={{ marginTop: 4 }}>
+              <label className="pd-set-label">Business Description</label>
+              <textarea
+                className="pd-set-textarea"
+                rows={3}
+                defaultValue="A leading hospitality group offering premium dining, nightlife, and wellness experiences across the Middle East and beyond."
+              />
+            </div>
+
+            <div className="pd-set-field-actions">
+              <button className="pd-btn pd-btn--fill">Save Changes</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Notifications ── */}
+      <div className="pd-set-section pd-anim pd-a3">
+        <button className="pd-set-section-header" onClick={() => setNotifsOpen(!notifsOpen)}>
+          <div className="pd-set-section-left">
+            <div className="pd-set-section-icon">
+              <Bell size={18} strokeWidth={1.7} />
+            </div>
+            <div>
+              <h3 className="pd-set-section-title">Notifications</h3>
+              <p className="pd-set-section-desc">Choose what email notifications you receive</p>
+            </div>
+          </div>
+          <ChevronDown size={18} className={`pd-set-chevron${notifsOpen ? " pd-set-chevron--open" : ""}`} />
+        </button>
+
+        {notifsOpen && (
+          <div className="pd-set-section-body">
+            {notifItems.map((item) => (
+              <div key={item.key} className="pd-set-toggle-row">
+                <div className="pd-set-toggle-info">
+                  <span className="pd-set-toggle-label">{item.label}</span>
+                  <span className="pd-set-toggle-desc">{item.desc}</span>
+                </div>
+                <button
+                  className={`pd-set-toggle${notifs[item.key] ? " pd-set-toggle--on" : ""}`}
+                  onClick={() => toggleNotif(item.key)}
+                >
+                  <span className="pd-set-toggle-knob" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Security ── */}
+      <div className="pd-set-section pd-anim pd-a3">
+        <button className="pd-set-section-header" onClick={() => setSecurityOpen(!securityOpen)}>
+          <div className="pd-set-section-left">
+            <div className="pd-set-section-icon">
+              <Shield size={18} strokeWidth={1.7} />
+            </div>
+            <div>
+              <h3 className="pd-set-section-title">Security</h3>
+              <p className="pd-set-section-desc">Password and authentication settings</p>
+            </div>
+          </div>
+          <ChevronDown size={18} className={`pd-set-chevron${securityOpen ? " pd-set-chevron--open" : ""}`} />
+        </button>
+
+        {securityOpen && (
+          <div className="pd-set-section-body">
+            <div className="pd-set-security-item">
+              <div className="pd-set-security-info">
+                <div className="pd-set-security-icon">
+                  <Lock size={16} strokeWidth={1.7} />
+                </div>
+                <div>
+                  <h4 className="pd-set-security-title">Password</h4>
+                  <p className="pd-set-security-desc">Last changed 3 months ago</p>
+                </div>
+              </div>
+              <button className="pd-btn pd-btn--ghost">Change Password</button>
+            </div>
+
+            <div className="pd-set-security-item">
+              <div className="pd-set-security-info">
+                <div className="pd-set-security-icon">
+                  <Shield size={16} strokeWidth={1.7} />
+                </div>
+                <div>
+                  <h4 className="pd-set-security-title">Two-Factor Authentication</h4>
+                  <p className="pd-set-security-desc">Add an extra layer of security to your account</p>
+                </div>
+              </div>
+              <button className="pd-btn pd-btn--ghost">Enable 2FA</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Danger Zone ── */}
+      <div className="pd-set-section pd-set-section--danger pd-anim pd-a4">
+        <div className="pd-set-danger-content">
+          <div className="pd-set-danger-info">
+            <div className="pd-set-section-icon pd-set-section-icon--danger">
+              <AlertCircle size={18} strokeWidth={1.7} />
+            </div>
+            <div>
+              <h3 className="pd-set-section-title">Delete Account</h3>
+              <p className="pd-set-section-desc">Permanently remove your account and all associated data. This action cannot be undone.</p>
+            </div>
+          </div>
+          <button className="pd-btn pd-btn--danger">Delete Account</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════ */
 
 export default function PartnerDashboard() {
@@ -555,6 +765,8 @@ export default function PartnerDashboard() {
           <ListingsTab />
         ) : activeTab === "Billing" ? (
           <BillingTab />
+        ) : activeTab === "Settings" ? (
+          <SettingsTab />
         ) : (
           <>
             {/* Header */}
@@ -564,7 +776,7 @@ export default function PartnerDashboard() {
                 <p className="pd-subtitle">Here's how your listings are performing this week</p>
               </div>
               <div className="pd-actions">
-                <button className="pd-btn pd-btn--ghost">
+                <button className="pd-btn pd-btn--ghost" onClick={() => setActiveTab("My Listings")}>
                   <Pencil size={15} strokeWidth={2} />
                   Edit Listing
                 </button>
@@ -658,9 +870,9 @@ export default function PartnerDashboard() {
                     <span className={`pd-badge pd-badge--${l.status}`}>
                       {l.status === "active" ? "Active" : "Pending"}
                     </span>
-                    <button className="pd-item-edit">
+                    <Link to={`/partners/edit-listing/${toSlug(l.name)}`} className="pd-item-edit">
                       <Pencil size={14} strokeWidth={1.8} />
-                    </button>
+                    </Link>
                   </div>
                 ))}
               </div>

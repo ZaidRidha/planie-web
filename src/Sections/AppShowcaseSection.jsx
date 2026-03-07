@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Sparkles,
+  Wand2,
   FileText,
   Map,
   Compass,
@@ -17,7 +17,7 @@ import VibeSelection from "../Components/MockupScreens/VibeSelection";
 import "./AppShowcaseSection.css";
 
 const slides = [
-  { component: PlanningWizard, label: "Planning Wizard", icon: Sparkles },
+  { component: PlanningWizard, label: "Planning Wizard", icon: Wand2 },
   { component: GeneratedItinerary, label: "AI Itinerary", icon: FileText },
   { component: MapView, label: "Map View", icon: Map },
   { component: DiscoveryFeed, label: "Discovery Feed", icon: Compass },
