@@ -19,6 +19,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import ListingPreview from "../Components/ListingPreview";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 
@@ -389,6 +390,9 @@ export default function AddListing() {
               />
             </div>
           </section>
+
+          {/* ── Preview ── */}
+          <ListingPreview form={form} imagePreview={imagePreview} />
 
           {/* ── Submit ── */}
           <div className="al-submit-row pd-animate pd-d4">

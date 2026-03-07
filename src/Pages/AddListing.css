@@ -432,6 +432,137 @@
 }
 
 /* ═══════════════════════════════════════════════════════
+   Listing Preview
+   ═══════════════════════════════════════════════════════ */
+
+.al-preview-section {
+  background: #ffffff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.al-preview-title {
+  margin-bottom: 6px !important;
+}
+
+.al-preview-desc {
+  font-size: 13.5px;
+  color: #9CA3AF;
+  margin-bottom: 28px;
+}
+
+.al-preview-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* Phone frame */
+.al-preview-phone {
+  flex-shrink: 0;
+}
+
+.al-preview-phone-frame {
+  position: relative;
+  width: 220px;
+  height: 440px;
+  border-radius: 30px;
+  background: #11181C;
+  padding: 5px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.al-preview-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 20px;
+  background: #11181C;
+  border-radius: 0 0 14px 14px;
+  z-index: 2;
+}
+
+.al-preview-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  overflow: hidden;
+  background: #FAFAFA;
+  position: relative;
+}
+
+.al-preview-statusbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 6px 16px 2px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.al-preview-home-indicator {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 3.5px;
+  border-radius: 99px;
+  background: rgba(17, 24, 28, 0.18);
+}
+
+/* Info side */
+.al-preview-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.al-preview-info-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 12px;
+  background: #F9FAFB;
+  border: 1px solid #F0F0F3;
+  transition: all 0.2s ease;
+}
+
+.al-preview-info-card:hover {
+  background: #F5F5F8;
+  border-color: #E5E7EB;
+}
+
+.al-preview-info-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.al-preview-info-card h4 {
+  font-size: 14px;
+  font-weight: 580;
+  color: #11181C;
+  margin-bottom: 3px;
+}
+
+.al-preview-info-card p {
+  font-size: 12.5px;
+  color: #687076;
+  line-height: 1.45;
+}
+
+/* ═══════════════════════════════════════════════════════
    Responsive
    ═══════════════════════════════════════════════════════ */
 
@@ -480,5 +611,15 @@
   .al-success-actions .pd-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .al-preview-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .al-preview-info {
+    width: 100%;
   }
 }

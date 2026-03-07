@@ -1212,6 +1212,369 @@
 }
 
 /* ═══════════════════════════════════════════════════════
+   Analytics Tab
+   ═══════════════════════════════════════════════════════ */
+
+/* Time range selector */
+.pd-an-range {
+  display: flex;
+  background: #F5F5F8;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.pd-an-range-btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #687076;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pd-an-range-btn:hover {
+  color: #11181C;
+}
+
+.pd-an-range-btn--on {
+  background: #fff;
+  color: #11181C;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Stat cards */
+.pd-an-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.pd-an-stat {
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pd-an-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-an-stat-icon--red { background: #FFF0EB; color: #FF4040; }
+.pd-an-stat-icon--blue { background: #EFF6FF; color: #3B82F6; }
+.pd-an-stat-icon--green { background: #ECFDF5; color: #10B981; }
+.pd-an-stat-icon--amber { background: #FFFBEB; color: #F59E0B; }
+
+.pd-an-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pd-an-stat-lbl {
+  font-size: 12px;
+  font-weight: 450;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pd-an-stat-val {
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: #11181C;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* Analytics chart */
+.pd-an-chart {
+  width: 100%;
+  height: auto;
+}
+
+/* Per-listing table */
+.pd-an-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-an-table-header {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  gap: 12px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #F0F0F3;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pd-an-table-row {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #F5F5F8;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.pd-an-table-row:last-child {
+  border-bottom: none;
+}
+
+.pd-an-table-row:hover {
+  background: #FAFBFC;
+  margin: 0 -24px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  border-bottom-color: transparent;
+}
+
+.pd-an-table-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pd-an-table-av {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #F5F5F8;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-an-table-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 530;
+  color: #11181C;
+  margin-bottom: 2px;
+}
+
+.pd-an-table-loc {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.pd-an-table-val {
+  font-size: 14px;
+  font-weight: 530;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pd-an-table-val--accent {
+  color: #FF4040;
+  font-weight: 600;
+}
+
+/* Bottom 3-col grid */
+.pd-an-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.pd-an-bottom .pd-card {
+  margin-bottom: 0;
+}
+
+/* Device donut */
+.pd-an-device-donut {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 16px;
+}
+
+/* Horizontal bar chart */
+.pd-an-hbar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-an-hbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pd-an-hbar-label {
+  font-size: 13px;
+  color: #687076;
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.pd-an-hbar-track {
+  flex: 1;
+  height: 6px;
+  background: #F5F5F8;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pd-an-hbar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1s ease-out;
+}
+
+.pd-an-hbar-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: #11181C;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Countries */
+.pd-an-countries {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pd-an-country-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pd-an-country-name {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 480;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.pd-an-country-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #F5F5F8;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pd-an-country-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF4040, #FF6B6B);
+  border-radius: 99px;
+  transition: width 1s ease-out;
+}
+
+.pd-an-country-views {
+  font-size: 12.5px;
+  color: #687076;
+  width: 42px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pd-an-country-pct {
+  font-size: 12.5px;
+  font-weight: 620;
+  color: #11181C;
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Referrers */
+.pd-an-referrers {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pd-an-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F5F5F8;
+}
+
+.pd-an-ref-row:last-child {
+  border-bottom: none;
+}
+
+.pd-an-ref-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: #F5F5F8;
+  font-size: 12px;
+  font-weight: 650;
+  color: #687076;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-an-ref-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pd-an-ref-source {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #11181C;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-an-ref-visits {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* ═══════════════════════════════════════════════════════
    Settings Tab
    ═══════════════════════════════════════════════════════ */
 
@@ -1542,11 +1905,20 @@
 @media (max-width: 1100px) {
   .pd-row { grid-template-columns: 1fr; }
   .pd-billing-plans { grid-template-columns: 1fr 1fr; }
+  .pd-an-bottom { grid-template-columns: 1fr 1fr; }
+  .pd-an-bottom .pd-card:last-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 900px) {
   .pd-stats { grid-template-columns: repeat(2, 1fr); }
   .pd-ml-card-stats { flex-wrap: wrap; gap: 14px; }
+  .pd-an-stats { grid-template-columns: repeat(2, 1fr); }
+  .pd-an-bottom { grid-template-columns: 1fr; }
+  .pd-an-bottom .pd-card:last-child { grid-column: auto; }
+  .pd-an-table-header,
+  .pd-an-table-row { grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr; }
+  .pd-an-table-header span:nth-child(5),
+  .pd-an-table-row .pd-an-table-val:nth-child(5) { display: none; }
 }
 
 @media (max-width: 768px) {
@@ -1574,11 +1946,21 @@
   .pd-set-danger-content { flex-direction: column; align-items: flex-start; }
   .pd-set-security-item { flex-direction: column; align-items: flex-start; }
   .pd-set-security-item .pd-btn { align-self: flex-start; }
+  .pd-an-stats { grid-template-columns: 1fr 1fr; }
+  .pd-an-range { align-self: flex-start; }
+  .pd-an-table-header,
+  .pd-an-table-row { grid-template-columns: 1.5fr 0.8fr 0.8fr; }
+  .pd-an-table-header span:nth-child(4),
+  .pd-an-table-header span:nth-child(5),
+  .pd-an-table-row .pd-an-table-val:nth-child(4),
+  .pd-an-table-row .pd-an-table-val:nth-child(5) { display: none; }
+  .pd-an-country-name { width: 80px; }
 }
 
 @media (max-width: 480px) {
   .pd-stats { grid-template-columns: 1fr; }
   .pd-ml-summary { grid-template-columns: repeat(2, 1fr); }
+  .pd-an-stats { grid-template-columns: 1fr; }
 }
 
 /* ── Reduced motion ── */

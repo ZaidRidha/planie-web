@@ -221,6 +221,340 @@ const plans = [
   },
 ];
 
+/* ─── Analytics data ─── */
+const monthLabels = ["Feb 5","Feb 12","Feb 19","Feb 26","Mar 5","Mar 12","Mar 19","Mar 26","Apr 2","Apr 9","Apr 16","Apr 23"];
+const monthViews = [1800,2200,1950,2600,2400,3100,2800,3400,3200,3600,3900,4200];
+const monthClicks = [420,530,470,640,580,760,690,850,780,900,960,1020];
+const monthConversions = [85,110,95,130,120,155,140,175,160,185,198,210];
+
+const deviceData = [
+  { label: "Mobile", value: 58, color: "#FF4040" },
+  { label: "Desktop", value: 32, color: "#11181C" },
+  { label: "Tablet", value: 10, color: "#D1D5DB" },
+];
+
+const topCountries = [
+  { country: "United States", views: 1420, pct: 28 },
+  { country: "United Kingdom", views: 890, pct: 17 },
+  { country: "France", views: 720, pct: 14 },
+  { country: "Germany", views: 580, pct: 11 },
+  { country: "UAE", views: 460, pct: 9 },
+  { country: "Others", views: 1130, pct: 21 },
+];
+
+const topReferrers = [
+  { source: "planie.app/discover", visits: 1760, change: "+14%" },
+  { source: "AI Itinerary Builder", visits: 1302, change: "+22%" },
+  { source: "Google Search", visits: 756, change: "+5%" },
+  { source: "Instagram Link", visits: 412, change: "+31%" },
+  { source: "Direct / Bookmark", visits: 310, change: "-3%" },
+];
+
+/* ─── Analytics Chart ─── */
+function AnalyticsLineChart({ labels, datasets, height = 220 }) {
+  const w = 680, h = height, px = 48, py = 20;
+  const iw = w - px * 2, ih = h - py * 2;
+  const allVals = datasets.flatMap((d) => d.data);
+  const maxV = Math.max(...allVals);
+
+  const pt = (data, i) => ({
+    x: px + (i / (data.length - 1)) * iw,
+    y: py + ih - (data[i] / maxV) * ih,
+  });
+
+  const buildLine = (data) =>
+    data.map((_, i) => { const { x, y } = pt(data, i); return `${i ? "L" : "M"}${x},${y}`; }).join(" ");
+
+  const buildArea = (data) => {
+    const l = buildLine(data);
+    const last = pt(data, data.length - 1);
+    const first = pt(data, 0);
+    return `${l} L${last.x},${h - py} L${first.x},${h - py} Z`;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="pd-an-chart">
+      <defs>
+        {datasets.map((ds, di) => (
+          <linearGradient key={di} id={`anGrad${di}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={ds.color} stopOpacity="0.08" />
+            <stop offset="100%" stopColor={ds.color} stopOpacity="0" />
+          </linearGradient>
+        ))}
+      </defs>
+
+      {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+        const y = py + ih - f * ih;
+        return (
+          <g key={f}>
+            <line x1={px} y1={y} x2={w - px} y2={y} stroke="#F0F0F3" strokeWidth="1" />
+            <text x={px - 8} y={y + 3.5} textAnchor="end" className="pd-chart-lbl">
+              {maxV >= 1000 ? `${(Math.round(f * maxV) / 1000).toFixed(1)}k` : Math.round(f * maxV)}
+            </text>
+          </g>
+        );
+      })}
+
+      {labels.map((label, i) => {
+        if (i % 2 !== 0 && labels.length > 8) return null;
+        const x = px + (i / (labels.length - 1)) * iw;
+        return (
+          <text key={label} x={x} y={h - 1} textAnchor="middle" className="pd-chart-lbl">{label}</text>
+        );
+      })}
+
+      {datasets.map((ds, di) => (
+        <g key={di}>
+          <path d={buildArea(ds.data)} fill={`url(#anGrad${di})`} className="pd-chart-area" />
+          <path
+            d={buildLine(ds.data)}
+            fill="none"
+            stroke={ds.color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={di === 0 ? 1 : 0.5}
+            className="pd-chart-line"
+          />
+          {ds.data.map((_, i) => {
+            const { x, y } = pt(ds.data, i);
+            return (
+              <circle
+                key={i}
+                cx={x}
+                cy={y}
+                r="3"
+                fill="#fff"
+                stroke={ds.color}
+                strokeWidth="1.5"
+                className="pd-chart-dot"
+                style={{ animationDelay: `${i * 0.04 + 0.6 + di * 0.2}s` }}
+              />
+            );
+          })}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/* ─── Horizontal Bar Chart ─── */
+function HBarChart({ data, maxVal }) {
+  return (
+    <div className="pd-an-hbar-list">
+      {data.map((d) => (
+        <div key={d.label || d.country || d.source} className="pd-an-hbar-row">
+          <span className="pd-an-hbar-label">{d.label || d.country || d.source}</span>
+          <div className="pd-an-hbar-track">
+            <div
+              className="pd-an-hbar-fill"
+              style={{ width: `${((d.value || d.pct || 0) / maxVal) * 100}%`, background: d.color || "#FF4040" }}
+            />
+          </div>
+          <span className="pd-an-hbar-val">{d.value || d.pct}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Analytics Tab ─── */
+const timeRanges = ["7 Days", "30 Days", "90 Days"];
+
+function AnalyticsTab() {
+  const [range, setRange] = useState("30 Days");
+
+  const totalViews = useCounter(34200, 1400, 200);
+  const totalClicks = useCounter(8580, 1400, 300);
+  const totalConv = useCounter(1765, 1200, 400);
+  const avgRating = 4.72;
+  const bounceRate = 24;
+  const avgDuration = "2m 34s";
+
+  return (
+    <>
+      <header className="pd-head pd-anim pd-a1">
+        <div>
+          <h1 className="pd-title">Analytics</h1>
+          <p className="pd-subtitle">Deep dive into your listings' performance and visitor behavior</p>
+        </div>
+        <div className="pd-an-range">
+          {timeRanges.map((t) => (
+            <button
+              key={t}
+              className={`pd-an-range-btn${range === t ? " pd-an-range-btn--on" : ""}`}
+              onClick={() => setRange(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Stat cards */}
+      <div className="pd-an-stats pd-anim pd-a2">
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--red"><Eye size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Total Views</span>
+            <span className="pd-an-stat-val">{totalViews.toLocaleString()}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 12.5%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--blue"><MousePointerClick size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Total Clicks</span>
+            <span className="pd-an-stat-val">{totalClicks.toLocaleString()}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 8.3%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--green"><DollarSign size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Conversions</span>
+            <span className="pd-an-stat-val">{totalConv.toLocaleString()}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 18.7%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--amber"><Star size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Avg. Rating</span>
+            <span className="pd-an-stat-val">{avgRating}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 0.3</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon" style={{ background: "#F3F4F6", color: "#6B7280" }}><TrendingUp size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Bounce Rate</span>
+            <span className="pd-an-stat-val">{bounceRate}%</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--dn"><ArrowDownRight size={12} /> 2.1%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon" style={{ background: "#EFF6FF", color: "#3B82F6" }}><Clock size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Avg. Duration</span>
+            <span className="pd-an-stat-val">{avgDuration}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 12s</div>
+        </div>
+      </div>
+
+      {/* Views & Clicks over time */}
+      <div className="pd-card pd-anim pd-a3">
+        <div className="pd-card-top">
+          <h3>Views, Clicks & Conversions</h3>
+          <div className="pd-legend">
+            <span><span className="pd-dot" style={{ background: "#FF4040" }} />Views</span>
+            <span><span className="pd-dot" style={{ background: "#3B82F6" }} />Clicks</span>
+            <span><span className="pd-dot" style={{ background: "#10B981" }} />Conversions</span>
+          </div>
+        </div>
+        <AnalyticsLineChart
+          labels={monthLabels}
+          datasets={[
+            { data: monthViews, color: "#FF4040" },
+            { data: monthClicks, color: "#3B82F6" },
+            { data: monthConversions, color: "#10B981" },
+          ]}
+        />
+      </div>
+
+      {/* Per-listing breakdown */}
+      <div className="pd-card pd-anim pd-a3" style={{ marginTop: 16 }}>
+        <div className="pd-card-top">
+          <h3>Per-Listing Breakdown</h3>
+        </div>
+        <div className="pd-an-table">
+          <div className="pd-an-table-header">
+            <span>Listing</span>
+            <span>Views</span>
+            <span>Clicks</span>
+            <span>CTR</span>
+            <span>Rating</span>
+          </div>
+          {listings.filter((l) => l.status === "active").map((l) => {
+            const ctr = ((l.clicks / l.views) * 100).toFixed(1);
+            return (
+              <div key={l.name} className="pd-an-table-row">
+                <div className="pd-an-table-name">
+                  <div className="pd-an-table-av"><Store size={16} strokeWidth={1.5} /></div>
+                  <div>
+                    <span className="pd-an-table-title">{l.name}</span>
+                    <span className="pd-an-table-loc"><MapPin size={10} /> {l.location}</span>
+                  </div>
+                </div>
+                <span className="pd-an-table-val">{l.views.toLocaleString()}</span>
+                <span className="pd-an-table-val">{l.clicks.toLocaleString()}</span>
+                <span className="pd-an-table-val pd-an-table-val--accent">{ctr}%</span>
+                <span className="pd-an-table-val">
+                  <Star size={12} fill="#F59E0B" stroke="#F59E0B" /> {l.rating}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bottom row: Devices + Geography + Referrers */}
+      <div className="pd-an-bottom pd-anim pd-a4">
+        {/* Devices */}
+        <div className="pd-card">
+          <div className="pd-card-top"><h3>Devices</h3></div>
+          <div className="pd-an-device-donut">
+            <Donut size={130} />
+            <div className="pd-donut-ctr">
+              <span className="pd-donut-num" style={{ fontSize: "1.2rem" }}>58%</span>
+              <span className="pd-donut-lbl">Mobile</span>
+            </div>
+          </div>
+          <HBarChart data={deviceData} maxVal={60} />
+        </div>
+
+        {/* Top Countries */}
+        <div className="pd-card">
+          <div className="pd-card-top"><h3>Top Countries</h3></div>
+          <div className="pd-an-countries">
+            {topCountries.map((c) => (
+              <div key={c.country} className="pd-an-country-row">
+                <span className="pd-an-country-name">{c.country}</span>
+                <div className="pd-an-country-bar-wrap">
+                  <div className="pd-an-country-bar" style={{ width: `${(c.pct / 28) * 100}%` }} />
+                </div>
+                <span className="pd-an-country-views">{c.views.toLocaleString()}</span>
+                <span className="pd-an-country-pct">{c.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Referrers */}
+        <div className="pd-card">
+          <div className="pd-card-top"><h3>Top Referrers</h3></div>
+          <div className="pd-an-referrers">
+            {topReferrers.map((r, i) => (
+              <div key={r.source} className="pd-an-ref-row">
+                <span className="pd-an-ref-rank">{i + 1}</span>
+                <div className="pd-an-ref-info">
+                  <span className="pd-an-ref-source">{r.source}</span>
+                  <span className="pd-an-ref-visits">{r.visits.toLocaleString()} visits</span>
+                </div>
+                <span className={`pd-stat-chg ${r.change.startsWith("+") ? "pd-stat-chg--up" : "pd-stat-chg--dn"}`}>
+                  {r.change.startsWith("+") ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {r.change}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ─── Listings Tab ─── */
 const statusFilters = ["All", "Active", "Pending", "Inactive"];
 
@@ -763,6 +1097,8 @@ export default function PartnerDashboard() {
       <main className="pd-main">
         {activeTab === "My Listings" ? (
           <ListingsTab />
+        ) : activeTab === "Analytics" ? (
+          <AnalyticsTab />
         ) : activeTab === "Billing" ? (
           <BillingTab />
         ) : activeTab === "Settings" ? (

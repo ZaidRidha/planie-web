@@ -18,6 +18,7 @@ import {
   CreditCard,
   CheckCircle,
 } from "lucide-react";
+import ListingPreview from "../Components/ListingPreview";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
@@ -488,6 +489,9 @@ export default function EditListing() {
               />
             </div>
           </section>
+
+          {/* Preview */}
+          <ListingPreview form={form} imagePreview={imagePreview} />
 
           {/* Submit */}
           <div className="al-submit-row pd-animate pd-d4">
