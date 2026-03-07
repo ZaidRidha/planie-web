@@ -3,23 +3,39 @@ import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import HomePage from "./Pages/HomePage";
 import PartnerPage from "./Pages/PartnerPage";
+import PartnerLoginPage from "./Pages/PartnerLoginPage";
+import PartnerDashboard from "./Pages/PartnerDashboard";
+import AddListing from "./Pages/AddListing";
+import EditListing from "./Pages/EditListing";
 import "./index.css"; // Tailwind directives live here
 
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <Header />
+      <Routes>
+        {/* Partner pages — standalone, no header/footer */}
+        <Route path="/partners/login" element={<PartnerLoginPage />} />
+        <Route path="/partners/dashboard" element={<PartnerDashboard />} />
+        <Route path="/partners/add-listing" element={<AddListing />} />
+        <Route path="/partners/edit-listing/:slug" element={<EditListing />} />
 
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage/>} />
-            <Route path="/partners" element={<PartnerPage />} />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
+        {/* Main layout */}
+        <Route
+          path="*"
+          element={
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/partners" element={<PartnerPage />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          }
+        />
+      </Routes>
     </Router>
   );
 }

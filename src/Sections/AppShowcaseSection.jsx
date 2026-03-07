@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Sparkles,
+  FileText,
+  Map,
+  Compass,
+  Palette,
+} from "lucide-react";
 
 import PhoneMockup from "../Components/PhoneMockup";
 import PlanningWizard from "../Components/MockupScreens/PlanningWizard";
@@ -12,45 +17,62 @@ import VibeSelection from "../Components/MockupScreens/VibeSelection";
 import "./AppShowcaseSection.css";
 
 const slides = [
-  { component: PlanningWizard, label: "Planning Wizard" },
-  { component: GeneratedItinerary, label: "AI Itinerary" },
-  { component: MapView, label: "Map View" },
-  { component: DiscoveryFeed, label: "Discovery Feed" },
-  { component: VibeSelection, label: "Vibe Selection" },
+  { component: PlanningWizard, label: "Planning Wizard", icon: Sparkles },
+  { component: GeneratedItinerary, label: "AI Itinerary", icon: FileText },
+  { component: MapView, label: "Map View", icon: Map },
+  { component: DiscoveryFeed, label: "Discovery Feed", icon: Compass },
+  { component: VibeSelection, label: "Vibe Selection", icon: Palette },
 ];
 
+// 200 slots = 40 full cycles = ~160 seconds of autoplay before needing to loop
+const TOTAL_SLOTS = slides.length * 40;
+const START_INDEX = Math.floor(TOTAL_SLOTS / 2);
+
 export default function AppShowcaseSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const len = slides.length;
+  const [activeSlot, setActiveSlot] = useState(START_INDEX);
+  const timerRef = useRef(null);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    {
-      loop: true,
-      align: "center",
-      skipSnaps: false,
-      containScroll: false,
-    },
-    [Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })]
-  );
+  const realIndex = ((activeSlot % len) + len) % len;
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  const scrollTo = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
+  const startAutoplay = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveSlot((prev) => prev + 1);
+    }, 4000);
+  }, []);
 
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setActiveIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
+  const stopAutoplay = useCallback(() => {
+    clearInterval(timerRef.current);
+  }, []);
 
   useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on("select", onSelect);
-    onSelect();
-    return () => emblaApi.off("select", onSelect);
-  }, [emblaApi, onSelect]);
+    startAutoplay();
+    return () => clearInterval(timerRef.current);
+  }, [startAutoplay]);
+
+  const goTo = (i) => {
+    const current = realIndex;
+    let diff = i - current;
+    if (diff > len / 2) diff -= len;
+    if (diff < -len / 2) diff += len;
+    setActiveSlot((prev) => prev + diff);
+    startAutoplay();
+  };
+
+  const scrollPrev = () => {
+    setActiveSlot((prev) => prev - 1);
+    startAutoplay();
+  };
+
+  const scrollNext = () => {
+    setActiveSlot((prev) => prev + 1);
+    startAutoplay();
+  };
 
   return (
-    <section className="w-full py-20 px-4 overflow-hidden">
-      {/* ─── Text Block ─── */}
+    <section className="w-full pt-6 pb-20 px-4 overflow-hidden">
+      {/* Text Block */}
       <div className="text-center max-w-2xl mx-auto mb-14">
         <p className="showcase-animate showcase-delay-1 text-xs font-bold uppercase tracking-[0.2em] text-[#FF4040] mb-3">
           See it in action
@@ -65,19 +87,40 @@ export default function AppShowcaseSection() {
         </p>
       </div>
 
-      {/* ─── Carousel ─── */}
-      <div className="relative max-w-5xl mx-auto">
-        {/* Embla viewport */}
-        <div className="showcase-carousel" ref={emblaRef}>
-          <div className="showcase-carousel__container">
-            {slides.map((slide, i) => {
+      {/* Carousel */}
+      <div
+        className="relative max-w-5xl mx-auto"
+        onMouseEnter={stopAutoplay}
+        onMouseLeave={startAutoplay}
+      >
+        <div className="showcase-carousel">
+          <div
+            className="showcase-carousel__track"
+            style={{
+              transform: `translateX(calc(50% - ${activeSlot * 280}px - 140px))`,
+            }}
+          >
+            {Array.from({ length: TOTAL_SLOTS }, (_, i) => {
+              const dist = Math.abs(i - activeSlot);
+
+              // Only render full content for nearby slides
+              if (dist > 3) {
+                return <div key={i} className="showcase-carousel__slot" />;
+              }
+
+              const slideIndex = i % len;
+              const slide = slides[slideIndex];
               const Screen = slide.component;
+
               return (
                 <div
-                  key={slide.label}
-                  className={`showcase-carousel__slide ${
-                    i === activeIndex ? "is-active" : ""
-                  }`}
+                  key={i}
+                  className="showcase-carousel__slot"
+                  style={{
+                    transform: `scale(${dist === 0 ? 1 : 0.88})`,
+                    opacity: dist === 0 ? 1 : dist === 1 ? 0.5 : 0.3,
+                  }}
+                  onClick={() => dist !== 0 && goTo(slideIndex)}
                 >
                   <PhoneMockup label={slide.label}>
                     <Screen />
@@ -88,7 +131,7 @@ export default function AppShowcaseSection() {
           </div>
         </div>
 
-        {/* Arrow buttons — hidden on mobile */}
+        {/* Arrow buttons */}
         <button
           className="showcase-arrow absolute top-1/2 -translate-y-1/2 left-0 md:left-4 hidden md:flex"
           onClick={scrollPrev}
@@ -109,16 +152,28 @@ export default function AppShowcaseSection() {
         </button>
       </div>
 
-      {/* ─── Dot Indicators ─── */}
-      <div className="flex items-center justify-center gap-2 mt-8">
-        {slides.map((slide, i) => (
-          <button
-            key={slide.label}
-            className={`showcase-dot ${i === activeIndex ? "is-active" : ""}`}
-            onClick={() => scrollTo(i)}
-            aria-label={`Go to ${slide.label}`}
-          />
-        ))}
+      {/* Feature Chips */}
+      <div className="max-w-4xl mx-auto px-4 mt-10">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
+          {slides.map((slide, i) => {
+            const Icon = slide.icon;
+            const isActive = realIndex === i;
+            return (
+              <button
+                key={slide.label}
+                onClick={() => goTo(i)}
+                className={`feature-chip flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  isActive
+                    ? "bg-[#FF4040]/[0.08] text-[#FF4040] shadow-[0_2px_12px_rgba(255,64,64,0.1)]"
+                    : "text-[#687076] hover:text-[#11181C] hover:bg-gray-50"
+                }`}
+              >
+                <Icon size={16} strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="hidden sm:inline">{slide.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

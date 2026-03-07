@@ -1,0 +1,677 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Eye,
+  MousePointerClick,
+  TrendingUp,
+  DollarSign,
+  Plus,
+  Pencil,
+  MapPin,
+  Star,
+  ChevronRight,
+  LogOut,
+  LayoutDashboard,
+  Store,
+  Settings,
+  ArrowUpRight,
+  ArrowDownRight,
+  CreditCard,
+  Receipt,
+  CheckCircle,
+  Download,
+  Zap,
+  Crown,
+  Calendar,
+  AlertCircle,
+  Search,
+  Filter,
+  MoreVertical,
+  Trash2,
+  ExternalLink,
+  Clock,
+} from "lucide-react";
+import PlanieLogo from "../Assets/Images/PlanieLogo1.png";
+import "./PartnerDashboard.css";
+
+/* ─── Animated counter ─── */
+function useCounter(end, duration = 1400, delay = 0) {
+  const [value, setValue] = useState(0);
+  const raf = useRef(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const t0 = performance.now();
+      const tick = (now) => {
+        const p = Math.min((now - t0) / duration, 1);
+        setValue(Math.floor((1 - Math.pow(1 - p, 3)) * end));
+        if (p < 1) raf.current = requestAnimationFrame(tick);
+      };
+      raf.current = requestAnimationFrame(tick);
+    }, delay);
+    return () => { clearTimeout(t); if (raf.current) cancelAnimationFrame(raf.current); };
+  }, [end, duration, delay]);
+  return value;
+}
+
+/* ─── Sparkline ─── */
+function Sparkline({ data, height = 32, width = 100 }) {
+  const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
+  const pts = data.map((v, i) =>
+    `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 4) - 2}`
+  );
+  return (
+    <svg width={width} height={height} className="pd-sparkline">
+      <defs>
+        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FF4040" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#FF4040" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`M0,${height} L${pts.join(" L")} L${width},${height} Z`} fill="url(#sparkFill)" />
+      <polyline points={pts.join(" ")} fill="none" stroke="#FF4040" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.45" />
+    </svg>
+  );
+}
+
+/* ─── Performance chart ─── */
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const views = [320, 480, 390, 620, 540, 710, 680];
+const clicks = [85, 130, 110, 195, 160, 220, 200];
+
+function PerfChart() {
+  const w = 560, h = 200, px = 44, py = 16;
+  const iw = w - px * 2, ih = h - py * 2;
+  const maxV = Math.max(...views);
+
+  const pt = (d, i) => ({
+    x: px + (i / (d.length - 1)) * iw,
+    y: py + ih - (d[i] / maxV) * ih,
+  });
+  const line = (d) => d.map((_, i) => { const {x,y}=pt(d,i); return `${i?'L':'M'}${x},${y}`; }).join(" ");
+  const area = (d) => {
+    const l = line(d), last = pt(d, d.length-1), first = pt(d, 0);
+    return `${l} L${last.x},${h-py} L${first.x},${h-py} Z`;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="pd-chart">
+      <defs>
+        <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FF4040" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#FF4040" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="cGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#11181C" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="#11181C" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+        const y = py + ih - f * ih;
+        return (
+          <g key={f}>
+            <line x1={px} y1={y} x2={w-px} y2={y} stroke="#F0F0F3" strokeWidth="1" />
+            <text x={px-8} y={y+3.5} textAnchor="end" className="pd-chart-lbl">{Math.round(f*maxV)}</text>
+          </g>
+        );
+      })}
+      {days.map((d, i) => (
+        <text key={d} x={px+(i/(days.length-1))*iw} y={h-1} textAnchor="middle" className="pd-chart-lbl">{d}</text>
+      ))}
+      <path d={area(views)} fill="url(#vGrad)" className="pd-chart-area" />
+      <path d={area(clicks)} fill="url(#cGrad)" className="pd-chart-area" />
+      <path d={line(views)} fill="none" stroke="#FF4040" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="pd-chart-line" />
+      <path d={line(clicks)} fill="none" stroke="#11181C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.25" className="pd-chart-line" />
+      {views.map((_, i) => { const {x,y}=pt(views,i); return <circle key={i} cx={x} cy={y} r="3" fill="#fff" stroke="#FF4040" strokeWidth="1.5" className="pd-chart-dot" style={{animationDelay:`${i*0.07+0.6}s`}} />; })}
+    </svg>
+  );
+}
+
+/* ─── Donut ─── */
+const sources = [
+  { label: "Discovery Page", value: 42, color: "#FF4040" },
+  { label: "AI Itineraries", value: 31, color: "#11181C" },
+  { label: "Direct Search", value: 18, color: "#D1D5DB" },
+  { label: "Shared Links", value: 9, color: "#F0F0F3" },
+];
+
+function Donut({ size = 160 }) {
+  const sw = 18, r = (size - sw) / 2, c = 2 * Math.PI * r;
+  let acc = 0;
+  return (
+    <svg width={size} height={size}>
+      {/* background track */}
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#F5F5F8" strokeWidth={sw} />
+      {sources.map((s, i) => {
+        const dash = (s.value / 100) * c;
+        const off = -acc * (c / 100) + c * 0.25;
+        acc += s.value;
+        return (
+          <circle key={i} cx={size/2} cy={size/2} r={r} fill="none"
+            stroke={s.color} strokeWidth={sw}
+            strokeDasharray={`${dash} ${c - dash}`}
+            strokeDashoffset={off}
+            className="pd-donut-seg" style={{ animationDelay: `${i*0.12+0.3}s` }} />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ─── Helpers ─── */
+const toSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+/* ─── Data ─── */
+const listings = [
+  { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Marrakech, Morocco", rating: 4.8, views: 1240, clicks: 340, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music." },
+  { name: "Desert Safari Tours", category: "Activity & Tour", location: "Dubai, UAE", rating: 4.9, views: 2100, clicks: 580, status: "active", created: "Dec 3, 2025", description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners." },
+  { name: "Coastal Yoga Retreat", category: "Wellness & Spa", location: "Bali, Indonesia", rating: 4.7, views: 860, clicks: 210, status: "pending", created: "Feb 22, 2026", description: "A beachfront wellness retreat offering daily yoga, meditation sessions, and organic cuisine." },
+  { name: "Old Town Walking Tour", category: "Activity & Tour", location: "Prague, Czech Republic", rating: 4.6, views: 1520, clicks: 410, status: "active", created: "Nov 18, 2025", description: "Discover hidden gems and centuries of history on this expertly guided walking tour." },
+  { name: "Neon Night Market", category: "Shopping & Market", location: "Bangkok, Thailand", rating: 4.5, views: 680, clicks: 190, status: "inactive", created: "Mar 1, 2026", description: "Bangkok's most vibrant night market with street food, local crafts, and live entertainment." },
+];
+
+const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard" },
+  { icon: Store, label: "My Listings" },
+  { icon: TrendingUp, label: "Analytics" },
+  { icon: CreditCard, label: "Billing" },
+  { icon: Settings, label: "Settings" },
+];
+
+/* ─── Billing data ─── */
+const invoices = [
+  { id: "INV-2026-003", date: "Mar 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
+  { id: "INV-2026-002", date: "Feb 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
+  { id: "INV-2026-001", date: "Jan 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
+  { id: "INV-2025-012", date: "Dec 1, 2025", amount: "$29.00", status: "paid", plan: "Starter Plan" },
+  { id: "INV-2025-011", date: "Nov 1, 2025", amount: "$29.00", status: "paid", plan: "Starter Plan" },
+];
+
+const plans = [
+  {
+    name: "Starter",
+    price: "$29",
+    period: "/mo",
+    features: ["Up to 3 listings", "Basic analytics", "Email support", "Standard placement"],
+    current: false,
+  },
+  {
+    name: "Pro",
+    price: "$49",
+    period: "/mo",
+    features: ["Up to 10 listings", "Advanced analytics", "Priority support", "Featured placement", "AI itinerary boost"],
+    current: true,
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "$99",
+    period: "/mo",
+    features: ["Unlimited listings", "Custom analytics", "Dedicated manager", "Premium placement", "API access", "White-label options"],
+    current: false,
+  },
+];
+
+/* ─── Listings Tab ─── */
+const statusFilters = ["All", "Active", "Pending", "Inactive"];
+
+function ListingsTab() {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const filtered = listings.filter((l) => {
+    const matchSearch =
+      l.name.toLowerCase().includes(search.toLowerCase()) ||
+      l.category.toLowerCase().includes(search.toLowerCase()) ||
+      l.location.toLowerCase().includes(search.toLowerCase());
+    const matchStatus =
+      statusFilter === "All" || l.status === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
+  });
+
+  const counts = {
+    all: listings.length,
+    active: listings.filter((l) => l.status === "active").length,
+    pending: listings.filter((l) => l.status === "pending").length,
+    inactive: listings.filter((l) => l.status === "inactive").length,
+  };
+
+  return (
+    <>
+      <header className="pd-head pd-anim pd-a1">
+        <div>
+          <h1 className="pd-title">My Listings</h1>
+          <p className="pd-subtitle">Manage and monitor all your business listings</p>
+        </div>
+        <div className="pd-actions">
+          <Link to="/partners/add-listing" className="pd-btn pd-btn--fill">
+            <Plus size={17} strokeWidth={2.2} />
+            Add a Listing
+          </Link>
+        </div>
+      </header>
+
+      {/* Summary cards */}
+      <div className="pd-ml-summary pd-anim pd-a2">
+        {statusFilters.map((s) => {
+          const key = s.toLowerCase();
+          const count = counts[key];
+          const isActive = statusFilter === s;
+          return (
+            <button
+              key={s}
+              className={`pd-ml-summary-card${isActive ? " pd-ml-summary-card--on" : ""}`}
+              onClick={() => setStatusFilter(s)}
+            >
+              <span className="pd-ml-summary-count">{count}</span>
+              <span className="pd-ml-summary-label">{s}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search & filter bar */}
+      <div className="pd-ml-toolbar pd-anim pd-a2">
+        <div className="pd-ml-search">
+          <Search size={16} strokeWidth={2} className="pd-ml-search-icon" />
+          <input
+            type="text"
+            placeholder="Search listings..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pd-ml-search-input"
+          />
+        </div>
+      </div>
+
+      {/* Listings */}
+      <div className="pd-ml-list pd-anim pd-a3">
+        {filtered.length === 0 ? (
+          <div className="pd-ml-empty">
+            <Store size={40} strokeWidth={1.2} />
+            <h4>No listings found</h4>
+            <p>Try adjusting your search or filter</p>
+          </div>
+        ) : (
+          filtered.map((l) => (
+            <div key={l.name} className="pd-ml-card">
+              <div className="pd-ml-card-top">
+                <div className="pd-ml-card-left">
+                  <div className="pd-ml-card-avatar">
+                    <Store size={20} strokeWidth={1.5} />
+                  </div>
+                  <div className="pd-ml-card-info">
+                    <h4>{l.name}</h4>
+                    <div className="pd-ml-card-meta">
+                      <span className="pd-ml-card-cat">{l.category}</span>
+                      <span className="pd-ml-card-loc">
+                        <MapPin size={12} /> {l.location}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pd-ml-card-right">
+                  <span className={`pd-badge pd-badge--${l.status}`}>
+                    {l.status.charAt(0).toUpperCase() + l.status.slice(1)}
+                  </span>
+                  <div className="pd-ml-card-menu-wrap">
+                    <button
+                      className="pd-ml-card-menu-btn"
+                      onClick={() => setOpenMenu(openMenu === l.name ? null : l.name)}
+                    >
+                      <MoreVertical size={16} strokeWidth={2} />
+                    </button>
+                    {openMenu === l.name && (
+                      <div className="pd-ml-card-dropdown">
+                        <button className="pd-ml-dropdown-item">
+                          <Pencil size={14} /> Edit Listing
+                        </button>
+                        <button className="pd-ml-dropdown-item">
+                          <ExternalLink size={14} /> View Live
+                        </button>
+                        <button className="pd-ml-dropdown-item pd-ml-dropdown-item--danger">
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <p className="pd-ml-card-desc">{l.description}</p>
+
+              <div className="pd-ml-card-stats">
+                <div className="pd-ml-card-stat">
+                  <Eye size={14} strokeWidth={1.8} />
+                  <span className="pd-ml-card-stat-val">{l.views.toLocaleString()}</span>
+                  <span className="pd-ml-card-stat-lbl">views</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <MousePointerClick size={14} strokeWidth={1.8} />
+                  <span className="pd-ml-card-stat-val">{l.clicks.toLocaleString()}</span>
+                  <span className="pd-ml-card-stat-lbl">clicks</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <Star size={14} fill="#F59E0B" stroke="#F59E0B" />
+                  <span className="pd-ml-card-stat-val">{l.rating}</span>
+                  <span className="pd-ml-card-stat-lbl">rating</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <Clock size={14} strokeWidth={1.8} />
+                  <span className="pd-ml-card-stat-val">{l.created}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Add listing CTA */}
+      <Link to="/partners/add-listing" className="pd-add-cta" style={{ marginTop: 16 }}>
+        <Plus size={18} strokeWidth={2} />
+        <span>Add a New Listing</span>
+      </Link>
+    </>
+  );
+}
+
+/* ─── Billing Tab ─── */
+function BillingTab() {
+  const currentPlan = plans.find((p) => p.current);
+
+  return (
+    <>
+      <header className="pd-head pd-anim pd-a1">
+        <div>
+          <h1 className="pd-title">Billing</h1>
+          <p className="pd-subtitle">Manage your subscription, payment method, and invoices</p>
+        </div>
+      </header>
+
+      {/* Current Plan Banner */}
+      <div className="pd-billing-banner pd-anim pd-a2">
+        <div className="pd-billing-banner-left">
+          <div className="pd-billing-plan-badge">
+            <Crown size={14} strokeWidth={2} />
+            Pro Plan
+          </div>
+          <div className="pd-billing-price">
+            <span className="pd-billing-price-amt">$49</span>
+            <span className="pd-billing-price-per">/month</span>
+          </div>
+          <p className="pd-billing-renew">
+            <Calendar size={13} />
+            Next billing date: <strong>April 1, 2026</strong>
+          </p>
+        </div>
+        <div className="pd-billing-banner-right">
+          <div className="pd-billing-usage">
+            <div className="pd-billing-usage-row">
+              <span>Listings used</span>
+              <span className="pd-billing-usage-val">3 / 10</span>
+            </div>
+            <div className="pd-billing-usage-bar">
+              <div className="pd-billing-usage-fill" style={{ width: "30%" }} />
+            </div>
+          </div>
+          <div className="pd-billing-usage">
+            <div className="pd-billing-usage-row">
+              <span>AI Boosts used</span>
+              <span className="pd-billing-usage-val">7 / 20</span>
+            </div>
+            <div className="pd-billing-usage-bar">
+              <div className="pd-billing-usage-fill" style={{ width: "35%" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Plans */}
+      <div className="pd-anim pd-a3">
+        <h3 className="pd-billing-section-title">Change Plan</h3>
+        <div className="pd-billing-plans">
+          {plans.map((p) => (
+            <div key={p.name} className={`pd-billing-plan-card${p.current ? " pd-billing-plan-card--active" : ""}`}>
+              {p.popular && <span className="pd-billing-popular">Most Popular</span>}
+              <h4 className="pd-billing-plan-name">{p.name}</h4>
+              <div className="pd-billing-plan-price">
+                <span className="pd-billing-plan-amt">{p.price}</span>
+                <span className="pd-billing-plan-per">{p.period}</span>
+              </div>
+              <ul className="pd-billing-plan-features">
+                {p.features.map((f) => (
+                  <li key={f}>
+                    <CheckCircle size={14} strokeWidth={2} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button className={`pd-btn ${p.current ? "pd-btn--ghost pd-btn--current" : "pd-btn--fill"}`}>
+                {p.current ? "Current Plan" : "Upgrade"}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Payment Method */}
+      <div className="pd-card pd-anim pd-a3" style={{ marginTop: 24 }}>
+        <div className="pd-card-top">
+          <h3>Payment Method</h3>
+          <button className="pd-link">Update <Pencil size={13} /></button>
+        </div>
+        <div className="pd-billing-payment">
+          <div className="pd-billing-card-icon">
+            <CreditCard size={22} strokeWidth={1.5} />
+          </div>
+          <div className="pd-billing-card-info">
+            <span className="pd-billing-card-number">Visa ending in 4242</span>
+            <span className="pd-billing-card-exp">Expires 08/2028</span>
+          </div>
+          <span className="pd-badge pd-badge--active">Default</span>
+        </div>
+      </div>
+
+      {/* Invoices */}
+      <div className="pd-card pd-anim pd-a4">
+        <div className="pd-card-top">
+          <h3>Invoice History</h3>
+          <button className="pd-link">Download All <Download size={13} /></button>
+        </div>
+        <div className="pd-billing-invoices">
+          <div className="pd-billing-invoice-header">
+            <span>Invoice</span>
+            <span>Date</span>
+            <span>Plan</span>
+            <span>Amount</span>
+            <span>Status</span>
+            <span></span>
+          </div>
+          {invoices.map((inv) => (
+            <div key={inv.id} className="pd-billing-invoice-row">
+              <span className="pd-billing-invoice-id">{inv.id}</span>
+              <span className="pd-billing-invoice-date">{inv.date}</span>
+              <span className="pd-billing-invoice-plan">{inv.plan}</span>
+              <span className="pd-billing-invoice-amount">{inv.amount}</span>
+              <span className={`pd-badge pd-badge--${inv.status}`}>
+                <CheckCircle size={11} /> Paid
+              </span>
+              <button className="pd-billing-invoice-dl">
+                <Download size={14} strokeWidth={1.8} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════ */
+
+export default function PartnerDashboard() {
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  const v = useCounter(4200, 1400, 200);
+  const cl = useCounter(1340, 1400, 300);
+  const cr = useCounter(32, 1200, 400);
+  const rev = useCounter(2850, 1400, 500);
+
+  const stats = [
+    { label: "Total Views", value: v.toLocaleString(), change: "+12.5%", up: true, icon: Eye, spark: [120,180,150,260,220,310,290] },
+    { label: "Total Clicks", value: cl.toLocaleString(), change: "+8.3%", up: true, icon: MousePointerClick, spark: [40,65,55,90,75,100,95] },
+    { label: "Conv. Rate", value: `${cr}%`, change: "-2.1%", up: false, icon: TrendingUp, spark: [38,35,40,34,36,32,33] },
+    { label: "Revenue", value: `$${rev.toLocaleString()}`, change: "+18.7%", up: true, icon: DollarSign, spark: [400,520,480,680,620,800,760] },
+  ];
+
+  return (
+    <div className="pd-layout">
+      {/* ── Sidebar ── */}
+      <aside className="pd-sidebar">
+        <div>
+          <Link to="/" className="pd-logo">
+            <img src={PlanieLogo} alt="Planie" />
+          </Link>
+          <nav className="pd-nav">
+            {navItems.map((n) => {
+              const I = n.icon;
+              return (
+                <button key={n.label} className={`pd-nav-btn${activeTab === n.label ? " pd-nav-btn--on" : ""}`} onClick={() => setActiveTab(n.label)}>
+                  <I size={18} strokeWidth={1.7} />
+                  <span>{n.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+        <Link to="/partners/login" className="pd-nav-btn pd-nav-btn--out">
+          <LogOut size={18} strokeWidth={1.7} />
+          <span>Sign Out</span>
+        </Link>
+      </aside>
+
+      {/* ── Main ── */}
+      <main className="pd-main">
+        {activeTab === "My Listings" ? (
+          <ListingsTab />
+        ) : activeTab === "Billing" ? (
+          <BillingTab />
+        ) : (
+          <>
+            {/* Header */}
+            <header className="pd-head pd-anim pd-a1">
+              <div>
+                <h1 className="pd-title">Hello, Business</h1>
+                <p className="pd-subtitle">Here's how your listings are performing this week</p>
+              </div>
+              <div className="pd-actions">
+                <button className="pd-btn pd-btn--ghost">
+                  <Pencil size={15} strokeWidth={2} />
+                  Edit Listing
+                </button>
+                <Link to="/partners/add-listing" className="pd-btn pd-btn--fill">
+                  <Plus size={17} strokeWidth={2.2} />
+                  Add a Listing
+                </Link>
+              </div>
+            </header>
+
+            {/* Stats */}
+            <div className="pd-stats pd-anim pd-a2">
+              {stats.map((s) => {
+                const I = s.icon;
+                return (
+                  <div key={s.label} className="pd-stat">
+                    <div className="pd-stat-top">
+                      <I size={16} strokeWidth={1.8} className="pd-stat-ico" />
+                      <span className="pd-stat-lbl">{s.label}</span>
+                    </div>
+                    <div className="pd-stat-mid">
+                      <span className="pd-stat-val">{s.value}</span>
+                      <span className={`pd-stat-chg ${s.up ? "pd-stat-chg--up" : "pd-stat-chg--dn"}`}>
+                        {s.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                        {s.change}
+                      </span>
+                    </div>
+                    <Sparkline data={s.spark} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Charts */}
+            <div className="pd-row pd-anim pd-a3">
+              <div className="pd-card pd-card--grow">
+                <div className="pd-card-top">
+                  <h3>Weekly Performance</h3>
+                  <div className="pd-legend">
+                    <span><span className="pd-dot" style={{background:"#FF4040"}} />Views</span>
+                    <span><span className="pd-dot" style={{background:"#11181C",opacity:0.25}} />Clicks</span>
+                  </div>
+                </div>
+                <PerfChart />
+              </div>
+
+              <div className="pd-card pd-card--side">
+                <div className="pd-card-top"><h3>Traffic Sources</h3></div>
+                <div className="pd-donut-wrap">
+                  <Donut />
+                  <div className="pd-donut-ctr">
+                    <span className="pd-donut-num">4.2K</span>
+                    <span className="pd-donut-lbl">visits</span>
+                  </div>
+                </div>
+                <div className="pd-src-list">
+                  {sources.map((s) => (
+                    <div key={s.label} className="pd-src">
+                      <span className="pd-dot" style={{ background: s.color }} />
+                      <span className="pd-src-name">{s.label}</span>
+                      <span className="pd-src-pct">{s.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Listings */}
+            <div className="pd-card pd-anim pd-a4">
+              <div className="pd-card-top">
+                <h3>Your Listings</h3>
+                <button className="pd-link" onClick={() => setActiveTab("My Listings")}>View All <ChevronRight size={14} /></button>
+              </div>
+              <div className="pd-list">
+                {listings.map((l) => (
+                  <div key={l.name} className="pd-item">
+                    <div className="pd-item-av">
+                      <Store size={18} strokeWidth={1.6} />
+                    </div>
+                    <div className="pd-item-info">
+                      <h4>{l.name}</h4>
+                      <p>
+                        <span>{l.category}</span>
+                        <span className="pd-item-loc"><MapPin size={11} />{l.location}</span>
+                      </p>
+                    </div>
+                    <div className="pd-item-nums">
+                      <span><Star size={13} fill="#F59E0B" stroke="#F59E0B" />{l.rating}</span>
+                      <span><Eye size={13} />{l.views.toLocaleString()}</span>
+                    </div>
+                    <span className={`pd-badge pd-badge--${l.status}`}>
+                      {l.status === "active" ? "Active" : "Pending"}
+                    </span>
+                    <button className="pd-item-edit">
+                      <Pencil size={14} strokeWidth={1.8} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Link to="/partners/add-listing" className="pd-add-cta">
+                <Plus size={18} strokeWidth={2} />
+                <span>Add a New Listing</span>
+              </Link>
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}

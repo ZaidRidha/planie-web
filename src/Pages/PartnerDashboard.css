@@ -1,0 +1,1265 @@
+/* ═══════════════════════════════════════════════════════
+   Partner Dashboard — Clean / Professional
+   Matches planie-web design language:
+     accent #FF4040, text #11181C, secondary #687076,
+     muted #9CA3AF, border #F0F0F3, bg #FAFBFC
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Layout ── */
+.pd-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #FAFBFC;
+  font-family: inherit;
+}
+
+/* ── Sidebar ── */
+.pd-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background: #fff;
+  border-right: 1px solid #F0F0F3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 14px;
+  z-index: 50;
+}
+
+.pd-logo {
+  display: block;
+  padding: 0 10px;
+  margin-bottom: 32px;
+}
+
+.pd-logo img {
+  width: 100px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(38%) sepia(82%) saturate(3220%)
+    hue-rotate(340deg) brightness(97%) contrast(105%);
+}
+
+.pd-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pd-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 450;
+  color: #687076;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pd-nav-btn:hover {
+  background: #F5F5F8;
+  color: #11181C;
+}
+
+.pd-nav-btn--on {
+  background: #FFF5F3;
+  color: #FF4040;
+  font-weight: 500;
+}
+
+.pd-nav-btn--on:hover {
+  background: #FFECE8;
+}
+
+.pd-nav-btn--out {
+  color: #9CA3AF;
+  text-decoration: none;
+}
+
+.pd-nav-btn--out:hover {
+  background: #FEF2F2;
+  color: #EF4444;
+}
+
+/* ── Main ── */
+.pd-main {
+  margin-left: 220px;
+  flex: 1;
+  padding: 36px 48px 64px;
+  max-width: 1200px;
+}
+
+/* ── Header ── */
+.pd-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pd-title {
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.pd-subtitle {
+  font-size: 0.95rem;
+  color: #9CA3AF;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.pd-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ── Buttons ── */
+.pd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.pd-btn--fill {
+  background: #FF4040;
+  color: #fff;
+}
+
+.pd-btn--fill:hover {
+  background: #E83A3A;
+}
+
+.pd-btn--ghost {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+}
+
+.pd-btn--ghost:hover {
+  border-color: #D1D5DB;
+  background: #F9FAFB;
+}
+
+/* ── Stat Cards ── */
+.pd-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pd-stat {
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 22px 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pd-stat-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pd-stat-ico {
+  color: #C4C9D0;
+}
+
+.pd-stat-lbl {
+  font-size: 12px;
+  font-weight: 450;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pd-stat-mid {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pd-stat-val {
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.pd-stat-chg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pd-stat-chg--up { color: #059669; }
+.pd-stat-chg--dn { color: #DC2626; }
+
+.pd-sparkline {
+  width: 100%;
+  margin-top: auto;
+}
+
+/* ── Cards ── */
+.pd-card {
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.pd-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pd-card-top h3 {
+  font-size: 1rem;
+  font-weight: 550;
+  color: #11181C;
+}
+
+.pd-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #FF4040;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: gap 0.15s;
+}
+
+.pd-link:hover { gap: 5px; }
+
+/* ── Charts row ── */
+.pd-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pd-card--grow { min-width: 0; }
+.pd-card--side { min-width: 0; }
+
+/* Legend */
+.pd-legend {
+  display: flex;
+  gap: 14px;
+}
+
+.pd-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: #687076;
+}
+
+.pd-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Chart */
+.pd-chart {
+  width: 100%;
+  height: auto;
+}
+
+.pd-chart-lbl {
+  font-size: 10px;
+  fill: #C4C9D0;
+  font-weight: 500;
+}
+
+.pd-chart-line {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: pd-draw 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+.pd-chart-area {
+  opacity: 0;
+  animation: pd-in 0.6s ease 0.8s forwards;
+}
+
+.pd-chart-dot {
+  opacity: 0;
+  animation: pd-pop 0.25s ease-out forwards;
+}
+
+/* Donut */
+.pd-donut-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0 18px;
+}
+
+.pd-donut-seg {
+  opacity: 0;
+  animation: pd-in 0.45s ease-out forwards;
+}
+
+.pd-donut-ctr {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pd-donut-num {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #11181C;
+  line-height: 1;
+}
+
+.pd-donut-lbl {
+  font-size: 12px;
+  color: #9CA3AF;
+  font-weight: 400;
+  margin-top: 3px;
+}
+
+.pd-src-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-src {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pd-src-name {
+  flex: 1;
+  font-size: 13.5px;
+  color: #687076;
+  font-weight: 400;
+}
+
+.pd-src-pct {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: #11181C;
+}
+
+/* ── Listings ── */
+.pd-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #F5F5F8;
+}
+
+.pd-item:last-child {
+  border-bottom: none;
+}
+
+.pd-item-av {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #F5F5F8;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pd-item-info h4 {
+  font-size: 15px;
+  font-weight: 500;
+  color: #11181C;
+  margin-bottom: 4px;
+}
+
+.pd-item-info p {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.pd-item-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pd-item-nums {
+  display: flex;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.pd-item-nums span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 450;
+  color: #374151;
+}
+
+.pd-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.pd-badge--active {
+  background: #F0FDF4;
+  color: #15803D;
+}
+
+.pd-badge--pending {
+  background: #FFFBEB;
+  color: #B45309;
+}
+
+.pd-item-edit {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #C4C9D0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.pd-item-edit:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+}
+
+/* Add listing */
+.pd-add-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 18px;
+  margin-top: 16px;
+  border: 1.5px dashed #E5E7EB;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 450;
+  color: #9CA3AF;
+  transition: all 0.2s ease;
+}
+
+.pd-add-cta:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  background: #FFFBFA;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Animations — matches site cubic-bezier(0.16,1,0.3,1)
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes pd-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pd-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pd-pop {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pd-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pd-anim {
+  animation: pd-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pd-a1 { animation-delay: 0.04s; }
+.pd-a2 { animation-delay: 0.12s; }
+.pd-a3 { animation-delay: 0.20s; }
+.pd-a4 { animation-delay: 0.28s; }
+
+/* ═══════════════════════════════════════════════════════
+   Billing Tab
+   ═══════════════════════════════════════════════════════ */
+
+/* Banner */
+.pd-billing-banner {
+  background: #ffffff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.pd-billing-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pd-billing-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #FF4040, #FF6B6B);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  width: fit-content;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.pd-billing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.pd-billing-price-amt {
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.pd-billing-price-per {
+  font-size: 1rem;
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.pd-billing-renew {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #687076;
+}
+
+.pd-billing-renew strong {
+  color: #11181C;
+}
+
+.pd-billing-banner-right {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 260px;
+  justify-content: center;
+}
+
+.pd-billing-usage-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #687076;
+}
+
+.pd-billing-usage-val {
+  font-weight: 550;
+  color: #11181C;
+}
+
+.pd-billing-usage-bar {
+  height: 6px;
+  background: #F0F0F3;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.pd-billing-usage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF4040, #FF6B6B);
+  border-radius: 99px;
+  transition: width 1s ease-out;
+}
+
+/* Plans */
+.pd-billing-section-title {
+  font-size: 1.1rem;
+  font-weight: 550;
+  color: #11181C;
+  margin-bottom: 18px;
+}
+
+.pd-billing-plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.pd-billing-plan-card {
+  background: #ffffff;
+  border: 1.5px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.pd-billing-plan-card:hover {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.pd-billing-plan-card--active {
+  border-color: #FF4040;
+  box-shadow: 0 0 0 1px #FF4040, 0 4px 24px rgba(255, 64, 64, 0.1);
+}
+
+.pd-billing-popular {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #FF4040, #FF6B6B);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pd-billing-plan-name {
+  font-size: 1.1rem;
+  font-weight: 550;
+  color: #11181C;
+  margin-bottom: 4px;
+  margin-top: 4px;
+}
+
+.pd-billing-plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.pd-billing-plan-amt {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: -0.03em;
+}
+
+.pd-billing-plan-per {
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.pd-billing-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.pd-billing-plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #374151;
+  font-weight: 400;
+}
+
+.pd-billing-plan-features li svg {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.pd-btn--current {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Payment Method */
+.pd-billing-payment {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.pd-billing-card-icon {
+  width: 52px;
+  height: 36px;
+  border-radius: 8px;
+  background: #F7F8FA;
+  border: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.pd-billing-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.pd-billing-card-number {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #11181C;
+}
+
+.pd-billing-card-exp {
+  font-size: 12.5px;
+  color: #9CA3AF;
+}
+
+/* Invoices */
+.pd-billing-invoices {
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-billing-invoice-header {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 0.8fr 0.8fr 48px;
+  gap: 12px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid #F0F0F3;
+  font-size: 11.5px;
+  font-weight: 450;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pd-billing-invoice-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 0.8fr 0.8fr 48px;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #F5F5F8;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.pd-billing-invoice-row:last-child {
+  border-bottom: none;
+}
+
+.pd-billing-invoice-row:hover {
+  background: #FAFBFC;
+  margin: 0 -24px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  border-bottom-color: transparent;
+}
+
+.pd-billing-invoice-id {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #11181C;
+}
+
+.pd-billing-invoice-date,
+.pd-billing-invoice-plan {
+  font-size: 13.5px;
+  color: #687076;
+}
+
+.pd-billing-invoice-amount {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #11181C;
+}
+
+.pd-badge--paid {
+  background: #ECFDF5;
+  color: #059669;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.pd-billing-invoice-dl {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.2s ease;
+}
+
+.pd-billing-invoice-dl:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  background: #FFF5F5;
+}
+
+/* ═══════════════════════════════════════════════════════
+   My Listings Tab
+   ═══════════════════════════════════════════════════════ */
+
+.pd-ml-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pd-ml-summary-card {
+  background: #fff;
+  border: 1.5px solid #F0F0F3;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.pd-ml-summary-card:hover {
+  border-color: #E5E7EB;
+  background: #FAFBFC;
+}
+
+.pd-ml-summary-card--on {
+  border-color: #FF4040;
+  background: #FFFBFA;
+}
+
+.pd-ml-summary-card--on:hover {
+  background: #FFF5F3;
+}
+
+.pd-ml-summary-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #11181C;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.pd-ml-summary-card--on .pd-ml-summary-count {
+  color: #FF4040;
+}
+
+.pd-ml-summary-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Toolbar */
+.pd-ml-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pd-ml-search {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.pd-ml-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #C4C9D0;
+  pointer-events: none;
+}
+
+.pd-ml-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #11181C;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.pd-ml-search-input:focus {
+  border-color: #FF4040;
+  box-shadow: 0 0 0 3px rgba(255, 64, 64, 0.06);
+}
+
+.pd-ml-search-input::placeholder {
+  color: #C4C9D0;
+}
+
+/* Listing cards */
+.pd-ml-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-ml-card {
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s ease;
+}
+
+.pd-ml-card:hover {
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+}
+
+.pd-ml-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.pd-ml-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pd-ml-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #F5F5F8;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-ml-card-info {
+  min-width: 0;
+}
+
+.pd-ml-card-info h4 {
+  font-size: 15.5px;
+  font-weight: 580;
+  color: #11181C;
+  margin-bottom: 4px;
+}
+
+.pd-ml-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.pd-ml-card-cat {
+  font-weight: 500;
+}
+
+.pd-ml-card-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pd-ml-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pd-ml-card-menu-wrap {
+  position: relative;
+}
+
+.pd-ml-card-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.15s ease;
+}
+
+.pd-ml-card-menu-btn:hover {
+  border-color: #D1D5DB;
+  color: #687076;
+}
+
+.pd-ml-card-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  min-width: 160px;
+  z-index: 20;
+  animation: pd-in 0.15s ease;
+}
+
+.pd-ml-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 480;
+  color: #374151;
+  transition: background 0.12s ease;
+  text-align: left;
+}
+
+.pd-ml-dropdown-item:hover {
+  background: #F5F5F8;
+}
+
+.pd-ml-dropdown-item--danger {
+  color: #DC2626;
+}
+
+.pd-ml-dropdown-item--danger:hover {
+  background: #FEF2F2;
+}
+
+.pd-ml-card-desc {
+  font-size: 13.5px;
+  color: #687076;
+  line-height: 1.55;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pd-ml-card-stats {
+  display: flex;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid #F5F5F8;
+}
+
+.pd-ml-card-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9CA3AF;
+}
+
+.pd-ml-card-stat-val {
+  font-size: 13.5px;
+  font-weight: 580;
+  color: #11181C;
+}
+
+.pd-ml-card-stat-lbl {
+  font-size: 12.5px;
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.pd-ml-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #C4C9D0;
+}
+
+.pd-ml-empty h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+
+.pd-ml-empty p {
+  font-size: 14px;
+  color: #9CA3AF;
+}
+
+.pd-badge--inactive {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 1100px) {
+  .pd-row { grid-template-columns: 1fr; }
+  .pd-billing-plans { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 900px) {
+  .pd-stats { grid-template-columns: repeat(2, 1fr); }
+  .pd-ml-card-stats { flex-wrap: wrap; gap: 14px; }
+}
+
+@media (max-width: 768px) {
+  .pd-sidebar { display: none; }
+  .pd-main { margin-left: 0; padding: 24px 20px 48px; }
+  .pd-head { flex-direction: column; align-items: flex-start; }
+  .pd-actions { width: 100%; }
+  .pd-btn { flex: 1; justify-content: center; }
+  .pd-item-nums { display: none; }
+  .pd-billing-plans { grid-template-columns: 1fr; }
+  .pd-billing-banner { flex-direction: column; }
+  .pd-billing-banner-right { min-width: 0; }
+  .pd-billing-invoice-header,
+  .pd-billing-invoice-row {
+    grid-template-columns: 1.2fr 0.8fr 0.8fr 48px;
+  }
+  .pd-billing-invoice-date,
+  .pd-billing-invoice-plan { display: none; }
+  .pd-billing-invoice-header span:nth-child(2),
+  .pd-billing-invoice-header span:nth-child(3) { display: none; }
+  .pd-ml-summary { grid-template-columns: repeat(2, 1fr); }
+  .pd-ml-search { max-width: 100%; }
+  .pd-ml-card-meta { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+
+@media (max-width: 480px) {
+  .pd-stats { grid-template-columns: 1fr; }
+  .pd-ml-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pd-anim,
+  .pd-chart-line,
+  .pd-chart-area,
+  .pd-chart-dot,
+  .pd-donut-seg { animation: none; opacity: 1; }
+}

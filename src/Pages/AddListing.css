@@ -1,0 +1,484 @@
+/* ═══════════════════════════════════════════════════════
+   Add Listing Page
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Header ── */
+.al-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.al-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #687076;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.al-back:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  background: #FFF5F5;
+}
+
+/* ── Form ── */
+.al-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Sections ── */
+.al-section {
+  margin-bottom: 20px;
+}
+
+.al-section-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: #11181C;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.al-section-sub {
+  font-size: 13.5px;
+  color: #9CA3AF;
+  margin-top: -12px;
+  margin-bottom: 16px;
+}
+
+/* ── Fields ── */
+.al-field {
+  margin-bottom: 18px;
+}
+
+.al-field:last-child {
+  margin-bottom: 0;
+}
+
+.al-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 580;
+  color: #374151;
+  margin-bottom: 7px;
+}
+
+.al-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #11181C;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.al-input:focus {
+  border-color: #FF4040;
+  box-shadow: 0 0 0 3px rgba(255, 64, 64, 0.08);
+}
+
+.al-input::placeholder {
+  color: #C4C9D0;
+}
+
+.al-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #11181C;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  min-height: 100px;
+}
+
+.al-textarea:focus {
+  border-color: #FF4040;
+  box-shadow: 0 0 0 3px rgba(255, 64, 64, 0.08);
+}
+
+.al-textarea::placeholder {
+  color: #C4C9D0;
+}
+
+.al-hint {
+  display: block;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* ── Row layout ── */
+.al-row {
+  display: flex;
+  gap: 16px;
+}
+
+.al-field--half {
+  flex: 1;
+}
+
+/* ── Category chips ── */
+.al-category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.al-category-chip {
+  padding: 9px 18px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 24px;
+  background: #ffffff;
+  font-size: 13.5px;
+  font-weight: 520;
+  color: #687076;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.al-category-chip:hover {
+  border-color: #D1D5DB;
+  background: #FAFAFA;
+}
+
+.al-category-chip--active {
+  border-color: #FF4040;
+  background: #FFF0EB;
+  color: #FF4040;
+  font-weight: 600;
+}
+
+.al-category-chip--active:hover {
+  background: #FFE4DE;
+  border-color: #FF4040;
+}
+
+/* ── Price chips ── */
+.al-price-row {
+  display: flex;
+  gap: 10px;
+}
+
+.al-price-chip {
+  padding: 10px 22px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #687076;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 56px;
+  text-align: center;
+}
+
+.al-price-chip:hover {
+  border-color: #D1D5DB;
+  background: #FAFAFA;
+}
+
+.al-price-chip--active {
+  border-color: #FF4040;
+  background: #FFF0EB;
+  color: #FF4040;
+}
+
+.al-price-chip--active:hover {
+  background: #FFE4DE;
+  border-color: #FF4040;
+}
+
+/* ── Photos ── */
+.al-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.al-photo-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #F0F0F3;
+}
+
+.al-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.al-photo-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.al-photo-thumb:hover .al-photo-remove {
+  opacity: 1;
+}
+
+.al-photo-cover {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  font-size: 10.5px;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.al-photo-upload {
+  aspect-ratio: 4 / 3;
+  border: 2px dashed #E5E7EB;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 13px;
+  font-weight: 550;
+  transition: all 0.2s ease;
+}
+
+.al-photo-upload:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  background: #FFF8F6;
+}
+
+/* ── Operating Hours ── */
+.al-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.al-hours-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F5F5F8;
+}
+
+.al-hours-row:last-child {
+  border-bottom: none;
+}
+
+.al-hours-day {
+  width: 100px;
+  font-size: 14px;
+  font-weight: 560;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.al-hours-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.al-hours-toggle input[type="checkbox"] {
+  accent-color: #FF4040;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.al-toggle-label {
+  font-size: 13px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.al-hours-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.al-hours-sep {
+  font-size: 13px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.al-time-input {
+  padding: 8px 10px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #11181C;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.al-time-input:focus {
+  border-color: #FF4040;
+}
+
+/* ── Submit row ── */
+.al-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  padding-bottom: 40px;
+}
+
+.al-submit-btn {
+  padding: 12px 36px;
+  font-size: 15px;
+}
+
+/* ── Success State ── */
+.al-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 40px;
+  background: #ffffff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  margin-top: 40px;
+}
+
+.al-success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ECFDF5;
+  color: #10B981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.al-success h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #11181C;
+  margin-bottom: 10px;
+}
+
+.al-success p {
+  font-size: 15px;
+  color: #9CA3AF;
+  max-width: 400px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.al-success-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .al-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .al-hours-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .al-hours-day {
+    width: 100%;
+  }
+
+  .al-hours-times {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .al-price-row {
+    flex-wrap: wrap;
+  }
+
+  .al-submit-row {
+    flex-direction: column-reverse;
+  }
+
+  .al-submit-row .pd-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .al-photos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .al-success-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .al-success-actions .pd-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Megaphone,
   Eye,
@@ -6,7 +7,7 @@ import {
   BarChart3,
   Brain,
   Crosshair,
-  ExternalLink,
+  ArrowRight,
   Store,
   TrendingUp,
   Users,
@@ -174,21 +175,19 @@ export default function PartnerPage() {
 
           {/* CTAs */}
           <div className="partner-animate partner-delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <a
-              href="https://partners.planie.app"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/partners/login"
               className="group relative inline-flex items-center gap-2 px-8 py-4 bg-[#FF4040] text-white text-base font-semibold rounded-full
                 transition-all duration-300
                 hover:bg-[#e63636] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
                 active:translate-y-0"
             >
               Go to Partner Portal
-              <ExternalLink
+              <ArrowRight
                 size={16}
-                className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                className="transition-transform duration-300 group-hover:translate-x-0.5"
               />
-            </a>
+            </Link>
             <a
               href="#why-partner"
               className="inline-flex items-center gap-2 px-7 py-4 text-[#11181C]/60 text-base font-medium rounded-full
@@ -298,21 +297,19 @@ export default function PartnerPage() {
           <p className="text-lg text-[#687076] mb-8">
             Join the Planie partner program and start reaching travelers today.
           </p>
-          <a
-            href="https://partners.planie.app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/partners/login"
             className="group inline-flex items-center gap-2 px-8 py-4 bg-[#FF4040] text-white text-base font-semibold rounded-full
               transition-all duration-300
               hover:bg-[#e63636] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
               active:translate-y-0"
           >
             Go to Partner Portal
-            <ExternalLink
+            <ArrowRight
               size={16}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              className="transition-transform duration-300 group-hover:translate-x-0.5"
             />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

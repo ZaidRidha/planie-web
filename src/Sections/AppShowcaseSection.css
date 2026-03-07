@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════════════
+/* ===============================================
    App Showcase — Entrance Animation
-   ═══════════════════════════════════════════════════════ */
+   =============================================== */
 
 @keyframes showcaseFadeUp {
   from {
@@ -22,61 +22,30 @@
 .showcase-delay-2 { animation-delay: 0.25s; }
 .showcase-delay-3 { animation-delay: 0.45s; }
 
-/* ═══════════════════════════════════════════════════════
-   Embla Carousel Overrides
-   ═══════════════════════════════════════════════════════ */
+/* ===============================================
+   Carousel
+   =============================================== */
 
 .showcase-carousel {
   overflow: hidden;
 }
 
-.showcase-carousel__container {
+.showcase-carousel__track {
   display: flex;
-  align-items: center;
-  gap: 0;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.showcase-carousel__slide {
-  flex: 0 0 auto;
-  min-width: 0;
-  padding: 0 12px;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.showcase-carousel__slide:not(.is-active) {
-  transform: scale(0.88);
-  opacity: 0.5;
-}
-
-.showcase-carousel__slide.is-active {
-  transform: scale(1);
-  opacity: 1;
-}
-
-/* ═══════════════════════════════════════════════════════
-   Dot Indicators
-   ═══════════════════════════════════════════════════════ */
-
-.showcase-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  border: none;
-  padding: 0;
+.showcase-carousel__slot {
+  flex: 0 0 280px;
+  padding: 0 20px;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+              opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   cursor: pointer;
-  background: #D1D5DB;
-  transition: all 0.3s ease;
 }
 
-.showcase-dot.is-active {
-  background: #FF4040;
-  width: 24px;
-}
-
-/* ═══════════════════════════════════════════════════════
+/* ===============================================
    Arrow Buttons
-   ═══════════════════════════════════════════════════════ */
+   =============================================== */
 
 .showcase-arrow {
   width: 40px;
@@ -104,19 +73,17 @@
   cursor: default;
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ===============================================
    Reduced Motion
-   ═══════════════════════════════════════════════════════ */
+   =============================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .showcase-animate {
     opacity: 1;
     animation: none;
   }
-  .showcase-carousel__slide {
-    transition: none;
-  }
-  .showcase-dot {
+  .showcase-carousel__track,
+  .showcase-carousel__slot {
     transition: none;
   }
 }

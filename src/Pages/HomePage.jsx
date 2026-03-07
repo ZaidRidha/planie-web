@@ -1,14 +1,5 @@
-import { useState } from "react";
-import {
-  Sparkles,
-  Compass,
-  MapPin,
-  Share2,
-  Palette,
-  Users,
-} from "lucide-react";
-import FeaturesSection from "../Sections/FeaturesSection";
 import AppShowcaseSection from "../Sections/AppShowcaseSection";
+import UseCasesSection from "../Sections/UseCasesSection";
 import "./HomePage.css";
 
 /* ═══════════════════════════════════════════════════════
@@ -246,27 +237,13 @@ const RightIllustration = () => (
 );
 
 /* ═══════════════════════════════════════════════════════
-   Feature Strip Data
-   ═══════════════════════════════════════════════════════ */
-const featureItems = [
-  { icon: Sparkles, label: "AI Planning" },
-  { icon: Compass, label: "Discovery" },
-  { icon: MapPin, label: "Itinerary Maps" },
-  { icon: Share2, label: "Trip Sharing" },
-  { icon: Palette, label: "Vibe Selection" },
-  { icon: Users, label: "Group Planning" },
-];
-
-/* ═══════════════════════════════════════════════════════
    HomePage
    ═══════════════════════════════════════════════════════ */
 export default function HomePage() {
-  const [activeFeature, setActiveFeature] = useState(0);
-
   return (
     <section className="w-full overflow-x-hidden">
       {/* ─── Hero ─── */}
-      <div className="relative min-h-[92vh] flex flex-col items-center justify-center pt-24 pb-8">
+      <div className="relative min-h-[85vh] flex flex-col items-center justify-center pt-24 pb-8">
         {/* Subtle warm gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#FFF8F6] via-white to-white pointer-events-none" />
 
@@ -338,109 +315,15 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ─── Feature Strip ─── */}
-      <div className="hero-animate hero-delay-5 relative z-10 -mt-6 pb-16" id="features">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
-            {featureItems.map((feature, i) => {
-              const Icon = feature.icon;
-              const isActive = activeFeature === i;
-              return (
-                <button
-                  key={feature.label}
-                  onClick={() => setActiveFeature(i)}
-                  className={`feature-chip flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isActive
-                      ? "bg-[#FF4040]/[0.08] text-[#FF4040] shadow-[0_2px_12px_rgba(255,64,64,0.1)]"
-                      : "text-[#687076] hover:text-[#11181C] hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon size={16} strokeWidth={isActive ? 2.5 : 1.8} />
-                  <span className="hidden sm:inline">{feature.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* ─── App Showcase ─── */}
       <AppShowcaseSection />
 
       {/* ─── Divider ─── */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* ─── Mailing List ─── */}
-      <div className="w-full" id="get-started">
-        <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 py-20 px-6">
-          {/* Text */}
-          <div className="text-center md:text-left mb-4 md:mb-0">
-            <h2 className="text-3xl font-bold mb-2 text-[#11181C]">
-              Interested?
-            </h2>
-            <p className="text-lg text-[#687076]">
-              Join our mailing list for updates
-            </p>
-          </div>
+      {/* ─── Use Cases ─── */}
+      <UseCasesSection />
 
-          {/* Form */}
-          <form
-            className="flex w-full max-w-sm flex-col sm:flex-row"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const email = e.target.email.value;
-              try {
-                const res = await fetch(
-                  "https://api-t3s43pydha-uc.a.run.app/mailing-list",
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email }),
-                  }
-                );
-                const result = await res.json();
-                if (!res.ok)
-                  throw new Error(result.error || "Submission failed");
-                alert(`Thanks for signing up with ${email}!`);
-                e.target.reset();
-              } catch (err) {
-                alert("Error: " + err.message);
-              }
-            }}
-          >
-            <div className="relative flex-grow mb-3 sm:mb-0">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                aria-label="Email Address"
-                required
-                className="w-full rounded-full sm:rounded-r-none px-5 py-4 bg-white border border-gray-200 text-[#11181C] placeholder-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-[#FF4040]/25 focus:border-[#FF4040]/50 text-base
-                  transition-all duration-200"
-              />
-            </div>
-            <button
-              type="submit"
-              className="rounded-full sm:rounded-l-none px-6 py-4 text-base font-semibold
-                bg-[#FF4040] text-white
-                hover:bg-[#e63636] hover:shadow-[0_4px_20px_rgba(255,64,64,0.3)]
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF4040]
-                transition-all duration-200 whitespace-nowrap"
-            >
-              Sign Up
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* ─── Divider ─── */}
-      <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
-
-      {/* ─── Features ─── */}
-      <div className="mb-20">
-        <FeaturesSection />
-      </div>
     </section>
   );
 }
