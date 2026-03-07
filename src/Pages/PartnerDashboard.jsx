@@ -1146,42 +1146,8 @@ export default function PartnerDashboard() {
               })}
             </div>
 
-            {/* Charts */}
-            <div className="pd-row pd-anim pd-a3">
-              <div className="pd-card pd-card--grow">
-                <div className="pd-card-top">
-                  <h3>Weekly Performance</h3>
-                  <div className="pd-legend">
-                    <span><span className="pd-dot" style={{background:"#FF4040"}} />Views</span>
-                    <span><span className="pd-dot" style={{background:"#11181C",opacity:0.25}} />Clicks</span>
-                  </div>
-                </div>
-                <PerfChart />
-              </div>
-
-              <div className="pd-card pd-card--side">
-                <div className="pd-card-top"><h3>Traffic Sources</h3></div>
-                <div className="pd-donut-wrap">
-                  <Donut />
-                  <div className="pd-donut-ctr">
-                    <span className="pd-donut-num">4.2K</span>
-                    <span className="pd-donut-lbl">visits</span>
-                  </div>
-                </div>
-                <div className="pd-src-list">
-                  {sources.map((s) => (
-                    <div key={s.label} className="pd-src">
-                      <span className="pd-dot" style={{ background: s.color }} />
-                      <span className="pd-src-name">{s.label}</span>
-                      <span className="pd-src-pct">{s.value}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Listings */}
-            <div className="pd-card pd-anim pd-a4">
+            <div className="pd-card pd-anim pd-a3">
               <div className="pd-card-top">
                 <h3>Your Listings</h3>
                 <button className="pd-link" onClick={() => setActiveTab("My Listings")}>View All <ChevronRight size={14} /></button>
