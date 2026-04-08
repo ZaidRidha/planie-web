@@ -230,6 +230,100 @@
   margin-top: auto;
 }
 
+/* ── Listing Slots ── */
+.pd-slots {
+  background: #fff;
+  border: 1px solid #F0F0F3;
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+
+.pd-slots-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pd-slots-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #11181C;
+  margin: 0;
+}
+
+.pd-slots-plan {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FF4040;
+  background: #FFF1F1;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.pd-slots-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pd-slots-bar {
+  flex: 1;
+  height: 8px;
+  background: #F3F4F6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pd-slots-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF4040, #FF6B6B);
+  border-radius: 8px;
+  transition: width 0.6s ease;
+}
+
+.pd-slots-bar-label {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pd-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.pd-slots-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 0;
+  background: #FAFAFA;
+  border-radius: 10px;
+}
+
+.pd-slots-item-val {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pd-slots-item-lbl {
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.pd-slots--active { color: #10B981; }
+.pd-slots--inactive { color: #6B7280; }
+.pd-slots--pending { color: #3B82F6; }
+.pd-slots--free { color: #11181C; }
+
 /* ── Cards ── */
 .pd-card {
   background: #fff;
@@ -1003,6 +1097,37 @@
   color: #C4C9D0;
 }
 
+.pd-ml-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6B7280;
+}
+
+.pd-ml-sort-select {
+  padding: 9px 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #11181C;
+  background: #fff;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.pd-ml-sort-select:focus {
+  border-color: #FF4040;
+  box-shadow: 0 0 0 3px rgba(255, 64, 64, 0.06);
+}
+
 /* Listing cards */
 .pd-ml-list {
   display: flex;
@@ -1211,6 +1336,11 @@
 .pd-badge--inactive {
   background: #F3F4F6;
   color: #6B7280;
+}
+
+.pd-badge--paused {
+  background: #FEF3C7;
+  color: #D97706;
 }
 
 /* ═══════════════════════════════════════════════════════

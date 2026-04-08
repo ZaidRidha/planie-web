@@ -23,16 +23,80 @@ import ListingPreview from "../Components/ListingPreview";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 
-const categories = [
-  "Restaurant & Bar",
-  "Activity & Tour",
-  "Wellness & Spa",
-  "Hotel & Resort",
-  "Shopping & Market",
+const activities = [
+  "Food & Drink",
+  "Tours & Experiences",
+  "Wellness & Relaxation",
+  "Accommodation",
+  "Shopping",
   "Nightlife & Entertainment",
-  "Museum & Gallery",
+  "Culture & Arts",
   "Outdoor & Adventure",
 ];
+
+const categoryMap = {
+  "Food & Drink": ["Restaurant & Bar", "Café & Coffee", "Street Food & Market", "Fine Dining", "Bakery & Desserts"],
+  "Tours & Experiences": ["Walking Tour", "Boat & Cruise", "Food Tour", "Cultural Experience", "Day Trip & Excursion", "Workshop & Class"],
+  "Wellness & Relaxation": ["Spa & Massage", "Yoga & Meditation", "Fitness & Gym", "Hot Springs & Hammam", "Retreat Center", "Beauty & Salon"],
+  "Accommodation": ["Hotel & Resort", "Boutique Hotel", "Hostel & Budget", "Villa & Rental", "Eco Lodge", "Riad & Guesthouse"],
+  "Shopping": ["Night Market", "Artisan Crafts", "Fashion Boutique", "Souvenir Shop", "Flea Market", "Food Market", "Jewelry & Accessories"],
+  "Nightlife & Entertainment": ["Club & Dance", "Live Music", "Comedy & Theater", "Rooftop Lounge", "Pub & Bar Crawl", "Casino & Gaming", "Karaoke"],
+  "Culture & Arts": ["Art Museum", "History Museum", "Gallery & Exhibition", "Heritage Site", "Science & Interactive", "Sculpture & Outdoor Art"],
+  "Outdoor & Adventure": ["Hiking & Trekking", "Water Sports", "Rock Climbing", "Zip Lining & Aerial", "Diving & Snorkeling", "Paragliding", "Kayaking & Canoeing"],
+};
+
+const subcategoryMap = {
+  "Restaurant & Bar": ["Fine Dining", "Casual Dining", "Rooftop Bar", "Cocktail Lounge", "Seafood", "Brunch Spot", "Pub & Gastropub"],
+  "Café & Coffee": ["Specialty Coffee", "Tea House", "Juice & Smoothie Bar", "Coworking Café", "Dessert Café"],
+  "Street Food & Market": ["Night Market", "Food Stall", "Food Truck", "Hawker Center", "Pop-up Kitchen"],
+  "Fine Dining": ["Tasting Menu", "Michelin Star", "Chef's Table", "Wine Pairing", "Omakase"],
+  "Bakery & Desserts": ["Pastry Shop", "Artisan Bakery", "Ice Cream & Gelato", "Chocolate Shop", "Cake & Cupcakes"],
+  "Walking Tour": ["Historical Walk", "Neighborhood Stroll", "Architecture Tour", "Ghost & Mystery Tour", "Photography Walk"],
+  "Boat & Cruise": ["River Cruise", "Sunset Sail", "Speedboat Tour", "Catamaran Trip", "Fishing Charter"],
+  "Food Tour": ["Street Food Tour", "Market Tour", "Wine & Cheese Tasting", "Cooking Class Tour", "Dessert Crawl"],
+  "Cultural Experience": ["Traditional Dance", "Music Performance", "Craft Workshop", "Local Festival", "Storytelling & Folklore"],
+  "Day Trip & Excursion": ["Mountain Trip", "Island Hopping", "Desert Safari", "Countryside Tour", "Waterfall Visit"],
+  "Workshop & Class": ["Cooking Class", "Art & Painting", "Pottery & Ceramics", "Language Lesson", "Dance Class"],
+  "Spa & Massage": ["Thai Massage", "Hot Stone", "Aromatherapy", "Couples Spa", "Deep Tissue"],
+  "Yoga & Meditation": ["Morning Yoga", "Sunset Yoga", "Sound Healing", "Breathwork", "Silent Meditation"],
+  "Fitness & Gym": ["CrossFit", "Boxing", "Pilates", "Personal Training", "Group Class"],
+  "Hot Springs & Hammam": ["Natural Hot Springs", "Traditional Hammam", "Onsen", "Thermal Bath", "Sauna & Steam"],
+  "Retreat Center": ["Wellness Retreat", "Yoga Retreat", "Digital Detox", "Silent Retreat", "Meditation Retreat"],
+  "Beauty & Salon": ["Hair Salon", "Nail Studio", "Facial Treatment", "Makeup & Styling", "Barber Shop"],
+  "Hotel & Resort": ["Beach Resort", "All-Inclusive", "Business Hotel", "Spa Resort", "Family Resort"],
+  "Boutique Hotel": ["Design Hotel", "Heritage Stay", "Urban Boutique", "Themed Hotel", "Art Hotel"],
+  "Hostel & Budget": ["Party Hostel", "Quiet Hostel", "Capsule Hotel", "Dormitory", "Budget Inn"],
+  "Villa & Rental": ["Luxury Villa", "Private Pool Villa", "Apartment Rental", "Penthouse", "Cottage"],
+  "Eco Lodge": ["Treehouse", "Safari Lodge", "Farm Stay", "Off-grid Cabin", "Sustainable Resort"],
+  "Riad & Guesthouse": ["Traditional Riad", "Bed & Breakfast", "Family Guesthouse", "Heritage Home", "Courtyard Stay"],
+  "Night Market": ["Food Night Market", "Craft Night Market", "Vintage Market", "Cultural Bazaar"],
+  "Artisan Crafts": ["Pottery & Ceramics", "Textiles & Weaving", "Woodwork", "Leather Goods", "Handmade Jewelry"],
+  "Fashion Boutique": ["Local Designer", "Vintage & Thrift", "Streetwear", "Luxury Fashion", "Sustainable Fashion"],
+  "Souvenir Shop": ["Local Gifts", "Handmade Souvenirs", "Art Prints", "Specialty Items"],
+  "Flea Market": ["Antiques Market", "Second-hand Market", "Collectors Market", "Weekend Market"],
+  "Food Market": ["Farmers Market", "Spice Market", "Organic Market", "Gourmet Market", "Fish Market"],
+  "Jewelry & Accessories": ["Handmade Jewelry", "Gemstones", "Watches", "Leather Accessories", "Silver & Gold"],
+  "Club & Dance": ["EDM Club", "Latin Night", "Jazz Club", "Underground Club", "Beach Club"],
+  "Live Music": ["Concert Venue", "Acoustic Session", "Jazz Bar", "Open Mic Night", "Music Festival"],
+  "Comedy & Theater": ["Stand-up Comedy", "Improv Show", "Dinner Theater", "Broadway-style", "Street Performance"],
+  "Rooftop Lounge": ["Sky Bar", "Sunset Lounge", "Pool Lounge", "Cocktail Terrace", "Wine Rooftop"],
+  "Pub & Bar Crawl": ["Craft Beer Pub", "Wine Bar Crawl", "Cocktail Tour", "Local Pub Experience", "Themed Bar Hop"],
+  "Casino & Gaming": ["Table Games", "Slot Casino", "Poker Room", "VIP Gaming", "Entertainment Casino"],
+  "Karaoke": ["Private Room", "Open Stage", "K-Pop Karaoke", "Themed Karaoke", "Karaoke Bar"],
+  "Art Museum": ["Modern Art", "Classical Art", "Folk Art", "Digital Art", "Mixed Media"],
+  "History Museum": ["Ancient History", "War & Military", "Maritime History", "Natural History", "Archaeology"],
+  "Gallery & Exhibition": ["Photography", "Contemporary Art", "Sculpture", "Pop-up Exhibition", "Permanent Collection"],
+  "Heritage Site": ["UNESCO Site", "Ancient Ruins", "Historic Quarter", "Castle & Palace", "Sacred Site"],
+  "Science & Interactive": ["Planetarium", "Tech Museum", "Children's Museum", "Hands-on Lab", "Innovation Center"],
+  "Sculpture & Outdoor Art": ["Sculpture Park", "Mural Walk", "Public Art Trail", "Land Art", "Installation Art"],
+  "Hiking & Trekking": ["Day Hike", "Multi-day Trek", "Summit Climb", "Nature Walk", "Volcano Hike"],
+  "Water Sports": ["Surfing", "Jet Ski", "Wakeboarding", "Windsurfing", "Stand-up Paddle"],
+  "Rock Climbing": ["Indoor Climbing", "Bouldering", "Via Ferrata", "Sport Climbing", "Canyoning"],
+  "Zip Lining & Aerial": ["Jungle Zip Line", "Mountain Zip Line", "Rope Course", "Bungee Jump", "Skywalk"],
+  "Diving & Snorkeling": ["Scuba Diving", "Reef Snorkeling", "Night Dive", "Wreck Dive", "Freediving"],
+  "Paragliding": ["Tandem Flight", "Solo Flight", "Thermal Soaring", "Coastal Flight", "Mountain Launch"],
+  "Kayaking & Canoeing": ["Sea Kayak", "River Kayak", "Mangrove Paddle", "Cave Kayaking", "Canoe Safari"],
+};
 
 const priceRanges = ["Free", "$", "$$", "$$$", "$$$$"];
 
@@ -52,7 +116,9 @@ export default function AddListing() {
   const [imagePreview, setImagePreview] = useState([]);
   const [form, setForm] = useState({
     name: "",
+    activity: "",
     category: "",
+    subcategory: "",
     description: "",
     address: "",
     city: "",
@@ -120,7 +186,9 @@ export default function AddListing() {
                   setSubmitted(false);
                   setForm({
                     name: "",
+                    activity: "",
                     category: "",
+                    subcategory: "",
                     description: "",
                     address: "",
                     city: "",
@@ -182,20 +250,56 @@ export default function AddListing() {
             </div>
 
             <div className="al-field">
-              <label className="al-label">Category *</label>
+              <label className="al-label">Activity *</label>
               <div className="al-category-grid">
-                {categories.map((cat) => (
+                {activities.map((act) => (
                   <button
-                    key={cat}
+                    key={act}
                     type="button"
-                    className={`al-category-chip ${form.category === cat ? "al-category-chip--active" : ""}`}
-                    onClick={() => updateField("category", cat)}
+                    className={`al-category-chip ${form.activity === act ? "al-category-chip--active" : ""}`}
+                    onClick={() => { updateField("activity", act); updateField("category", ""); updateField("subcategory", ""); }}
                   >
-                    {cat}
+                    {act}
                   </button>
                 ))}
               </div>
             </div>
+
+            {form.activity && categoryMap[form.activity] && (
+              <div className="al-field al-subcategory-field">
+                <label className="al-label">Category *</label>
+                <div className="al-category-grid">
+                  {categoryMap[form.activity].map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`al-category-chip al-subcategory-chip ${form.category === cat ? "al-category-chip--active" : ""}`}
+                      onClick={() => { updateField("category", cat); updateField("subcategory", ""); }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {form.category && subcategoryMap[form.category] && (
+              <div className="al-field al-subcategory-field">
+                <label className="al-label">Subcategory *</label>
+                <div className="al-category-grid">
+                  {subcategoryMap[form.category].map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      className={`al-category-chip al-subcategory-chip ${form.subcategory === sub ? "al-category-chip--active" : ""}`}
+                      onClick={() => updateField("subcategory", sub)}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="al-field">
               <label className="al-label">Description *</label>
@@ -207,7 +311,7 @@ export default function AddListing() {
                 onChange={(e) => updateField("description", e.target.value)}
                 required
               />
-              <span className="al-hint">{form.description.length}/500 characters</span>
+              <span className="al-hint">{form.description.length}/2000 characters</span>
             </div>
           </section>
 

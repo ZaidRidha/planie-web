@@ -4,7 +4,7 @@ import {
   Eye,
   MousePointerClick,
   TrendingUp,
-  DollarSign,
+  CalendarCheck,
   Plus,
   Pencil,
   MapPin,
@@ -40,6 +40,8 @@ import {
   Lock,
   Shield,
   ChevronDown,
+  Pause,
+  Play,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import "./PartnerDashboard.css";
@@ -172,11 +174,11 @@ const toSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 
 /* ─── Data ─── */
 const listings = [
-  { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Marrakech, Morocco", rating: 4.8, views: 1240, clicks: 340, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music." },
-  { name: "Desert Safari Tours", category: "Activity & Tour", location: "Dubai, UAE", rating: 4.9, views: 2100, clicks: 580, status: "active", created: "Dec 3, 2025", description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners." },
-  { name: "Coastal Yoga Retreat", category: "Wellness & Spa", location: "Bali, Indonesia", rating: 4.7, views: 860, clicks: 210, status: "pending", created: "Feb 22, 2026", description: "A beachfront wellness retreat offering daily yoga, meditation sessions, and organic cuisine." },
-  { name: "Old Town Walking Tour", category: "Activity & Tour", location: "Prague, Czech Republic", rating: 4.6, views: 1520, clicks: 410, status: "active", created: "Nov 18, 2025", description: "Discover hidden gems and centuries of history on this expertly guided walking tour." },
-  { name: "Neon Night Market", category: "Shopping & Market", location: "Bangkok, Thailand", rating: 4.5, views: 680, clicks: 190, status: "inactive", created: "Mar 1, 2026", description: "Bangkok's most vibrant night market with street food, local crafts, and live entertainment." },
+  { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Marrakech, Morocco", rating: 4.8, views: 1240, clicks: 340, bookings: 47, conversionRate: 3.8, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music." },
+  { name: "Desert Safari Tours", category: "Activity & Tour", location: "Dubai, UAE", rating: 4.9, views: 2100, clicks: 580, bookings: 92, conversionRate: 4.4, status: "active", created: "Dec 3, 2025", description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners." },
+  { name: "Coastal Yoga Retreat", category: "Wellness & Spa", location: "Bali, Indonesia", rating: 4.7, views: 860, clicks: 210, bookings: 28, conversionRate: 3.3, status: "pending", created: "Feb 22, 2026", description: "A beachfront wellness retreat offering daily yoga, meditation sessions, and organic cuisine." },
+  { name: "Old Town Walking Tour", category: "Activity & Tour", location: "Prague, Czech Republic", rating: 4.6, views: 1520, clicks: 410, bookings: 63, conversionRate: 4.1, status: "active", created: "Nov 18, 2025", description: "Discover hidden gems and centuries of history on this expertly guided walking tour." },
+  { name: "Neon Night Market", category: "Shopping & Market", location: "Bangkok, Thailand", rating: 4.5, views: 680, clicks: 190, bookings: 15, conversionRate: 2.2, status: "inactive", created: "Mar 1, 2026", description: "Bangkok's most vibrant night market with street food, local crafts, and live entertainment." },
 ];
 
 const navItems = [
@@ -410,7 +412,7 @@ function AnalyticsTab() {
           <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 8.3%</div>
         </div>
         <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--green"><DollarSign size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
           <div className="pd-an-stat-body">
             <span className="pd-an-stat-lbl">Conversions</span>
             <span className="pd-an-stat-val">{totalConv.toLocaleString()}</span>
@@ -563,8 +565,21 @@ function ListingsTab() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
+  const [listingData, setListingData] = useState(listings);
+  const [sortBy, setSortBy] = useState("newest");
 
-  const filtered = listings.filter((l) => {
+  const togglePause = (name) => {
+    setListingData((prev) =>
+      prev.map((l) =>
+        l.name === name
+          ? { ...l, status: l.status === "inactive" ? (l.previousStatus || "active") : "inactive", previousStatus: l.status === "inactive" ? undefined : l.status }
+          : l
+      )
+    );
+    setOpenMenu(null);
+  };
+
+  const filtered = listingData.filter((l) => {
     const matchSearch =
       l.name.toLowerCase().includes(search.toLowerCase()) ||
       l.category.toLowerCase().includes(search.toLowerCase()) ||
@@ -574,11 +589,26 @@ function ListingsTab() {
     return matchSearch && matchStatus;
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "newest": return new Date(b.created) - new Date(a.created);
+      case "oldest": return new Date(a.created) - new Date(b.created);
+      case "name-az": return a.name.localeCompare(b.name);
+      case "name-za": return b.name.localeCompare(a.name);
+      case "views": return b.views - a.views;
+      case "clicks": return b.clicks - a.clicks;
+      case "rating": return b.rating - a.rating;
+      case "bookings": return b.bookings - a.bookings;
+      case "conversion": return b.conversionRate - a.conversionRate;
+      default: return 0;
+    }
+  });
+
   const counts = {
-    all: listings.length,
-    active: listings.filter((l) => l.status === "active").length,
-    pending: listings.filter((l) => l.status === "pending").length,
-    inactive: listings.filter((l) => l.status === "inactive").length,
+    all: listingData.length,
+    active: listingData.filter((l) => l.status === "active").length,
+    pending: listingData.filter((l) => l.status === "pending").length,
+    inactive: listingData.filter((l) => l.status === "inactive").length,
   };
 
   return (
@@ -627,18 +657,32 @@ function ListingsTab() {
             className="pd-ml-search-input"
           />
         </div>
+        <div className="pd-ml-sort">
+          <Filter size={14} strokeWidth={2} />
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="pd-ml-sort-select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name-az">Name A–Z</option>
+            <option value="name-za">Name Z–A</option>
+            <option value="views">Most Views</option>
+            <option value="clicks">Most Clicks</option>
+            <option value="rating">Highest Rating</option>
+            <option value="bookings">Most Bookings</option>
+            <option value="conversion">Highest Conversion</option>
+          </select>
+        </div>
       </div>
 
       {/* Listings */}
       <div className="pd-ml-list pd-anim pd-a3">
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <div className="pd-ml-empty">
             <Store size={40} strokeWidth={1.2} />
             <h4>No listings found</h4>
             <p>Try adjusting your search or filter</p>
           </div>
         ) : (
-          filtered.map((l) => (
+          sorted.map((l) => (
             <div key={l.name} className="pd-ml-card">
               <div className="pd-ml-card-top">
                 <div className="pd-ml-card-left">
@@ -671,8 +715,8 @@ function ListingsTab() {
                         <button className="pd-ml-dropdown-item" onClick={() => navigate(`/partners/edit-listing/${toSlug(l.name)}`)}>
                           <Pencil size={14} /> Edit Listing
                         </button>
-                        <button className="pd-ml-dropdown-item">
-                          <ExternalLink size={14} /> View Live
+                        <button className="pd-ml-dropdown-item" onClick={() => togglePause(l.name)}>
+                          {l.status === "inactive" ? <><Play size={14} /> Resume Listing</> : <><Pause size={14} /> Pause Listing</>}
                         </button>
                         <button className="pd-ml-dropdown-item pd-ml-dropdown-item--danger">
                           <Trash2 size={14} /> Delete
@@ -700,6 +744,16 @@ function ListingsTab() {
                   <Star size={14} fill="#F59E0B" stroke="#F59E0B" />
                   <span className="pd-ml-card-stat-val">{l.rating}</span>
                   <span className="pd-ml-card-stat-lbl">rating</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <CalendarCheck size={14} strokeWidth={1.8} />
+                  <span className="pd-ml-card-stat-val">{l.bookings}</span>
+                  <span className="pd-ml-card-stat-lbl">bookings</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <TrendingUp size={14} strokeWidth={1.8} />
+                  <span className="pd-ml-card-stat-val">{l.conversionRate}%</span>
+                  <span className="pd-ml-card-stat-lbl">conversion</span>
                 </div>
                 <div className="pd-ml-card-stat">
                   <Clock size={14} strokeWidth={1.8} />
@@ -1058,13 +1112,13 @@ export default function PartnerDashboard() {
   const v = useCounter(4200, 1400, 200);
   const cl = useCounter(1340, 1400, 300);
   const cr = useCounter(32, 1200, 400);
-  const rev = useCounter(2850, 1400, 500);
+  const bookings = useCounter(187, 1400, 500);
 
   const stats = [
     { label: "Total Views", value: v.toLocaleString(), change: "+12.5%", up: true, icon: Eye, spark: [120,180,150,260,220,310,290] },
     { label: "Total Clicks", value: cl.toLocaleString(), change: "+8.3%", up: true, icon: MousePointerClick, spark: [40,65,55,90,75,100,95] },
     { label: "Conv. Rate", value: `${cr}%`, change: "-2.1%", up: false, icon: TrendingUp, spark: [38,35,40,34,36,32,33] },
-    { label: "Revenue", value: `$${rev.toLocaleString()}`, change: "+18.7%", up: true, icon: DollarSign, spark: [400,520,480,680,620,800,760] },
+    { label: "Bookings Made", value: bookings.toLocaleString(), change: "+18.7%", up: true, icon: CalendarCheck, spark: [30,45,40,55,50,65,60] },
   ];
 
   return (
@@ -1146,8 +1200,52 @@ export default function PartnerDashboard() {
               })}
             </div>
 
+            {/* Listing Slots */}
+            {(() => {
+              const currentPlan = plans.find((p) => p.current);
+              const maxListings = currentPlan?.name === "Starter" ? 3 : currentPlan?.name === "Pro" ? 10 : Infinity;
+              const activeCount = listings.filter((l) => l.status === "active").length;
+              const inactiveCount = listings.filter((l) => l.status === "inactive").length;
+              const pendingCount = listings.filter((l) => l.status === "pending").length;
+              const usedSlots = listings.length;
+              const freeSlots = maxListings === Infinity ? "Unlimited" : maxListings - usedSlots;
+              return (
+                <div className="pd-slots pd-anim pd-a3">
+                  <div className="pd-slots-header">
+                    <Store size={16} strokeWidth={1.8} />
+                    <h3>Listing Slots</h3>
+                    <span className="pd-slots-plan">{currentPlan?.name} Plan</span>
+                  </div>
+                  <div className="pd-slots-bar-wrap">
+                    <div className="pd-slots-bar">
+                      <div className="pd-slots-bar-fill" style={{ width: maxListings === Infinity ? "10%" : `${(usedSlots / maxListings) * 100}%` }} />
+                    </div>
+                    <span className="pd-slots-bar-label">{usedSlots} / {maxListings === Infinity ? "∞" : maxListings} used</span>
+                  </div>
+                  <div className="pd-slots-grid">
+                    <div className="pd-slots-item">
+                      <span className="pd-slots-item-val pd-slots--active">{activeCount}</span>
+                      <span className="pd-slots-item-lbl">Active</span>
+                    </div>
+                    <div className="pd-slots-item">
+                      <span className="pd-slots-item-val pd-slots--inactive">{inactiveCount}</span>
+                      <span className="pd-slots-item-lbl">Inactive</span>
+                    </div>
+                    <div className="pd-slots-item">
+                      <span className="pd-slots-item-val pd-slots--pending">{pendingCount}</span>
+                      <span className="pd-slots-item-lbl">Pending</span>
+                    </div>
+                    <div className="pd-slots-item">
+                      <span className="pd-slots-item-val pd-slots--free">{freeSlots}</span>
+                      <span className="pd-slots-item-lbl">Free Slots</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Listings */}
-            <div className="pd-card pd-anim pd-a3">
+            <div className="pd-card pd-anim pd-a4">
               <div className="pd-card-top">
                 <h3>Your Listings</h3>
                 <button className="pd-link" onClick={() => setActiveTab("My Listings")}>View All <ChevronRight size={14} /></button>
