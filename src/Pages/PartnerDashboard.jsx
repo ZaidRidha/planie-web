@@ -17,10 +17,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   CreditCard,
-  Receipt,
   CheckCircle,
   Download,
-  Zap,
   Crown,
   Calendar,
   AlertCircle,
@@ -28,15 +26,12 @@ import {
   Filter,
   MoreVertical,
   Trash2,
-  ExternalLink,
   Clock,
-  User,
   Building2,
   Mail,
   Phone,
   Globe,
   Bell,
-  BellOff,
   Lock,
   Shield,
   ChevronDown,
@@ -90,6 +85,7 @@ const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const views = [320, 480, 390, 620, 540, 710, 680];
 const clicks = [85, 130, 110, 195, 160, 220, 200];
 
+// eslint-disable-next-line no-unused-vars
 function PerfChart() {
   const w = 560, h = 200, px = 44, py = 16;
   const iw = w - px * 2, ih = h - py * 2;
@@ -776,7 +772,7 @@ function ListingsTab() {
 
 /* ─── Billing Tab ─── */
 function BillingTab() {
-  const currentPlan = plans.find((p) => p.current);
+  const currentPlan = plans.find((p) => p.current); // eslint-disable-line no-unused-vars
 
   return (
     <>

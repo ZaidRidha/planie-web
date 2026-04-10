@@ -120,8 +120,8 @@ export default function Footer() {
               </h3>
               <div className="flex flex-col gap-3">
                 {/* App Store Badge */}
-                <a
-                  href="#"
+                <button
+                  type="button"
                   className="inline-block transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90"
                 >
                   <img
@@ -129,11 +129,11 @@ export default function Footer() {
                     alt="Download on the App Store"
                     className="h-[40px] w-auto"
                   />
-                </a>
+                </button>
 
                 {/* Google Play Badge */}
-                <a
-                  href="#"
+                <button
+                  type="button"
                   className="inline-block transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 -ml-3"
                 >
                   <img
@@ -141,7 +141,7 @@ export default function Footer() {
                     alt="Get it on Google Play"
                     className="h-[60px] w-auto"
                   />
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -154,12 +154,12 @@ export default function Footer() {
               &copy; {new Date().getFullYear()} Planie. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+              <button type="button" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
                 Privacy Policy
-              </a>
-              <a href="#" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+              </button>
+              <button type="button" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
                 Terms of Service
-              </a>
+              </button>
             </div>
           </div>
         </div>

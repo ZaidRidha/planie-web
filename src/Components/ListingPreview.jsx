@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Star, Heart, Clock, DollarSign } from "lucide-react";
+import { MapPin, Star, Heart } from "lucide-react";
 
 const categoryMeta = {
   "Restaurant & Bar": { color: "#FF8A65", tag: "Restaurant" },
