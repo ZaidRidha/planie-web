@@ -1444,6 +1444,32 @@
   height: auto;
 }
 
+.pd-an-tt-title {
+  fill: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+.pd-an-tt-label {
+  fill: #D1D5DB;
+  font-size: 11.5px;
+  font-weight: 500;
+  dominant-baseline: middle;
+}
+
+.pd-an-tt-value {
+  fill: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  dominant-baseline: middle;
+}
+
+.pd-an-chart-hover {
+  pointer-events: none;
+}
+
 /* Per-listing table */
 .pd-an-table {
   display: flex;
@@ -1646,10 +1672,10 @@
   color: #11181C;
 }
 
-/* Bottom 3-col grid */
+/* Bottom 2x2 grid */
 .pd-an-bottom {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-top: 16px;
 }
@@ -2150,7 +2176,6 @@
   .pd-row { grid-template-columns: 1fr; }
   .pd-billing-plans { grid-template-columns: 1fr 1fr; }
   .pd-an-bottom { grid-template-columns: 1fr 1fr; }
-  .pd-an-bottom .pd-card:last-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 900px) {
@@ -2158,7 +2183,6 @@
   .pd-ml-card-stats { flex-wrap: wrap; gap: 14px; }
   .pd-an-stats { grid-template-columns: repeat(2, 1fr); }
   .pd-an-bottom { grid-template-columns: 1fr; }
-  .pd-an-bottom .pd-card:last-child { grid-column: auto; }
   .pd-an-table-header,
   .pd-an-table-row { grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.9fr 0.8fr; }
   .pd-an-table-header span:nth-child(6),

@@ -638,3 +638,142 @@
     width: 100%;
   }
 }
+
+/* ── Booking Platform section ── */
+.al-booking-count {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.al-booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.al-booking-btn {
+  padding: 12px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.al-booking-btn:hover {
+  border-color: #D1D5DB;
+  background: #FAFAFA;
+}
+
+.al-booking-btn--active {
+  border-color: #FF4040;
+  background: #FFF0EB;
+}
+
+.al-booking-btn--active:hover {
+  background: #FFE4DE;
+}
+
+.al-booking-btn-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #11181C;
+}
+
+.al-booking-btn--active .al-booking-btn-name {
+  color: #FF4040;
+}
+
+.al-booking-btn-desc {
+  font-size: 11.5px;
+  color: #9CA3AF;
+  margin-top: 3px;
+}
+
+.al-booking-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.al-booking-own {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 12px;
+  border: 1.5px dashed #D1D5DB;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.al-booking-own:hover {
+  border-color: #9CA3AF;
+  background: #FAFAFA;
+}
+
+.al-booking-own--active {
+  border-color: #FF4040;
+  background: #FFF0EB;
+  border-style: solid;
+}
+
+.al-booking-own-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #11181C;
+}
+
+.al-booking-own--active .al-booking-own-name {
+  color: #FF4040;
+}
+
+.al-booking-own-desc {
+  font-size: 11.5px;
+  color: #9CA3AF;
+  margin-top: 3px;
+}
+
+.al-booking-fields {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F0F0F3;
+}
+
+.al-booking-hint {
+  display: block;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 6px;
+}
+
+.al-booking-note {
+  font-size: 12px;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .al-booking-grid {
+    grid-template-columns: 1fr;
+  }
+}

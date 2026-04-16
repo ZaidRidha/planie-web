@@ -142,14 +142,14 @@ const sources = [
   { label: "Shared Links", value: 9, color: "#F0F0F3" },
 ];
 
-function Donut({ size = 160 }) {
+function Donut({ size = 160, data = sources }) {
   const sw = 18, r = (size - sw) / 2, c = 2 * Math.PI * r;
   let acc = 0;
   return (
     <svg width={size} height={size}>
       {/* background track */}
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#F5F5F8" strokeWidth={sw} />
-      {sources.map((s, i) => {
+      {data.map((s, i) => {
         const dash = (s.value / 100) * c;
         const off = -acc * (c / 100) + c * 0.25;
         acc += s.value;
@@ -243,13 +243,30 @@ function buildListingSeries(listing) {
   };
 }
 
-const deviceData = [
-  { label: "Mobile", value: 58, color: "#FF4040" },
-  { label: "Desktop", value: 32, color: "#11181C" },
-  { label: "Tablet", value: 10, color: "#D1D5DB" },
+const genderData = [
+  { label: "Female", value: 54, color: "#FF4040" },
+  { label: "Male", value: 43, color: "#11181C" },
+  { label: "Non-binary", value: 3, color: "#D1D5DB" },
 ];
 
-const topCountries = [
+const ageData = [
+  { label: "18–24", views: 710, pct: 14 },
+  { label: "25–34", views: 1920, pct: 38 },
+  { label: "35–44", views: 1210, pct: 24 },
+  { label: "45–54", views: 760, pct: 15 },
+  { label: "55–64", views: 300, pct: 6 },
+  { label: "65+", views: 150, pct: 3 },
+];
+
+const topAffinities = [
+  { source: "Luxury Travel", visits: 1640, change: "+18%" },
+  { source: "Foodie Experiences", visits: 1280, change: "+24%" },
+  { source: "Adventure Tourism", visits: 940, change: "+11%" },
+  { source: "Wellness & Retreats", visits: 620, change: "+7%" },
+  { source: "Culture & History", visits: 410, change: "-2%" },
+];
+
+const visitorOrigin = [
   { country: "United States", views: 1420, pct: 28 },
   { country: "United Kingdom", views: 890, pct: 17 },
   { country: "France", views: 720, pct: 14 },
@@ -258,20 +275,14 @@ const topCountries = [
   { country: "Others", views: 1130, pct: 21 },
 ];
 
-const topReferrers = [
-  { source: "planie.app/discover", visits: 1760, change: "+14%" },
-  { source: "AI Itinerary Builder", visits: 1302, change: "+22%" },
-  { source: "Google Search", visits: 756, change: "+5%" },
-  { source: "Instagram Link", visits: 412, change: "+31%" },
-  { source: "Direct / Bookmark", visits: 310, change: "-3%" },
-];
-
 /* ─── Analytics Chart ─── */
 function AnalyticsLineChart({ labels, datasets, height = 220 }) {
   const w = 680, h = height, px = 48, py = 20;
   const iw = w - px * 2, ih = h - py * 2;
   const allVals = datasets.flatMap((d) => d.data);
   const maxV = Math.max(...allVals);
+  const svgRef = useRef(null);
+  const [hoverIdx, setHoverIdx] = useState(null);
 
   const pt = (data, i) => ({
     x: px + (i / (data.length - 1)) * iw,
@@ -288,8 +299,37 @@ function AnalyticsLineChart({ labels, datasets, height = 220 }) {
     return `${l} L${last.x},${h - py} L${first.x},${h - py} Z`;
   };
 
+  const handleMove = (e) => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * w;
+    const frac = Math.max(0, Math.min(1, (svgX - px) / iw));
+    const idx = Math.round(frac * (labels.length - 1));
+    setHoverIdx(idx);
+  };
+
+  const ttWidth = 150;
+  const ttLineH = 16;
+  const ttPad = 10;
+  const ttHeight = ttPad * 2 + ttLineH * (datasets.length + 1);
+  let ttX = 0;
+  let ttY = 0;
+  if (hoverIdx !== null) {
+    const hoverX = px + (hoverIdx / (labels.length - 1)) * iw;
+    ttX = hoverX + 14;
+    if (ttX + ttWidth > w - 4) ttX = hoverX - ttWidth - 14;
+    const minY = datasets.reduce((m, ds) => Math.min(m, pt(ds.data, hoverIdx).y), Infinity);
+    ttY = Math.max(py, Math.min(h - py - ttHeight, minY - ttHeight / 2));
+  }
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="pd-an-chart">
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${w} ${h}`}
+      className="pd-an-chart"
+      onMouseMove={handleMove}
+      onMouseLeave={() => setHoverIdx(null)}
+    >
       <defs>
         {datasets.map((ds, di) => (
           <linearGradient key={di} id={`anGrad${di}`} x1="0" y1="0" x2="0" y2="1">
@@ -350,6 +390,57 @@ function AnalyticsLineChart({ labels, datasets, height = 220 }) {
           })}
         </g>
       ))}
+
+      {hoverIdx !== null && (
+        <g className="pd-an-chart-hover" pointerEvents="none">
+          <line
+            x1={px + (hoverIdx / (labels.length - 1)) * iw}
+            x2={px + (hoverIdx / (labels.length - 1)) * iw}
+            y1={py}
+            y2={h - py}
+            stroke="#11181C"
+            strokeOpacity="0.12"
+            strokeDasharray="3 3"
+          />
+          {datasets.map((ds, di) => {
+            const p = pt(ds.data, hoverIdx);
+            return (
+              <circle key={di} cx={p.x} cy={p.y} r="5" fill="#fff" stroke={ds.color} strokeWidth="2" />
+            );
+          })}
+          <g transform={`translate(${ttX},${ttY})`}>
+            <rect
+              width={ttWidth}
+              height={ttHeight}
+              rx="8"
+              fill="#11181C"
+              opacity="0.95"
+            />
+            <text x={ttPad} y={ttPad + 11} className="pd-an-tt-title">
+              {labels[hoverIdx]}
+            </text>
+            {datasets.map((ds, di) => (
+              <g key={di} transform={`translate(${ttPad},${ttPad + ttLineH * (di + 1) + 6})`}>
+                <circle cx="4" cy="0" r="4" fill={ds.color} />
+                <text x="14" y="0" className="pd-an-tt-label">{ds.label}</text>
+                <text x={ttWidth - ttPad * 2} y="0" className="pd-an-tt-value" textAnchor="end">
+                  {ds.data[hoverIdx].toLocaleString()}
+                </text>
+              </g>
+            ))}
+          </g>
+        </g>
+      )}
+
+      <rect
+        x={px}
+        y={py}
+        width={iw}
+        height={ih}
+        fill="transparent"
+        onMouseMove={handleMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      />
     </svg>
   );
 }
@@ -532,9 +623,9 @@ function AnalyticsTab() {
         <AnalyticsLineChart
           labels={monthLabels}
           datasets={[
-            { data: chartSeries.views, color: "#FF4040" },
-            { data: chartSeries.clicks, color: "#3B82F6" },
-            { data: chartSeries.conversions, color: "#10B981" },
+            { label: "Views", data: chartSeries.views, color: "#FF4040" },
+            { label: "Clicks", data: chartSeries.clicks, color: "#3B82F6" },
+            { label: "Conversions", data: chartSeries.conversions, color: "#10B981" },
           ]}
         />
       </div>
@@ -594,43 +685,43 @@ function AnalyticsTab() {
         </div>
       </div>
 
-      {/* Bottom row: Devices + Geography + Referrers */}
+      {/* Bottom row: Gender + Age + Affinities + Visitor Origin */}
       <div className="pd-an-bottom pd-anim pd-a4">
-        {/* Devices */}
+        {/* Gender */}
         <div className="pd-card">
-          <div className="pd-card-top"><h3>Devices</h3></div>
+          <div className="pd-card-top"><h3>Gender</h3></div>
           <div className="pd-an-device-donut">
-            <Donut size={130} />
+            <Donut size={130} data={genderData} />
             <div className="pd-donut-ctr">
-              <span className="pd-donut-num" style={{ fontSize: "1.2rem" }}>58%</span>
-              <span className="pd-donut-lbl">Mobile</span>
+              <span className="pd-donut-num" style={{ fontSize: "1.2rem" }}>54%</span>
+              <span className="pd-donut-lbl">Female</span>
             </div>
           </div>
-          <HBarChart data={deviceData} maxVal={60} />
+          <HBarChart data={genderData} maxVal={60} />
         </div>
 
-        {/* Top Countries */}
+        {/* Age */}
         <div className="pd-card">
-          <div className="pd-card-top"><h3>Top Countries</h3></div>
+          <div className="pd-card-top"><h3>Age</h3></div>
           <div className="pd-an-countries">
-            {topCountries.map((c) => (
-              <div key={c.country} className="pd-an-country-row">
-                <span className="pd-an-country-name">{c.country}</span>
+            {ageData.map((a) => (
+              <div key={a.label} className="pd-an-country-row">
+                <span className="pd-an-country-name">{a.label}</span>
                 <div className="pd-an-country-bar-wrap">
-                  <div className="pd-an-country-bar" style={{ width: `${(c.pct / 28) * 100}%` }} />
+                  <div className="pd-an-country-bar" style={{ width: `${(a.pct / 38) * 100}%` }} />
                 </div>
-                <span className="pd-an-country-views">{c.views.toLocaleString()}</span>
-                <span className="pd-an-country-pct">{c.pct}%</span>
+                <span className="pd-an-country-views">{a.views.toLocaleString()}</span>
+                <span className="pd-an-country-pct">{a.pct}%</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Top Referrers */}
+        {/* Top Related Affinities */}
         <div className="pd-card">
-          <div className="pd-card-top"><h3>Top Referrers</h3></div>
+          <div className="pd-card-top"><h3>Top Related Affinities</h3></div>
           <div className="pd-an-referrers">
-            {topReferrers.map((r, i) => (
+            {topAffinities.map((r, i) => (
               <div key={r.source} className="pd-an-ref-row">
                 <span className="pd-an-ref-rank">{i + 1}</span>
                 <div className="pd-an-ref-info">
@@ -641,6 +732,23 @@ function AnalyticsTab() {
                   {r.change.startsWith("+") ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                   {r.change}
                 </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Visitor Origin */}
+        <div className="pd-card">
+          <div className="pd-card-top"><h3>Visitor Origin</h3></div>
+          <div className="pd-an-countries">
+            {visitorOrigin.map((c) => (
+              <div key={c.country} className="pd-an-country-row">
+                <span className="pd-an-country-name">{c.country}</span>
+                <div className="pd-an-country-bar-wrap">
+                  <div className="pd-an-country-bar" style={{ width: `${(c.pct / 28) * 100}%` }} />
+                </div>
+                <span className="pd-an-country-views">{c.views.toLocaleString()}</span>
+                <span className="pd-an-country-pct">{c.pct}%</span>
               </div>
             ))}
           </div>
@@ -1200,8 +1308,42 @@ function SettingsTab() {
 
 /* ═══════════════════════════════════════════════════════ */
 
+const tabSlugs = {
+  "Dashboard": "dashboard",
+  "My Listings": "listings",
+  "Analytics": "analytics",
+  "Billing": "billing",
+  "Settings": "settings",
+};
+const tabFromSlug = Object.fromEntries(Object.entries(tabSlugs).map(([k, v]) => [v, k]));
+
+function getTabFromHash() {
+  if (typeof window === "undefined") return "Dashboard";
+  const slug = window.location.hash.replace(/^#/, "");
+  return tabFromSlug[slug] || "Dashboard";
+}
+
 export default function PartnerDashboard() {
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTabState] = useState(getTabFromHash);
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    const slug = tabSlugs[tab];
+    if (slug && typeof window !== "undefined" && window.location.hash.replace(/^#/, "") !== slug) {
+      window.history.replaceState(null, "", `#${slug}`);
+    }
+  };
+
+  useEffect(() => {
+    const onHashChange = () => setActiveTabState(getTabFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    // Ensure hash reflects initial tab
+    if (!window.location.hash) {
+      window.history.replaceState(null, "", `#${tabSlugs.Dashboard}`);
+    }
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
   const v = useCounter(4200, 1400, 200);
   const cl = useCounter(1340, 1400, 300);
   const cr = useCounter(32, 1200, 400);
