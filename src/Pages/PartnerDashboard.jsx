@@ -225,6 +225,24 @@ const monthViews = [1800,2200,1950,2600,2400,3100,2800,3400,3200,3600,3900,4200]
 const monthClicks = [420,530,470,640,580,760,690,850,780,900,960,1020];
 const monthConversions = [85,110,95,130,120,155,140,175,160,185,198,210];
 
+/* Deterministic per-listing time series derived from each listing's share */
+function buildListingSeries(listing) {
+  const active = listings.filter((l) => l.status === "active");
+  const totalViews = active.reduce((s, l) => s + l.views, 0) || 1;
+  const totalClicks = active.reduce((s, l) => s + l.clicks, 0) || 1;
+  const totalBookings = active.reduce((s, l) => s + l.bookings, 0) || 1;
+  const seed = listing.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const jitter = (i, phase) => 0.78 + ((Math.sin(seed * 0.13 + i * 1.31 + phase) + 1) / 2) * 0.44;
+  const viewsShare = listing.views / totalViews;
+  const clicksShare = listing.clicks / totalClicks;
+  const bookingsShare = listing.bookings / totalBookings;
+  return {
+    views: monthViews.map((v, i) => Math.max(1, Math.round(v * viewsShare * jitter(i, 0)))),
+    clicks: monthClicks.map((v, i) => Math.max(1, Math.round(v * clicksShare * jitter(i, 1.7)))),
+    conversions: monthConversions.map((v, i) => Math.max(0, Math.round(v * bookingsShare * jitter(i, 3.4)))),
+  };
+}
+
 const deviceData = [
   { label: "Mobile", value: 58, color: "#FF4040" },
   { label: "Desktop", value: 32, color: "#11181C" },
@@ -361,13 +379,37 @@ const timeRanges = ["7 Days", "30 Days", "90 Days"];
 
 function AnalyticsTab() {
   const [range, setRange] = useState("30 Days");
+  const [selectedNames, setSelectedNames] = useState([]);
 
   const totalViews = useCounter(34200, 1400, 200);
   const totalClicks = useCounter(8580, 1400, 300);
   const totalConv = useCounter(1765, 1200, 400);
+  const bookingsMade = useCounter(187, 1400, 500);
   const avgRating = 4.72;
-  const bounceRate = 24;
+  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
+  const conversionRate = totalClicks > 0 ? ((totalConv / totalClicks) * 100).toFixed(1) : "0.0";
   const avgDuration = "2m 34s";
+
+  const toggleListing = (name) => {
+    setSelectedNames((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
+  const selectedListings = listings.filter((l) => selectedNames.includes(l.name));
+  const listingsForChart = selectedListings.length
+    ? selectedListings
+    : listings.filter((l) => l.status === "active");
+  const chartSeries = listingsForChart
+    .map(buildListingSeries)
+    .reduce(
+      (acc, s) => ({
+        views: acc.views.map((v, i) => v + s.views[i]),
+        clicks: acc.clicks.map((v, i) => v + s.clicks[i]),
+        conversions: acc.conversions.map((v, i) => v + s.conversions[i]),
+      }),
+      { views: Array(monthViews.length).fill(0), clicks: Array(monthClicks.length).fill(0), conversions: Array(monthConversions.length).fill(0) }
+    );
 
   return (
     <>
@@ -408,28 +450,28 @@ function AnalyticsTab() {
           <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 8.3%</div>
         </div>
         <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Conversions</span>
-            <span className="pd-an-stat-val">{totalConv.toLocaleString()}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 18.7%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--amber"><Star size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Avg. Rating</span>
-            <span className="pd-an-stat-val">{avgRating}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 0.3</div>
-        </div>
-        <div className="pd-an-stat">
           <div className="pd-an-stat-icon" style={{ background: "#F3F4F6", color: "#6B7280" }}><TrendingUp size={18} strokeWidth={1.8} /></div>
           <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Bounce Rate</span>
-            <span className="pd-an-stat-val">{bounceRate}%</span>
+            <span className="pd-an-stat-lbl">CTR</span>
+            <span className="pd-an-stat-val">{ctr}%</span>
           </div>
-          <div className="pd-stat-chg pd-stat-chg--dn"><ArrowDownRight size={12} /> 2.1%</div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 1.2%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Conversion Rate</span>
+            <span className="pd-an-stat-val">{conversionRate}%</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 2.4%</div>
+        </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Bookings Made</span>
+            <span className="pd-an-stat-val">{bookingsMade.toLocaleString()}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 18.7%</div>
         </div>
         <div className="pd-an-stat">
           <div className="pd-an-stat-icon" style={{ background: "#EFF6FF", color: "#3B82F6" }}><Clock size={18} strokeWidth={1.8} /></div>
@@ -439,12 +481,48 @@ function AnalyticsTab() {
           </div>
           <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 12s</div>
         </div>
+        <div className="pd-an-stat">
+          <div className="pd-an-stat-icon pd-an-stat-icon--amber"><Star size={18} strokeWidth={1.8} /></div>
+          <div className="pd-an-stat-body">
+            <span className="pd-an-stat-lbl">Avg. Rating</span>
+            <span className="pd-an-stat-val">{avgRating}</span>
+          </div>
+          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 0.3</div>
+        </div>
       </div>
 
       {/* Views & Clicks over time */}
       <div className="pd-card pd-anim pd-a3">
         <div className="pd-card-top">
-          <h3>Views, Clicks & Conversions</h3>
+          <div className="pd-an-chart-head">
+            <h3>Views, Clicks & Conversions</h3>
+            {selectedListings.length === 0 ? (
+              <span className="pd-an-chart-scope">All Listings</span>
+            ) : (
+              <div className="pd-an-chart-chips">
+                {selectedListings.map((l) => (
+                  <span key={l.name} className="pd-an-chart-chip">
+                    {l.name}
+                    <button
+                      type="button"
+                      className="pd-an-chart-chip-x"
+                      onClick={() => toggleListing(l.name)}
+                      aria-label={`Remove ${l.name}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <button
+                  type="button"
+                  className="pd-an-chart-clear"
+                  onClick={() => setSelectedNames([])}
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+          </div>
           <div className="pd-legend">
             <span><span className="pd-dot" style={{ background: "#FF4040" }} />Views</span>
             <span><span className="pd-dot" style={{ background: "#3B82F6" }} />Clicks</span>
@@ -454,9 +532,9 @@ function AnalyticsTab() {
         <AnalyticsLineChart
           labels={monthLabels}
           datasets={[
-            { data: monthViews, color: "#FF4040" },
-            { data: monthClicks, color: "#3B82F6" },
-            { data: monthConversions, color: "#10B981" },
+            { data: chartSeries.views, color: "#FF4040" },
+            { data: chartSeries.clicks, color: "#3B82F6" },
+            { data: chartSeries.conversions, color: "#10B981" },
           ]}
         />
       </div>
@@ -465,6 +543,7 @@ function AnalyticsTab() {
       <div className="pd-card pd-anim pd-a3" style={{ marginTop: 16 }}>
         <div className="pd-card-top">
           <h3>Per-Listing Breakdown</h3>
+          <span className="pd-an-table-hint">Click rows to filter the chart (multi-select)</span>
         </div>
         <div className="pd-an-table">
           <div className="pd-an-table-header">
@@ -472,12 +551,28 @@ function AnalyticsTab() {
             <span>Views</span>
             <span>Clicks</span>
             <span>CTR</span>
+            <span>Bookings</span>
+            <span>Conversion Rate</span>
             <span>Rating</span>
           </div>
           {listings.filter((l) => l.status === "active").map((l) => {
             const ctr = ((l.clicks / l.views) * 100).toFixed(1);
+            const isSelected = selectedNames.includes(l.name);
             return (
-              <div key={l.name} className="pd-an-table-row">
+              <div
+                key={l.name}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                className={`pd-an-table-row pd-an-table-row--clickable${isSelected ? " pd-an-table-row--selected" : ""}`}
+                onClick={() => toggleListing(l.name)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleListing(l.name);
+                  }
+                }}
+              >
                 <div className="pd-an-table-name">
                   <div className="pd-an-table-av"><Store size={16} strokeWidth={1.5} /></div>
                   <div>
@@ -488,6 +583,8 @@ function AnalyticsTab() {
                 <span className="pd-an-table-val">{l.views.toLocaleString()}</span>
                 <span className="pd-an-table-val">{l.clicks.toLocaleString()}</span>
                 <span className="pd-an-table-val pd-an-table-val--accent">{ctr}%</span>
+                <span className="pd-an-table-val">{l.bookings.toLocaleString()}</span>
+                <span className="pd-an-table-val">{l.conversionRate}%</span>
                 <span className="pd-an-table-val">
                   <Star size={12} fill="#F59E0B" stroke="#F59E0B" /> {l.rating}
                 </span>
@@ -737,11 +834,6 @@ function ListingsTab() {
                   <span className="pd-ml-card-stat-lbl">clicks</span>
                 </div>
                 <div className="pd-ml-card-stat">
-                  <Star size={14} fill="#F59E0B" stroke="#F59E0B" />
-                  <span className="pd-ml-card-stat-val">{l.rating}</span>
-                  <span className="pd-ml-card-stat-lbl">rating</span>
-                </div>
-                <div className="pd-ml-card-stat">
                   <CalendarCheck size={14} strokeWidth={1.8} />
                   <span className="pd-ml-card-stat-val">{l.bookings}</span>
                   <span className="pd-ml-card-stat-lbl">bookings</span>
@@ -754,6 +846,11 @@ function ListingsTab() {
                 <div className="pd-ml-card-stat">
                   <Clock size={14} strokeWidth={1.8} />
                   <span className="pd-ml-card-stat-val">{l.created}</span>
+                </div>
+                <div className="pd-ml-card-stat">
+                  <Star size={14} fill="#F59E0B" stroke="#F59E0B" />
+                  <span className="pd-ml-card-stat-val">{l.rating}</span>
+                  <span className="pd-ml-card-stat-lbl">rating</span>
                 </div>
               </div>
             </div>
