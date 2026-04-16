@@ -700,7 +700,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
         className={`al-booking-own${isOwn ? " al-booking-own--active" : ""}`}
         onClick={() => selectPlatform("own")}
       >
-        <div className="al-booking-own-name">Book via Website OR Custom Booking System</div>
+        <div className="al-booking-own-name">Website OR Custom Booking System</div>
         <div className="al-booking-own-desc">You handle bookings directly — we link to your page</div>
       </button>
 
