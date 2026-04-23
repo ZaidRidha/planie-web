@@ -37,6 +37,10 @@ import {
   ChevronDown,
   Pause,
   Play,
+  User,
+  Briefcase,
+  Hash,
+  FileText,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import "./PartnerDashboard.css";
@@ -479,7 +483,6 @@ function AnalyticsTab() {
   const avgRating = 4.72;
   const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
   const conversionRate = totalClicks > 0 ? ((totalConv / totalClicks) * 100).toFixed(1) : "0.0";
-  const avgDuration = "2m 34s";
 
   const toggleListing = (name) => {
     setSelectedNames((prev) =>
@@ -563,14 +566,6 @@ function AnalyticsTab() {
             <span className="pd-an-stat-val">{bookingsMade.toLocaleString()}</span>
           </div>
           <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 18.7%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon" style={{ background: "#EFF6FF", color: "#3B82F6" }}><Clock size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Avg. Duration</span>
-            <span className="pd-an-stat-val">{avgDuration}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 12s</div>
         </div>
         <div className="pd-an-stat">
           <div className="pd-an-stat-icon pd-an-stat-icon--amber"><Star size={18} strokeWidth={1.8} /></div>
@@ -1112,22 +1107,27 @@ function SettingsTab() {
   const [notifs, setNotifs] = useState({
     newBookings: true,
     weeklyReport: true,
+    monthlyGeoReport: true,
     listingUpdates: false,
-    promotions: false,
+    growthInsights: false,
+    platformUpdates: false,
   });
 
   const [profileOpen, setProfileOpen] = useState(true);
   const [notifsOpen, setNotifsOpen] = useState(true);
   const [securityOpen, setSecurityOpen] = useState(true);
+  const [billingDifferent, setBillingDifferent] = useState(false);
 
   const toggleNotif = (key) =>
     setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const notifItems = [
-    { key: "newBookings", label: "New bookings & inquiries", desc: "Get notified when a traveler books or contacts you" },
+    { key: "newBookings", label: "New bookings", desc: "Get notified when a traveler books your listing" },
     { key: "weeklyReport", label: "Weekly performance report", desc: "Receive a summary of your listings' performance every Monday" },
+    { key: "monthlyGeoReport", label: "Monthly GEO score report", desc: "Monthly breakdown of your GEO score and ranking trends" },
     { key: "listingUpdates", label: "Listing review updates", desc: "Notifications when your listings are approved or need changes" },
-    { key: "promotions", label: "Promotions & tips", desc: "Occasional tips to improve your listings and grow your business" },
+    { key: "growthInsights", label: "Growth insights & improvements", desc: "Occasional insights to improve your listings and grow your business" },
+    { key: "platformUpdates", label: "Planie platform updates", desc: "Product announcements and new features from Planie" },
   ];
 
   return (
@@ -1139,7 +1139,7 @@ function SettingsTab() {
         </div>
       </header>
 
-      {/* ── Business Profile ── */}
+      {/* ── Business Information ── */}
       <div className="pd-set-section pd-anim pd-a2">
         <button className="pd-set-section-header" onClick={() => setProfileOpen(!profileOpen)}>
           <div className="pd-set-section-left">
@@ -1147,8 +1147,8 @@ function SettingsTab() {
               <Building2 size={18} strokeWidth={1.7} />
             </div>
             <div>
-              <h3 className="pd-set-section-title">Business Profile</h3>
-              <p className="pd-set-section-desc">Your business information visible to travelers</p>
+              <h3 className="pd-set-section-title">Business Information</h3>
+              <p className="pd-set-section-desc">Your account and company details</p>
             </div>
           </div>
           <ChevronDown size={18} className={`pd-set-chevron${profileOpen ? " pd-set-chevron--open" : ""}`} />
@@ -1157,11 +1157,46 @@ function SettingsTab() {
         {profileOpen && (
           <div className="pd-set-section-body">
             <div className="pd-set-field-grid">
-              <div className="pd-set-field">
+              <div className="pd-set-field pd-set-field--full">
                 <label className="pd-set-label">Business Name</label>
                 <div className="pd-set-input-wrap">
                   <Building2 size={16} strokeWidth={1.7} className="pd-set-input-icon" />
                   <input type="text" className="pd-set-input" defaultValue="Sunset Hospitality Group" />
+                </div>
+              </div>
+            </div>
+
+            <h4 className="pd-set-subheading">Primary Contact</h4>
+            <div className="pd-set-field-grid">
+              <div className="pd-set-field">
+                <label className="pd-set-label">First Name</label>
+                <div className="pd-set-input-wrap">
+                  <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" defaultValue="" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Last Name</label>
+                <div className="pd-set-input-wrap">
+                  <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" defaultValue="" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Job Role</label>
+                <div className="pd-set-input-wrap">
+                  <Briefcase size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" defaultValue="" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Contact Number</label>
+                <div className="pd-set-input-wrap">
+                  <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="tel" className="pd-set-input" defaultValue="+971 4 123 4567" />
                 </div>
               </div>
 
@@ -1174,14 +1209,6 @@ function SettingsTab() {
               </div>
 
               <div className="pd-set-field">
-                <label className="pd-set-label">Phone Number</label>
-                <div className="pd-set-input-wrap">
-                  <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="tel" className="pd-set-input" defaultValue="+971 4 123 4567" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
                 <label className="pd-set-label">Website</label>
                 <div className="pd-set-input-wrap">
                   <Globe size={16} strokeWidth={1.7} className="pd-set-input-icon" />
@@ -1190,13 +1217,136 @@ function SettingsTab() {
               </div>
             </div>
 
-            <div className="pd-set-field" style={{ marginTop: 4 }}>
+            <div className="pd-set-field pd-set-field--full" style={{ marginTop: 4 }}>
               <label className="pd-set-label">Business Description</label>
               <textarea
                 className="pd-set-textarea"
                 rows={3}
                 defaultValue="A leading hospitality group offering premium dining, nightlife, and wellness experiences across the Middle East and beyond."
               />
+            </div>
+
+            {/* Billing contact toggle */}
+            <div className="pd-set-choice-row">
+              <span className="pd-set-choice-label">Is the Billing Contact different from the Primary Contact?</span>
+              <div className="pd-set-choice-options" role="radiogroup">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={billingDifferent}
+                  className={`pd-set-choice-pill${billingDifferent ? " pd-set-choice-pill--on" : ""}`}
+                  onClick={() => setBillingDifferent(true)}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={!billingDifferent}
+                  className={`pd-set-choice-pill${!billingDifferent ? " pd-set-choice-pill--on" : ""}`}
+                  onClick={() => setBillingDifferent(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            {billingDifferent && (
+              <>
+                <h4 className="pd-set-subheading">Billing Contact</h4>
+                <div className="pd-set-field-grid">
+                  <div className="pd-set-field">
+                    <label className="pd-set-label">First Name</label>
+                    <div className="pd-set-input-wrap">
+                      <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                      <input type="text" className="pd-set-input" />
+                    </div>
+                  </div>
+
+                  <div className="pd-set-field">
+                    <label className="pd-set-label">Last Name</label>
+                    <div className="pd-set-input-wrap">
+                      <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                      <input type="text" className="pd-set-input" />
+                    </div>
+                  </div>
+
+                  <div className="pd-set-field">
+                    <label className="pd-set-label">Job Role</label>
+                    <div className="pd-set-input-wrap">
+                      <Briefcase size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                      <input type="text" className="pd-set-input" />
+                    </div>
+                  </div>
+
+                  <div className="pd-set-field">
+                    <label className="pd-set-label">Contact Number</label>
+                    <div className="pd-set-input-wrap">
+                      <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                      <input type="tel" className="pd-set-input" />
+                    </div>
+                  </div>
+
+                  <div className="pd-set-field">
+                    <label className="pd-set-label">Contact Email</label>
+                    <div className="pd-set-input-wrap">
+                      <Mail size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                      <input type="email" className="pd-set-input" />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <h4 className="pd-set-subheading">Registered Business Address</h4>
+            <div className="pd-set-field-grid">
+              <div className="pd-set-field pd-set-field--full">
+                <label className="pd-set-label">Address Line 1</label>
+                <div className="pd-set-input-wrap">
+                  <MapPin size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
+
+              <div className="pd-set-field pd-set-field--full">
+                <label className="pd-set-label">Address Line 2</label>
+                <div className="pd-set-input-wrap">
+                  <MapPin size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">City</label>
+                <div className="pd-set-input-wrap">
+                  <Building2 size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Post / ZIP Code</label>
+                <div className="pd-set-input-wrap">
+                  <Hash size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Country</label>
+                <div className="pd-set-input-wrap">
+                  <Globe size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
+
+              <div className="pd-set-field">
+                <label className="pd-set-label">Company Registration Number</label>
+                <div className="pd-set-input-wrap">
+                  <FileText size={16} strokeWidth={1.7} className="pd-set-input-icon" />
+                  <input type="text" className="pd-set-input" />
+                </div>
+              </div>
             </div>
 
             <div className="pd-set-field-actions">

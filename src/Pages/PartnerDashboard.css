@@ -1947,6 +1947,66 @@
   gap: 6px;
 }
 
+.pd-set-field--full {
+  grid-column: 1 / -1;
+}
+
+.pd-set-subheading {
+  margin: 22px 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.pd-set-choice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.pd-set-choice-label {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.pd-set-choice-options {
+  display: inline-flex;
+  background: #F5F5F8;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.pd-set-choice-pill {
+  border: none;
+  background: transparent;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  font-family: inherit;
+}
+
+.pd-set-choice-pill:hover {
+  color: #11181C;
+}
+
+.pd-set-choice-pill--on {
+  background: #fff;
+  color: #11181C;
+  box-shadow: 0 1px 2px rgba(17, 24, 28, 0.08);
+}
+
 .pd-set-label {
   font-size: 12.5px;
   font-weight: 500;

@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import HomePage from "./Pages/HomePage";
@@ -9,9 +10,18 @@ import AddListing from "./Pages/AddListing";
 import EditListing from "./Pages/EditListing";
 import "./index.css"; // Tailwind directives live here
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Partner pages — standalone, no header/footer */}
         <Route path="/partners/login" element={<PartnerLoginPage />} />
