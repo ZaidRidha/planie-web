@@ -56,7 +56,7 @@ const offerTypes = [
 const validityOptions = [
   { id: "always", label: "Always on" },
   { id: "date_range", label: "Date range" },
-  { id: "days_of_week", label: "Specific days of the week" },
+  { id: "custom", label: "Custom" },
 ];
 
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -571,9 +571,12 @@ export default function AddPromotion() {
               </div>
             )}
 
-            {form.validityType === "days_of_week" && (
+            {form.validityType === "custom" && (
               <div className="al-field al-field--divided">
                 <label className="al-label">Days *</label>
+                <span className="al-help">
+                  Pick the days of the week the promotion is valid on. Leave times below blank for the whole day.
+                </span>
                 <div className="al-days-row">
                   {daysOfWeek.map((d) => {
                     const active = (form.validityDays || []).includes(d);
@@ -589,6 +592,31 @@ export default function AddPromotion() {
                     );
                   })}
                 </div>
+
+                <div className="al-row" style={{ marginTop: 18 }}>
+                  <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                    <label className="al-label">Start time</label>
+                    <input
+                      type="time"
+                      className="al-input"
+                      value={form.validityTimeFrom}
+                      onChange={(e) => updateField("validityTimeFrom", e.target.value)}
+                    />
+                  </div>
+                  <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                    <label className="al-label">End time</label>
+                    <input
+                      type="time"
+                      className="al-input"
+                      value={form.validityTimeTo}
+                      onChange={(e) => updateField("validityTimeTo", e.target.value)}
+                      min={form.validityTimeFrom || undefined}
+                    />
+                  </div>
+                </div>
+                <span className="al-help" style={{ marginTop: 8 }}>
+                  e.g. Mon–Thu, 17:00 → 19:00 for a happy-hour promo. Leave both times blank to apply across the full day.
+                </span>
               </div>
             )}
           </section>

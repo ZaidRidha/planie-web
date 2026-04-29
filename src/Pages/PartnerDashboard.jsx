@@ -1099,9 +1099,15 @@ function formatValidity(p) {
     if (!p.validityFrom && !p.validityTo) return "Date range — not set";
     return `${p.validityFrom || "?"} → ${p.validityTo || "?"}`;
   }
-  if (p.validityType === "days_of_week") {
-    const list = (p.validityDays || []).join(", ");
-    return list ? `Days: ${list}` : "Specific days — not set";
+  if (p.validityType === "custom" || p.validityType === "days_of_week") {
+    const days = (p.validityDays || []).join(", ");
+    const hasTimes = p.validityTimeFrom || p.validityTimeTo;
+    if (!days && !hasTimes) return "Custom — not set";
+    const dayPart = days || "Any day";
+    const timePart = hasTimes
+      ? `${p.validityTimeFrom || "00:00"}–${p.validityTimeTo || "23:59"}`
+      : "";
+    return timePart ? `${dayPart}, ${timePart}` : dayPart;
   }
   return "";
 }

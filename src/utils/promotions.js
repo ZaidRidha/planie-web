@@ -34,6 +34,8 @@ export const emptyPromotion = () => ({
   validityFrom: "",
   validityTo: "",
   validityDays: [],
+  validityTimeFrom: "",
+  validityTimeTo: "",
   minBookingSize: "",
   title: "",
   internalNote: "",
