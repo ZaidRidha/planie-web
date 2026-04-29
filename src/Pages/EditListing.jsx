@@ -5,7 +5,7 @@ import {
   Upload,
   MapPin,
   Clock,
-  DollarSign,
+  Tag,
   Phone,
   Globe,
   Mail,
@@ -35,7 +35,22 @@ const categories = [
   "Outdoor & Adventure",
 ];
 
-const priceRanges = ["Free", "$", "$$", "$$$", "$$$$"];
+const occasions = [
+  "Date Night",
+  "Birthday",
+  "Anniversary",
+  "Family Day",
+  "Friends Night Out",
+  "Romantic Getaway",
+  "Honeymoon",
+  "Bachelor / Hen Party",
+  "Solo Trip",
+  "Business Trip",
+  "Kids Friendly",
+  "Group Celebration",
+];
+
+const priceRanges = ["Free", "£", "££", "£££", "££££"];
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -137,7 +152,7 @@ const mockListings = {
     address: "42 Rue de la Kasbah",
     city: "Marrakech",
     country: "Morocco",
-    priceRange: "$$$",
+    priceRange: "£££",
     phone: "+212 524 123 456",
     email: "hello@sunsetrooftop.com",
     website: "https://sunsetrooftop.com",
@@ -155,7 +170,7 @@ const mockListings = {
     address: "Sheikh Zayed Road, Tower 3",
     city: "Dubai",
     country: "UAE",
-    priceRange: "$$$$",
+    priceRange: "££££",
     phone: "+971 4 555 7890",
     email: "book@desertsafari.ae",
     website: "https://desertsafari.ae",
@@ -173,7 +188,7 @@ const mockListings = {
     address: "Jl. Pantai Berawa No. 88",
     city: "Bali",
     country: "Indonesia",
-    priceRange: "$$$",
+    priceRange: "£££",
     phone: "+62 361 847 5200",
     email: "namaste@coastalyoga.com",
     website: "https://coastalyoga.com",
@@ -191,7 +206,7 @@ const mockListings = {
     address: "Old Town Square 1",
     city: "Prague",
     country: "Czech Republic",
-    priceRange: "$$",
+    priceRange: "££",
     phone: "+420 234 567 890",
     email: "info@praguewalks.cz",
     website: "https://praguewalks.cz",
@@ -209,7 +224,7 @@ const mockListings = {
     address: "Ratchadaphisek Road, Soi 4",
     city: "Bangkok",
     country: "Thailand",
-    priceRange: "$",
+    priceRange: "£",
     phone: "+66 2 123 4567",
     email: "info@neonnightmarket.th",
     website: "https://neonnightmarket.th",
@@ -231,6 +246,7 @@ export default function EditListing() {
   const [form, setForm] = useState(() => {
     const base = {
       name: "",
+      occasions: [],
       category: "",
       description: "",
       address: "",
@@ -242,6 +258,7 @@ export default function EditListing() {
       bookingConfirmUrl: "",
       bookingPlatformId: "",
       priceRange: "",
+      avgBookingValue: "",
       phone: "",
       email: "",
       website: "",
@@ -260,6 +277,14 @@ export default function EditListing() {
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleOccasion = (occ) => {
+    setForm((prev) => {
+      const list = prev.occasions || [];
+      const has = list.includes(occ);
+      return { ...prev, occasions: has ? list.filter((o) => o !== occ) : [...list, occ] };
+    });
   };
 
   const updateHours = (index, field, value) => {
@@ -372,7 +397,53 @@ export default function EditListing() {
             </div>
 
             <div className="al-field">
+              <label className="al-label">Description *</label>
+              <textarea
+                className="al-textarea"
+                placeholder="Tell travelers what makes your business special..."
+                rows={4}
+                value={form.description}
+                onChange={(e) => updateField("description", e.target.value)}
+                required
+              />
+              <span className="al-hint">{form.description.length}/500 characters</span>
+            </div>
+          </section>
+
+          {/* Occasion */}
+          <section className="pd-card al-section pd-animate pd-d1">
+            <h3 className="al-section-title">When does your venue work best?</h3>
+            <div className="al-field">
+              <label className="al-label">Occasion Types *</label>
+              <span className="al-help">
+                Select the occasions your venue is best suited for. These influence when Planie recommends you to users. Choose accurately rather than broadly — quality of match matters more than quantity.
+              </span>
+              <div className="al-category-grid">
+                {occasions.map((occ) => {
+                  const active = (form.occasions || []).includes(occ);
+                  return (
+                    <button
+                      key={occ}
+                      type="button"
+                      className={`al-category-chip ${active ? "al-category-chip--active" : ""}`}
+                      onClick={() => toggleOccasion(occ)}
+                    >
+                      {occ}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* Category */}
+          <section className="pd-card al-section pd-animate pd-d2">
+            <h3 className="al-section-title">What kind of venue is this?</h3>
+            <div className="al-field">
               <label className="al-label">Category *</label>
+              <span className="al-help">
+                Pick the category that best describes your venue's primary identity. This determines where you appear across browse and search. Choose the closest match rather than the broadest one — accuracy here drives more relevant traffic to your listing.
+              </span>
               <div className="al-category-grid">
                 {categories.map((cat) => (
                   <button
@@ -385,19 +456,6 @@ export default function EditListing() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            <div className="al-field">
-              <label className="al-label">Description *</label>
-              <textarea
-                className="al-textarea"
-                placeholder="Tell travelers what makes your business special..."
-                rows={4}
-                value={form.description}
-                onChange={(e) => updateField("description", e.target.value)}
-                required
-              />
-              <span className="al-hint">{form.description.length}/500 characters</span>
             </div>
           </section>
 
@@ -488,22 +546,51 @@ export default function EditListing() {
             </div>
           </section>
 
-          {/* Price Range */}
+          {/* Pricing */}
           <section className="pd-card al-section pd-animate pd-d3">
             <h3 className="al-section-title">
-              <DollarSign size={18} strokeWidth={2} /> Price Range
+              <Tag size={18} strokeWidth={2} /> Pricing
             </h3>
-            <div className="al-price-row">
-              {priceRanges.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  className={`al-price-chip ${form.priceRange === p ? "al-price-chip--active" : ""}`}
-                  onClick={() => updateField("priceRange", p)}
-                >
-                  {p}
-                </button>
-              ))}
+
+            <div className="al-field">
+              <label className="al-label">Price Range</label>
+              <span className="al-help">
+                A quick visual tier travelers see at a glance — from budget-friendly to high-end.
+              </span>
+              <div className="al-price-row">
+                {priceRanges.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`al-price-chip ${form.priceRange === p ? "al-price-chip--active" : ""}`}
+                    onClick={() => updateField("priceRange", p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="al-field al-field--divided">
+              <label className="al-label">Average Booking Value (per person) *</label>
+              <span className="al-help">
+                Enter your estimated average booking value (per person) so we can show you the total revenue Planie is driving to your venue each month.
+              </span>
+              <div className="al-currency">
+                <span className="al-currency-prefix">£</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  className="al-input"
+                  placeholder="0.00"
+                  value={form.avgBookingValue || ""}
+                  onChange={(e) => updateField("avgBookingValue", e.target.value)}
+                  required
+                />
+                <span className="al-currency-suffix">per person</span>
+              </div>
             </div>
           </section>
 

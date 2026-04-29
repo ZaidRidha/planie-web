@@ -41,8 +41,21 @@ import {
   Briefcase,
   Hash,
   FileText,
+  Megaphone,
+  Sparkles,
+  Tag,
+  Percent,
+  Gift,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import { listDrafts, deleteDraft, subscribeDrafts } from "../utils/listingDrafts";
+import {
+  listPromotions,
+  deletePromotion,
+  publishPromotion,
+  deactivatePromotion,
+  subscribePromotions,
+} from "../utils/promotions";
 import "./PartnerDashboard.css";
 
 /* ─── Animated counter ─── */
@@ -184,6 +197,7 @@ const listings = [
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: Store, label: "My Listings" },
+  { icon: Megaphone, label: "Promotions" },
   { icon: TrendingUp, label: "Analytics" },
   { icon: CreditCard, label: "Billing" },
   { icon: Settings, label: "Settings" },
@@ -756,6 +770,89 @@ function AnalyticsTab() {
 /* ─── Listings Tab ─── */
 const statusFilters = ["All", "Active", "Pending", "Inactive"];
 
+function formatDraftTimestamp(ts) {
+  if (!ts) return "";
+  const diffMs = Date.now() - ts;
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr > 1 ? "s" : ""} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} day${day > 1 ? "s" : ""} ago`;
+  return new Date(ts).toLocaleDateString();
+}
+
+function DraftsSection({ animClass = "pd-a2" }) {
+  const navigate = useNavigate();
+  const [drafts, setDrafts] = useState(() => listDrafts());
+
+  useEffect(() => subscribeDrafts(setDrafts), []);
+
+  if (drafts.length === 0) return null;
+
+  return (
+    <div className={`pd-drafts pd-anim ${animClass}`}>
+      <div className="pd-drafts-head">
+        <div className="pd-drafts-title">
+          <FileText size={16} strokeWidth={2} />
+          <h3>Drafts</h3>
+          <span className="pd-drafts-count">{drafts.length}</span>
+        </div>
+        <span className="pd-drafts-sub">Unfinished listings — pick up where you left off</span>
+      </div>
+      <div className="pd-drafts-grid">
+        {drafts.map((d) => {
+          const name = d.form?.name?.trim() || "Untitled draft";
+          const cat = d.form?.category || "No category yet";
+          const loc =
+            d.form?.city || d.form?.country
+              ? [d.form.city, d.form.country].filter(Boolean).join(", ")
+              : "Location not set";
+          return (
+            <div key={d.id} className="pd-draft-card">
+              <div className="pd-draft-card-top">
+                <div className="pd-draft-card-avatar">
+                  <FileText size={18} strokeWidth={1.6} />
+                </div>
+                <div className="pd-draft-card-info">
+                  <h4>{name}</h4>
+                  <div className="pd-draft-card-meta">
+                    <span>{cat}</span>
+                    <span className="pd-draft-card-dot">·</span>
+                    <span>{loc}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pd-draft-card-foot">
+                <span className="pd-draft-card-time">
+                  <Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(d.updatedAt)}
+                </span>
+                <div className="pd-draft-card-actions">
+                  <button
+                    className="pd-btn pd-btn--ghost pd-draft-btn"
+                    onClick={() => deleteDraft(d.id)}
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                    Delete
+                  </button>
+                  <button
+                    className="pd-btn pd-btn--fill pd-draft-btn"
+                    onClick={() => navigate(`/partners/add-listing?draft=${d.id}`)}
+                  >
+                    Continue
+                    <ChevronRight size={13} strokeWidth={2.2} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ListingsTab() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -869,6 +966,9 @@ function ListingsTab() {
         </div>
       </div>
 
+      {/* Drafts */}
+      <DraftsSection animClass="pd-a2" />
+
       {/* Listings */}
       <div className="pd-ml-list pd-anim pd-a3">
         {sorted.length === 0 ? (
@@ -966,6 +1066,216 @@ function ListingsTab() {
         <Plus size={18} strokeWidth={2} />
         <span>Add a New Listing</span>
       </Link>
+    </>
+  );
+}
+
+/* ─── Promotions Tab ─── */
+const offerTypeMeta = {
+  percentage: { icon: Percent, label: "% off" },
+  fixed: { icon: Tag, label: "£ off" },
+  free_item: { icon: Gift, label: "Free item" },
+  custom: { icon: Sparkles, label: "Custom" },
+};
+
+const slugToListingName = {
+  "sunset-rooftop-bar": "Sunset Rooftop Bar",
+  "desert-safari-tours": "Desert Safari Tours",
+  "coastal-yoga-retreat": "Coastal Yoga Retreat",
+  "old-town-walking-tour": "Old Town Walking Tour",
+  "neon-night-market": "Neon Night Market",
+};
+
+function formatPromoValue(p) {
+  if (!p.offerType) return "";
+  if (p.offerType === "percentage") return p.discountValue ? `${p.discountValue}% off` : "—";
+  if (p.offerType === "fixed") return p.discountValue ? `£${p.discountValue} off` : "—";
+  return p.discountValue || "—";
+}
+
+function formatValidity(p) {
+  if (p.validityType === "always") return "Always on";
+  if (p.validityType === "date_range") {
+    if (!p.validityFrom && !p.validityTo) return "Date range — not set";
+    return `${p.validityFrom || "?"} → ${p.validityTo || "?"}`;
+  }
+  if (p.validityType === "days_of_week") {
+    const list = (p.validityDays || []).join(", ");
+    return list ? `Days: ${list}` : "Specific days — not set";
+  }
+  return "";
+}
+
+function PromotionsTab() {
+  const navigate = useNavigate();
+  const [promotions, setPromotions] = useState(() => listPromotions());
+
+  useEffect(() => subscribePromotions(setPromotions), []);
+
+  const venues = Object.keys(slugToListingName);
+  const grouped = venues.map((slug) => ({
+    slug,
+    name: slugToListingName[slug],
+    promos: promotions.filter((p) => p.listingSlug === slug),
+  }));
+
+  const handlePublish = (id) => {
+    const result = publishPromotion(id);
+    if (!result.ok && result.reason === "conflict") {
+      const ok = window.confirm(
+        `You already have an active promotion ("${result.conflict.title || "Untitled"}") for this venue. Deactivate it and publish this one instead?`
+      );
+      if (ok) {
+        deactivatePromotion(result.conflict.id);
+        publishPromotion(id);
+      }
+    }
+  };
+
+  const handleDelete = (id, title) => {
+    const ok = window.confirm(`Delete "${title || "this promotion"}"? This cannot be undone.`);
+    if (ok) deletePromotion(id);
+  };
+
+  const totalActive = promotions.filter((p) => p.status === "active").length;
+  const totalDrafts = promotions.filter((p) => p.status === "draft").length;
+
+  return (
+    <>
+      <header className="pd-head pd-anim pd-a1">
+        <div>
+          <h1 className="pd-title">Promotions</h1>
+          <p className="pd-subtitle">Create offers that show alongside your venue across Planie Discovery and itineraries</p>
+        </div>
+        <div className="pd-actions">
+          <Link to="/partners/add-promotion" className="pd-btn pd-btn--fill">
+            <Plus size={17} strokeWidth={2.2} />
+            Create a Promotion
+          </Link>
+        </div>
+      </header>
+
+      {/* Summary */}
+      <div className="pd-ml-summary pd-anim pd-a2">
+        <div className="pd-ml-summary-card">
+          <span className="pd-ml-summary-count">{promotions.length}</span>
+          <span className="pd-ml-summary-label">All</span>
+        </div>
+        <div className="pd-ml-summary-card">
+          <span className="pd-ml-summary-count">{totalActive}</span>
+          <span className="pd-ml-summary-label">Active</span>
+        </div>
+        <div className="pd-ml-summary-card">
+          <span className="pd-ml-summary-count">{totalDrafts}</span>
+          <span className="pd-ml-summary-label">Drafts</span>
+        </div>
+      </div>
+
+      {/* Promotions per venue */}
+      <div className="pd-promo-list pd-anim pd-a3">
+        {grouped.map((group) => {
+          const hasPromos = group.promos.length > 0;
+          return (
+            <div key={group.slug} className="pd-promo-venue">
+              <div className="pd-promo-venue-head">
+                <div className="pd-promo-venue-info">
+                  <Store size={16} strokeWidth={1.7} />
+                  <h3>{group.name}</h3>
+                  <span className="pd-promo-venue-count">{group.promos.length}</span>
+                </div>
+                <button
+                  className="pd-btn pd-btn--ghost pd-promo-add-btn"
+                  onClick={() => navigate(`/partners/add-promotion?listing=${group.slug}`)}
+                >
+                  <Plus size={14} strokeWidth={2.2} />
+                  Create a Promotion
+                </button>
+              </div>
+
+              {hasPromos ? (
+                <div className="pd-promo-cards">
+                  {group.promos.map((p) => {
+                    const meta = offerTypeMeta[p.offerType] || { icon: Tag, label: "" };
+                    const I = meta.icon;
+                    return (
+                      <div key={p.id} className={`pd-promo-card pd-promo-card--${p.status}`}>
+                        <div className="pd-promo-card-top">
+                          <div className="pd-promo-card-icon">
+                            <I size={18} strokeWidth={1.7} />
+                          </div>
+                          <div className="pd-promo-card-info">
+                            <h4>{p.title || "Untitled promotion"}</h4>
+                            <div className="pd-promo-card-meta">
+                              <span>{formatPromoValue(p)}</span>
+                              <span className="pd-promo-card-dot">·</span>
+                              <span>{formatValidity(p)}</span>
+                              {p.discountCode && (
+                                <>
+                                  <span className="pd-promo-card-dot">·</span>
+                                  <span className="pd-promo-card-code">{p.discountCode}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`pd-badge pd-promo-status pd-promo-status--${p.status}`}>
+                            {p.status === "active" ? "Live" : "Draft"}
+                          </span>
+                        </div>
+
+                        {(p.applicableOccasions || []).length > 0 && (
+                          <div className="pd-promo-card-tags">
+                            {(p.applicableOccasions || []).map((o) => (
+                              <span key={o} className="pd-promo-tag">{o}</span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="pd-promo-card-actions">
+                          <button
+                            className="pd-btn pd-btn--ghost pd-promo-action-btn"
+                            onClick={() => navigate(`/partners/edit-promotion/${p.id}`)}
+                          >
+                            <Pencil size={13} strokeWidth={2} />
+                            Edit
+                          </button>
+                          {p.status === "active" ? (
+                            <button
+                              className="pd-btn pd-btn--ghost pd-promo-action-btn"
+                              onClick={() => deactivatePromotion(p.id)}
+                            >
+                              <Pause size={13} strokeWidth={2} />
+                              Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              className="pd-btn pd-btn--fill pd-promo-action-btn"
+                              onClick={() => handlePublish(p.id)}
+                            >
+                              <Sparkles size={13} strokeWidth={2} />
+                              Publish
+                            </button>
+                          )}
+                          <button
+                            className="pd-btn pd-btn--ghost pd-promo-action-btn pd-promo-action-btn--danger"
+                            onClick={() => handleDelete(p.id, p.title)}
+                          >
+                            <Trash2 size={13} strokeWidth={2} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="pd-promo-empty">
+                  <Megaphone size={20} strokeWidth={1.5} />
+                  <span>No promotions yet for this venue.</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
@@ -1461,6 +1771,7 @@ function SettingsTab() {
 const tabSlugs = {
   "Dashboard": "dashboard",
   "My Listings": "listings",
+  "Promotions": "promotions",
   "Analytics": "analytics",
   "Billing": "billing",
   "Settings": "settings",
@@ -1536,6 +1847,8 @@ export default function PartnerDashboard() {
       <main className="pd-main">
         {activeTab === "My Listings" ? (
           <ListingsTab />
+        ) : activeTab === "Promotions" ? (
+          <PromotionsTab />
         ) : activeTab === "Analytics" ? (
           <AnalyticsTab />
         ) : activeTab === "Billing" ? (
@@ -1561,6 +1874,9 @@ export default function PartnerDashboard() {
                 </Link>
               </div>
             </header>
+
+            {/* Drafts */}
+            <DraftsSection animClass="pd-a2" />
 
             {/* Stats */}
             <div className="pd-stats pd-anim pd-a2">

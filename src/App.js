@@ -8,6 +8,7 @@ import PartnerLoginPage from "./Pages/PartnerLoginPage";
 import PartnerDashboard from "./Pages/PartnerDashboard";
 import AddListing from "./Pages/AddListing";
 import EditListing from "./Pages/EditListing";
+import AddPromotion from "./Pages/AddPromotion";
 import "./index.css"; // Tailwind directives live here
 
 function ScrollToTop() {
@@ -28,6 +29,8 @@ function App() {
         <Route path="/partners/dashboard" element={<PartnerDashboard />} />
         <Route path="/partners/add-listing" element={<AddListing />} />
         <Route path="/partners/edit-listing/:slug" element={<EditListing />} />
+        <Route path="/partners/add-promotion" element={<AddPromotion />} />
+        <Route path="/partners/edit-promotion/:id" element={<AddPromotion />} />
 
         {/* Main layout */}
         <Route
