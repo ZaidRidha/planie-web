@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Settings,
   CreditCard,
-  CheckCircle,
   Tag,
   Percent,
   Gift,

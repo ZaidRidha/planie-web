@@ -12,7 +12,8 @@
       "Bash(npx react-scripts:*)",
       "Bash(npm install:*)",
       "Bash(curl:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npx eslint *)"
     ]
   }
 }
