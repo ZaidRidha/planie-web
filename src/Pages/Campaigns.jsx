@@ -519,6 +519,7 @@ function CitySearch({ value, onChange }) {
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKey}
+          role="combobox"
           aria-label="Search city"
           aria-expanded={open}
           aria-autocomplete="list"
