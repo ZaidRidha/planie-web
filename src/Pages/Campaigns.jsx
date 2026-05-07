@@ -522,6 +522,7 @@ function CitySearch({ value, onChange }) {
           role="combobox"
           aria-label="Search city"
           aria-expanded={open}
+          aria-controls="cmp-city-search-listbox"
           aria-autocomplete="list"
         />
         {value && !query && (
@@ -533,7 +534,7 @@ function CitySearch({ value, onChange }) {
       </div>
 
       {open && matches.length > 0 && (
-        <ul className="cmp-city-search-menu" role="listbox">
+        <ul id="cmp-city-search-listbox" className="cmp-city-search-menu" role="listbox">
           {matches.map((c, i) => (
             <li key={c} role="option" aria-selected={i === highlight}>
               <button
