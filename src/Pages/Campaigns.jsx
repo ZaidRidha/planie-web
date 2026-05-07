@@ -27,6 +27,7 @@ import {
   WINDOWS,
   SURFACES,
   CITIES,
+  OCCASIONS,
   BUNDLE_PRICE,
   BUNDLE_LIST_PRICE,
   BUNDLE_SAVING,
@@ -35,6 +36,8 @@ import {
   listInventoryForWindow,
   listOwned,
   purchaseSlot,
+  purchaseBundle,
+  getBundleSlots,
   subscribeInventory,
   subscribeOwned,
   getSurface,
@@ -231,6 +234,9 @@ function ActiveState() {
   const [purchaseTarget, setPurchaseTarget] = useState(null);
   const [purchaseError, setPurchaseError] = useState(null);
   const [justPurchasedId, setJustPurchasedId] = useState(null);
+  const [bundleOpen, setBundleOpen] = useState(false);
+  const [bundleError, setBundleError] = useState(null);
+  const [justBundled, setJustBundled] = useState(false);
 
   /* Inventory subscription — bump a tick so memos recompute after purchase */
   const [inventoryTick, setInventoryTick] = useState(0);
@@ -270,6 +276,21 @@ function ActiveState() {
     }
   };
 
+  const confirmBundle = (occasion) => {
+    const result = purchaseBundle({ windowId: activeWindow, city, occasion });
+    if (result.ok) {
+      setBundleOpen(false);
+      setBundleError(null);
+      setJustBundled(true);
+      setTimeout(() => setJustBundled(false), 4000);
+    } else if (result.reason === "sold_out") {
+      const surface = getSurface(result.soldOutSurfaceId);
+      setBundleError(`${surface?.label || "One surface"} is sold out for this combination — try another occasion.`);
+    } else {
+      setBundleError("Could not complete bundle purchase.");
+    }
+  };
+
   return (
     <>
       <header className="pd-head pd-anim pd-a1">
@@ -286,6 +307,13 @@ function ActiveState() {
         <div className="cmp-toast pd-anim pd-a1">
           <CheckCircle size={16} strokeWidth={1.8} />
           <span>Slot reserved — see it under Active campaigns below.</span>
+        </div>
+      )}
+
+      {justBundled && (
+        <div className="cmp-toast pd-anim pd-a1">
+          <CheckCircle size={16} strokeWidth={1.8} />
+          <span>Bundle reserved — all 3 surfaces are now under Active campaigns.</span>
         </div>
       )}
 
@@ -323,7 +351,11 @@ function ActiveState() {
         )}
 
         {/* Bundle highlight */}
-        <BundleCard windowMeta={windowMeta} city={city} />
+        <BundleCard
+          windowMeta={windowMeta}
+          city={city}
+          onPurchase={() => { setBundleError(null); setBundleOpen(true); }}
+        />
 
         {/* Multi-slot discount callout */}
         <div className="cmp-callout cmp-callout--accent">
@@ -385,6 +417,16 @@ function ActiveState() {
           error={purchaseError}
           onClose={() => { setPurchaseTarget(null); setPurchaseError(null); }}
           onConfirm={confirmPurchase}
+        />
+      )}
+
+      {bundleOpen && (
+        <BundleModal
+          windowMeta={windowMeta}
+          city={city}
+          error={bundleError}
+          onClose={() => { setBundleOpen(false); setBundleError(null); }}
+          onConfirm={confirmBundle}
         />
       )}
     </>
@@ -561,7 +603,7 @@ function CitySearch({ value, onChange }) {
 }
 
 /* ───────────────────────  Bundle card  ─────────────────────── */
-function BundleCard({ windowMeta, city }) {
+function BundleCard({ windowMeta, city, onPurchase }) {
   if (!windowMeta) return null;
   return (
     <article className="cmp-bundle">
@@ -580,6 +622,9 @@ function BundleCard({ windowMeta, city }) {
           <span className="cmp-bundle-price-now">£{BUNDLE_PRICE}</span>
         </div>
         <span className="cmp-bundle-save">Save £{BUNDLE_SAVING}</span>
+        <button className="pd-btn pd-btn--fill cmp-bundle-btn" onClick={onPurchase}>
+          Purchase bundle
+        </button>
       </div>
     </article>
   );
@@ -700,6 +745,114 @@ function SummaryRow({ label, value, highlight }) {
     <div className={`cmp-summary-row${highlight ? " cmp-summary-row--highlight" : ""}`}>
       <span className="cmp-summary-row-label">{label}</span>
       <span className="cmp-summary-row-value">{value}</span>
+    </div>
+  );
+}
+
+/* ───────────────────────  Bundle modal  ─────────────────────── */
+function BundleModal({ windowMeta, city, error, onClose, onConfirm }) {
+  const [occasion, setOccasion] = useState(OCCASIONS[0]);
+  const [tick, setTick] = useState(0);
+
+  /* Re-read inventory on changes so availability badges stay live */
+  useEffect(() => subscribeInventory(() => setTick((t) => t + 1)), []);
+
+  const slots = useMemo(
+    () => getBundleSlots({ windowId: windowMeta?.id, city, occasion }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [windowMeta?.id, city, occasion, tick]
+  );
+
+  const anySoldOut = slots.some((s) => !s || s.remaining <= 0);
+
+  return (
+    <div className="cmp-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="cmp-modal cmp-modal--wide" onClick={(e) => e.stopPropagation()}>
+        <button className="cmp-modal-close" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </button>
+        <div className="cmp-modal-bundle-head">
+          <Crown size={18} strokeWidth={1.7} className="cmp-modal-bundle-crown" />
+          <div>
+            <h2 className="cmp-modal-title">Confirm bundle purchase</h2>
+            <p className="cmp-modal-sub">
+              All 3 surfaces for the same slot in {city}. Payment continues through your billing flow.
+            </p>
+          </div>
+        </div>
+
+        <div className="cmp-bundle-step">
+          <div className="cmp-bundle-step-label">Choose an occasion</div>
+          <div className="cmp-bundle-occasion-grid">
+            {OCCASIONS.map((o) => (
+              <button
+                key={o}
+                type="button"
+                className={`cmp-bundle-occasion${occasion === o ? " cmp-bundle-occasion--on" : ""}`}
+                onClick={() => setOccasion(o)}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+          <p className="cmp-bundle-step-hint">
+            Homepage Strip is city-wide. Category Page and AI Guide will run for the occasion you choose.
+          </p>
+        </div>
+
+        <div className="cmp-bundle-summary">
+          {SURFACES.map((surface, i) => {
+            const slot = slots[i];
+            const sold = !slot || slot.remaining <= 0;
+            return (
+              <div key={surface.id} className={`cmp-bundle-leg${sold ? " cmp-bundle-leg--sold" : ""}`}>
+                <div className="cmp-bundle-leg-main">
+                  <span className="cmp-bundle-leg-name">{surface.label}</span>
+                  <span className="cmp-bundle-leg-detail">
+                    {surface.perOccasion ? occasion : "City-wide"} · £{surface.price}
+                  </span>
+                </div>
+                <span className={`cmp-bundle-leg-status${sold ? " cmp-bundle-leg-status--sold" : ""}`}>
+                  {sold ? "Sold out" : `${slot.remaining} of ${slot.capacity}`}
+                </span>
+              </div>
+            );
+          })}
+          <div className="cmp-bundle-totals">
+            <div className="cmp-bundle-totals-row">
+              <span>List price</span>
+              <span className="cmp-bundle-totals-strike">£{BUNDLE_LIST_PRICE}</span>
+            </div>
+            <div className="cmp-bundle-totals-row cmp-bundle-totals-row--final">
+              <span>Bundle price</span>
+              <span>£{BUNDLE_PRICE}</span>
+            </div>
+            <div className="cmp-bundle-totals-row cmp-bundle-totals-row--save">
+              <span>You save</span>
+              <span>£{BUNDLE_SAVING}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="cmp-modal-summary-meta">
+          <SummaryRow label="City" value={city} />
+          <SummaryRow label="Window" value={`${windowMeta?.label} (${windowMeta?.durationLabel})`} />
+          <SummaryRow label="Dates" value={`${windowMeta?.start} → ${windowMeta?.end}`} />
+        </div>
+
+        {error && <div className="cmp-modal-error">{error}</div>}
+
+        <div className="cmp-modal-actions">
+          <button className="pd-btn pd-btn--ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="pd-btn pd-btn--fill"
+            disabled={anySoldOut}
+            onClick={() => onConfirm(occasion)}
+          >
+            {anySoldOut ? "Pick another occasion" : "Confirm bundle & continue"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

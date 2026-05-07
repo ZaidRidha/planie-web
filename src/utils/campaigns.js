@@ -205,6 +205,55 @@ const deriveStatus = (purchase, now) => {
   return "Active";
 };
 
+/* Look up the 3 slots that make up a bundle for a given window/city/occasion. */
+export const getBundleSlots = ({ windowId, city, occasion }) => {
+  const inv = readInventory();
+  const ids = [
+    buildSlotId({ windowId, surfaceId: "homepage", city, occasion: null }),
+    buildSlotId({ windowId, surfaceId: "category", city, occasion }),
+    buildSlotId({ windowId, surfaceId: "guide",    city, occasion }),
+  ];
+  return ids.map((id) => inv.slots[id] || null);
+};
+
+/* Atomic 3-slot bundle purchase. All-or-nothing — fails if any leg is sold out. */
+export const purchaseBundle = ({ windowId, city, occasion }) => {
+  const inv = readInventory();
+  const slots = getBundleSlots({ windowId, city, occasion });
+  if (slots.some((s) => !s)) return { ok: false, reason: "not_found" };
+  const soldOut = slots.find((s) => s.remaining <= 0);
+  if (soldOut) return { ok: false, reason: "sold_out", soldOutSurfaceId: soldOut.surfaceId };
+
+  const updatedSlots = { ...inv.slots };
+  for (const slot of slots) {
+    updatedSlots[slot.id] = { ...slot, remaining: slot.remaining - 1 };
+  }
+  writeInventory({ ...inv, slots: updatedSlots });
+
+  const now = Date.now();
+  const w = getWindow(windowId);
+  const bundleId = `cb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  const newPurchases = slots.map((slot) => {
+    const surface = getSurface(slot.surfaceId);
+    return {
+      id: newPurchaseId(),
+      bundleId,
+      slotId: slot.id,
+      windowId: slot.windowId,
+      surfaceId: slot.surfaceId,
+      city: slot.city,
+      occasion: slot.occasion,
+      price: surface?.price ?? 0,
+      windowStart: w?.start || "",
+      windowEnd: w?.end || "",
+      purchasedAt: now,
+    };
+  });
+  const owned = readOwned();
+  writeOwned([...newPurchases, ...owned]);
+  return { ok: true, bundleId, purchases: newPurchases };
+};
+
 /* Optimistic-lock-style purchase: re-reads inventory at commit time and
    refuses if the slot is now sold out. */
 export const purchaseSlot = (slotId) => {
