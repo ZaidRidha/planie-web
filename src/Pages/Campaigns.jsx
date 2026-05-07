@@ -20,6 +20,7 @@ import {
   ChevronDown,
   X,
   ArrowRight,
+  Search,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import {
@@ -241,6 +242,9 @@ function ActiveState() {
 
   const inventory = useMemo(
     () => listInventoryForWindow(activeWindow).filter((s) => s.city === city),
+    // inventoryTick is a sentinel that forces this memo to re-run after a
+    // purchase mutates the in-memory inventory store.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeWindow, city, inventoryTick]
   );
 
@@ -304,7 +308,7 @@ function ActiveState() {
               )}
             </p>
           </div>
-          <CitySelector value={city} onChange={setCity} />
+          <CitySearch value={city} onChange={setCity} />
         </div>
 
         <WindowTabs active={activeWindow} onChange={setActiveWindow} />
@@ -453,19 +457,104 @@ function WindowTabs({ active, onChange }) {
   );
 }
 
-function CitySelector({ value, onChange }) {
+function CitySearch({ value, onChange }) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const wrapRef = React.useRef(null);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return CITIES.slice(0, 8);
+    return CITIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8);
+  }, [query]);
+
+  /* Close on outside click */
+  useEffect(() => {
+    if (!open) return undefined;
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    window.addEventListener("mousedown", handler);
+    return () => window.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  /* Reset highlight when matches change */
+  useEffect(() => { setHighlight(0); }, [query]);
+
+  const select = (city) => {
+    onChange(city);
+    setQuery("");
+    setOpen(false);
+  };
+
+  const handleKey = (e) => {
+    if (!open && (e.key === "ArrowDown" || e.key === "Enter")) {
+      setOpen(true);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlight((h) => Math.min(matches.length - 1, h + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight((h) => Math.max(0, h - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (matches[highlight]) select(matches[highlight]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
   return (
-    <label className="cmp-city">
-      <MapPin size={14} strokeWidth={1.8} />
-      <select
-        className="cmp-city-select"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label="City"
-      >
-        {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-      </select>
-    </label>
+    <div className="cmp-city-search" ref={wrapRef}>
+      <div className="cmp-city-search-input-wrap">
+        <Search size={14} strokeWidth={1.8} className="cmp-city-search-icon" />
+        <input
+          type="text"
+          className="cmp-city-search-input"
+          placeholder={value ? `Search city — currently ${value}` : "Search city…"}
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={handleKey}
+          aria-label="Search city"
+          aria-expanded={open}
+          aria-autocomplete="list"
+        />
+        {value && !query && (
+          <span className="cmp-city-search-tag">
+            <MapPin size={11} strokeWidth={2} />
+            {value}
+          </span>
+        )}
+      </div>
+
+      {open && matches.length > 0 && (
+        <ul className="cmp-city-search-menu" role="listbox">
+          {matches.map((c, i) => (
+            <li key={c} role="option" aria-selected={i === highlight}>
+              <button
+                type="button"
+                className={`cmp-city-search-option${i === highlight ? " cmp-city-search-option--on" : ""}${c === value ? " cmp-city-search-option--current" : ""}`}
+                onMouseEnter={() => setHighlight(i)}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => select(c)}
+              >
+                <MapPin size={13} strokeWidth={1.7} />
+                <span>{c}</span>
+                {c === value && <span className="cmp-city-search-current">Selected</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {open && matches.length === 0 && (
+        <div className="cmp-city-search-empty">No cities match "{query}".</div>
+      )}
+    </div>
   );
 }
 
