@@ -21,6 +21,7 @@ import {
   X,
   ArrowRight,
   Search,
+  Pencil,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import {
@@ -29,8 +30,6 @@ import {
   CITIES,
   OCCASIONS,
   BUNDLE_PRICE,
-  BUNDLE_LIST_PRICE,
-  BUNDLE_SAVING,
   MULTI_SLOT_DISCOUNT_PCT,
   MULTI_SLOT_THRESHOLD,
   listInventoryForWindow,
@@ -42,7 +41,10 @@ import {
   subscribeOwned,
   getSurface,
   getWindow,
+  windowPricing,
+  assignListingsToPurchase,
 } from "../utils/campaigns";
+import { listPartnerListings, getPartnerListing } from "../utils/listings";
 import {
   TIERS,
   getTier,
@@ -55,8 +57,8 @@ import "./Campaigns.css";
 
 /* Sidebar items — Campaigns is highlighted; non-Featured tiers see the badge */
 const buildSidebarItems = (tier) => [
-  { icon: LayoutDashboard, label: "Dashboard",  path: "/partners/dashboard" },
-  { icon: Store,           label: "My Listings", path: "/partners/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard",   path: "/partners/dashboard#dashboard" },
+  { icon: Store,           label: "My Listings", path: "/partners/dashboard#listings" },
   { icon: Megaphone,       label: "Promotions",  path: "/partners/dashboard#promotions" },
   {
     icon: Crown,
@@ -65,9 +67,9 @@ const buildSidebarItems = (tier) => [
     active: true,
     badge: !isFeatured(tier) ? "Featured" : null,
   },
-  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard" },
-  { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard" },
-  { icon: Settings,        label: "Settings",    path: "/partners/dashboard" },
+  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
+  { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
+  { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },
 ];
 
 const surfaceIcon = (id) => (id === "homepage" ? Home : id === "category" ? LayoutGrid : Sparkles);
@@ -237,6 +239,7 @@ function ActiveState() {
   const [bundleOpen, setBundleOpen] = useState(false);
   const [bundleError, setBundleError] = useState(null);
   const [justBundled, setJustBundled] = useState(false);
+  const [assignTargetId, setAssignTargetId] = useState(null);
 
   /* Inventory subscription — bump a tick so memos recompute after purchase */
   const [inventoryTick, setInventoryTick] = useState(0);
@@ -255,6 +258,7 @@ function ActiveState() {
   );
 
   const windowMeta = getWindow(activeWindow);
+  const pricing = useMemo(() => windowPricing(activeWindow), [activeWindow]);
 
   const groupedBySurface = useMemo(() => {
     const map = {};
@@ -271,6 +275,7 @@ function ActiveState() {
       setPurchaseTarget(null);
       setPurchaseError(null);
       setTimeout(() => setJustPurchasedId(null), 4000);
+      setAssignTargetId(result.purchase.id);
     } else {
       setPurchaseError(result.reason === "sold_out" ? "This slot just sold out — try another." : "Could not complete purchase.");
     }
@@ -283,6 +288,8 @@ function ActiveState() {
       setBundleError(null);
       setJustBundled(true);
       setTimeout(() => setJustBundled(false), 4000);
+      /* Any leg id works — assignListingsToPurchase propagates across the bundle. */
+      setAssignTargetId(result.purchases[0].id);
     } else if (result.reason === "sold_out") {
       const surface = getSurface(result.soldOutSurfaceId);
       setBundleError(`${surface?.label || "One surface"} is sold out for this combination — try another occasion.`);
@@ -290,6 +297,11 @@ function ActiveState() {
       setBundleError("Could not complete bundle purchase.");
     }
   };
+
+  const assignTarget = useMemo(
+    () => owned.find((p) => p.id === assignTargetId) || null,
+    [assignTargetId, owned]
+  );
 
   return (
     <>
@@ -317,7 +329,7 @@ function ActiveState() {
         </div>
       )}
 
-      <ActiveCampaignsSection owned={owned} />
+      <ActiveCampaignsSection owned={owned} onEditListings={(id) => setAssignTargetId(id)} />
 
       {/* ── Available inventory ── */}
       <section className="cmp-section pd-anim pd-a2">
@@ -327,7 +339,7 @@ function ActiveState() {
             <p className="cmp-section-sub">
               {windowMeta && (
                 <>
-                  <span>{windowMeta.label}</span>
+                  <span>{windowMeta.label} {windowMeta.year}</span>
                   <span className="cmp-dot">·</span>
                   <span>{windowMeta.start} → {windowMeta.end}</span>
                   <span className="cmp-dot">·</span>
@@ -353,6 +365,7 @@ function ActiveState() {
         {/* Bundle highlight */}
         <BundleCard
           windowMeta={windowMeta}
+          pricing={pricing}
           city={city}
           onPurchase={() => { setBundleError(null); setBundleOpen(true); }}
         />
@@ -373,6 +386,7 @@ function ActiveState() {
             surface={surface}
             slots={groupedBySurface[surface.id] || []}
             windowMeta={windowMeta}
+            price={pricing.surfacePrices[surface.id]}
             onPurchase={(slot) => { setPurchaseError(null); setPurchaseTarget(slot); }}
           />
         ))}
@@ -403,7 +417,7 @@ function ActiveState() {
               highlight
             />
             <p className="cmp-pricing-note">
-              Valentine's window runs for 1 week — pricing applies to the same per-slot rate for that window.
+              Valentine's window runs for 1 week — prices for that window are pro-rated to half (e.g. Homepage £{windowPricing("valentines").surfacePrices.homepage}, Bundle £{windowPricing("valentines").bundlePrice}).
             </p>
           </div>
         )}
@@ -414,6 +428,7 @@ function ActiveState() {
           slot={purchaseTarget}
           windowMeta={getWindow(purchaseTarget.windowId)}
           surface={getSurface(purchaseTarget.surfaceId)}
+          price={windowPricing(purchaseTarget.windowId).surfacePrices[purchaseTarget.surfaceId]}
           error={purchaseError}
           onClose={() => { setPurchaseTarget(null); setPurchaseError(null); }}
           onConfirm={confirmPurchase}
@@ -423,10 +438,22 @@ function ActiveState() {
       {bundleOpen && (
         <BundleModal
           windowMeta={windowMeta}
+          pricing={pricing}
           city={city}
           error={bundleError}
           onClose={() => { setBundleOpen(false); setBundleError(null); }}
           onConfirm={confirmBundle}
+        />
+      )}
+
+      {assignTarget && (
+        <AssignListingsModal
+          purchase={assignTarget}
+          onClose={() => setAssignTargetId(null)}
+          onSave={(slugs) => {
+            assignListingsToPurchase(assignTarget.id, slugs);
+            setAssignTargetId(null);
+          }}
         />
       )}
     </>
@@ -434,7 +461,7 @@ function ActiveState() {
 }
 
 /* ──────────────────────  Active campaigns  ────────────────────── */
-function ActiveCampaignsSection({ owned }) {
+function ActiveCampaignsSection({ owned, onEditListings }) {
   if (!owned.length) {
     return (
       <section className="cmp-section pd-anim pd-a1">
@@ -458,6 +485,9 @@ function ActiveCampaignsSection({ owned }) {
           const surface = getSurface(p.surfaceId);
           const windowMeta = getWindow(p.windowId);
           const SurfIcon = surfaceIcon(p.surfaceId);
+          const slugs = p.listingSlugs || [];
+          const listings = slugs.map(getPartnerListing).filter(Boolean);
+          const expired = p.status === "Expired";
           return (
             <article key={p.id} className={`cmp-active-card cmp-active-card--${p.status.toLowerCase()}`}>
               <div className="cmp-active-card-top">
@@ -470,6 +500,33 @@ function ActiveCampaignsSection({ owned }) {
               <div className="cmp-active-card-meta">
                 <div><MapPin size={13} strokeWidth={1.7} /> {p.city}</div>
                 <div><Calendar size={13} strokeWidth={1.7} /> {windowMeta?.label} · {windowMeta?.start} → {windowMeta?.end}</div>
+              </div>
+
+              <div className="cmp-active-card-listings">
+                {listings.length > 0 ? (
+                  <>
+                    <div className="cmp-active-listings-label">Featuring</div>
+                    <div className="cmp-active-listings-tags">
+                      {listings.map((l) => (
+                        <span key={l.slug} className="cmp-active-listing-tag">{l.name}</span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="cmp-active-listings-empty">
+                    No listing assigned yet
+                  </div>
+                )}
+                {!expired && (
+                  <button
+                    type="button"
+                    className="cmp-active-listings-btn"
+                    onClick={() => onEditListings(p.id)}
+                  >
+                    <Pencil size={12} strokeWidth={1.8} />
+                    {listings.length > 0 ? "Change listing" : "Assign listing"}
+                  </button>
+                )}
               </div>
             </article>
           );
@@ -491,7 +548,7 @@ function WindowTabs({ active, onChange }) {
           className={`cmp-window-tab${active === w.id ? " cmp-window-tab--on" : ""}`}
           onClick={() => onChange(w.id)}
         >
-          <span className="cmp-window-tab-label">{w.label}</span>
+          <span className="cmp-window-tab-label">{w.label} {w.year}</span>
           <span className="cmp-window-tab-meta">{w.durationLabel}</span>
         </button>
       ))}
@@ -556,7 +613,7 @@ function CitySearch({ value, onChange }) {
         <input
           type="text"
           className="cmp-city-search-input"
-          placeholder={value ? `Search city — currently ${value}` : "Search city…"}
+          placeholder="Search city…"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
@@ -603,8 +660,8 @@ function CitySearch({ value, onChange }) {
 }
 
 /* ───────────────────────  Bundle card  ─────────────────────── */
-function BundleCard({ windowMeta, city, onPurchase }) {
-  if (!windowMeta) return null;
+function BundleCard({ windowMeta, pricing, city, onPurchase }) {
+  if (!windowMeta || !pricing) return null;
   return (
     <article className="cmp-bundle">
       <div className="cmp-bundle-left">
@@ -618,10 +675,10 @@ function BundleCard({ windowMeta, city, onPurchase }) {
       </div>
       <div className="cmp-bundle-right">
         <div className="cmp-bundle-price">
-          <span className="cmp-bundle-price-strike">£{BUNDLE_LIST_PRICE}</span>
-          <span className="cmp-bundle-price-now">£{BUNDLE_PRICE}</span>
+          <span className="cmp-bundle-price-strike">£{pricing.bundleListPrice}</span>
+          <span className="cmp-bundle-price-now">£{pricing.bundlePrice}</span>
         </div>
-        <span className="cmp-bundle-save">Save £{BUNDLE_SAVING}</span>
+        <span className="cmp-bundle-save">Save £{pricing.bundleSaving}</span>
         <button className="pd-btn pd-btn--fill cmp-bundle-btn" onClick={onPurchase}>
           Purchase bundle
         </button>
@@ -631,7 +688,7 @@ function BundleCard({ windowMeta, city, onPurchase }) {
 }
 
 /* ───────────────────────  Surface group  ─────────────────────── */
-function SurfaceGroup({ surface, slots, windowMeta, onPurchase }) {
+function SurfaceGroup({ surface, slots, windowMeta, price, onPurchase }) {
   const Icon = surfaceIcon(surface.id);
   const totalRemaining = slots.reduce((s, x) => s + x.remaining, 0);
   const totalCapacity = slots.reduce((s, x) => s + x.capacity, 0);
@@ -643,7 +700,7 @@ function SurfaceGroup({ surface, slots, windowMeta, onPurchase }) {
           <div className="cmp-surface-icon"><Icon size={16} strokeWidth={1.7} /></div>
           <div>
             <h3 className="cmp-surface-title">{surface.label}</h3>
-            <p className="cmp-surface-sub">£{surface.price} {surface.perOccasion ? "per occasion" : ""} · {windowMeta?.durationLabel} slot</p>
+            <p className="cmp-surface-sub">£{price} {surface.perOccasion ? "per occasion" : ""} · {windowMeta?.durationLabel} slot</p>
           </div>
         </div>
         <span className="cmp-surface-availability">{totalRemaining} of {totalCapacity} remaining</span>
@@ -651,14 +708,14 @@ function SurfaceGroup({ surface, slots, windowMeta, onPurchase }) {
 
       <div className="cmp-slot-grid">
         {slots.map((slot) => (
-          <SlotCard key={slot.id} slot={slot} surface={surface} windowMeta={windowMeta} onPurchase={onPurchase} />
+          <SlotCard key={slot.id} slot={slot} surface={surface} windowMeta={windowMeta} price={price} onPurchase={onPurchase} />
         ))}
       </div>
     </div>
   );
 }
 
-function SlotCard({ slot, surface, windowMeta, onPurchase }) {
+function SlotCard({ slot, surface, windowMeta, price, onPurchase }) {
   const soldOut = slot.remaining <= 0;
   const pct = (slot.remaining / slot.capacity) * 100;
   const lowStock = !soldOut && pct <= 30;
@@ -670,7 +727,7 @@ function SlotCard({ slot, surface, windowMeta, onPurchase }) {
           {slot.occasion && <div className="cmp-slot-occasion">{slot.occasion}</div>}
           <div className="cmp-slot-window">{windowMeta?.start} → {windowMeta?.end}</div>
         </div>
-        <div className="cmp-slot-price">£{surface.price}</div>
+        <div className="cmp-slot-price">£{price}</div>
       </div>
 
       <div className="cmp-slot-availability">
@@ -706,7 +763,7 @@ function PricingRow({ label, detail, price, highlight }) {
 }
 
 /* ───────────────────────  Purchase modal  ─────────────────────── */
-function PurchaseModal({ slot, surface, windowMeta, error, onClose, onConfirm }) {
+function PurchaseModal({ slot, surface, windowMeta, price, error, onClose, onConfirm }) {
   return (
     <div className="cmp-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="cmp-modal" onClick={(e) => e.stopPropagation()}>
@@ -722,9 +779,9 @@ function PurchaseModal({ slot, surface, windowMeta, error, onClose, onConfirm })
           <SummaryRow label="Surface" value={surface?.label || ""} />
           {slot.occasion && <SummaryRow label="Occasion" value={slot.occasion} />}
           <SummaryRow label="City" value={slot.city} />
-          <SummaryRow label="Window" value={`${windowMeta?.label} (${windowMeta?.durationLabel})`} />
+          <SummaryRow label="Window" value={`${windowMeta?.label} ${windowMeta?.year} (${windowMeta?.durationLabel})`} />
           <SummaryRow label="Dates" value={`${windowMeta?.start} → ${windowMeta?.end}`} />
-          <SummaryRow label="Price" value={`£${surface?.price}`} highlight />
+          <SummaryRow label="Price" value={`£${price}`} highlight />
         </div>
 
         {error && <div className="cmp-modal-error">{error}</div>}
@@ -749,8 +806,75 @@ function SummaryRow({ label, value, highlight }) {
   );
 }
 
+/* ───────────────────  Assign listing modal  ─────────────────── */
+function AssignListingsModal({ purchase, onClose, onSave }) {
+  const allListings = listPartnerListings();
+  const surface = getSurface(purchase.surfaceId);
+  const windowMeta = getWindow(purchase.windowId);
+  const isBundle = Boolean(purchase.bundleId);
+
+  const [selected, setSelected] = useState(() => (purchase.listingSlugs || [])[0] || null);
+
+  return (
+    <div className="cmp-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="cmp-modal cmp-modal--wide" onClick={(e) => e.stopPropagation()}>
+        <button className="cmp-modal-close" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </button>
+        <h2 className="cmp-modal-title">Choose a listing to feature</h2>
+        <p className="cmp-modal-sub">
+          {isBundle
+            ? "This listing will run across all 3 surfaces in your bundle."
+            : `This listing will appear in your ${surface?.label} placement.`}
+          {windowMeta && ` ${windowMeta.label} ${windowMeta.year} · ${purchase.city}.`}
+        </p>
+
+        <div className="cmp-assign-list" role="radiogroup">
+          {allListings.map((l) => {
+            const checked = selected === l.slug;
+            return (
+              <button
+                type="button"
+                key={l.slug}
+                role="radio"
+                aria-checked={checked}
+                className={`cmp-assign-row${checked ? " cmp-assign-row--on" : ""}`}
+                onClick={() => setSelected(l.slug)}
+              >
+                <span className={`cmp-assign-radio${checked ? " cmp-assign-radio--on" : ""}`}>
+                  {checked && <span className="cmp-assign-radio-dot" />}
+                </span>
+                <span className="cmp-assign-row-main">
+                  <span className="cmp-assign-row-name">{l.name}</span>
+                  <span className="cmp-assign-row-meta">{l.category} · {l.location}</span>
+                </span>
+                <span className={`cmp-assign-row-status cmp-assign-row-status--${l.status}`}>
+                  {l.status}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="cmp-modal-actions">
+          <button className="pd-btn pd-btn--ghost" onClick={onClose}>
+            {selected ? "Cancel" : "Skip for now"}
+          </button>
+          <button
+            className="pd-btn pd-btn--fill"
+            disabled={!selected}
+            onClick={() => onSave(selected ? [selected] : [])}
+          >
+            Save listing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ───────────────────────  Bundle modal  ─────────────────────── */
-function BundleModal({ windowMeta, city, error, onClose, onConfirm }) {
+function BundleModal({ windowMeta, pricing, city, error, onClose, onConfirm }) {
   const [occasion, setOccasion] = useState(OCCASIONS[0]);
   const [tick, setTick] = useState(0);
 
@@ -809,7 +933,7 @@ function BundleModal({ windowMeta, city, error, onClose, onConfirm }) {
                 <div className="cmp-bundle-leg-main">
                   <span className="cmp-bundle-leg-name">{surface.label}</span>
                   <span className="cmp-bundle-leg-detail">
-                    {surface.perOccasion ? occasion : "City-wide"} · £{surface.price}
+                    {surface.perOccasion ? occasion : "City-wide"} · £{pricing?.surfacePrices[surface.id]}
                   </span>
                 </div>
                 <span className={`cmp-bundle-leg-status${sold ? " cmp-bundle-leg-status--sold" : ""}`}>
@@ -821,22 +945,22 @@ function BundleModal({ windowMeta, city, error, onClose, onConfirm }) {
           <div className="cmp-bundle-totals">
             <div className="cmp-bundle-totals-row">
               <span>List price</span>
-              <span className="cmp-bundle-totals-strike">£{BUNDLE_LIST_PRICE}</span>
+              <span className="cmp-bundle-totals-strike">£{pricing?.bundleListPrice}</span>
             </div>
             <div className="cmp-bundle-totals-row cmp-bundle-totals-row--final">
               <span>Bundle price</span>
-              <span>£{BUNDLE_PRICE}</span>
+              <span>£{pricing?.bundlePrice}</span>
             </div>
             <div className="cmp-bundle-totals-row cmp-bundle-totals-row--save">
               <span>You save</span>
-              <span>£{BUNDLE_SAVING}</span>
+              <span>£{pricing?.bundleSaving}</span>
             </div>
           </div>
         </div>
 
         <div className="cmp-modal-summary-meta">
           <SummaryRow label="City" value={city} />
-          <SummaryRow label="Window" value={`${windowMeta?.label} (${windowMeta?.durationLabel})`} />
+          <SummaryRow label="Window" value={`${windowMeta?.label} ${windowMeta?.year} (${windowMeta?.durationLabel})`} />
           <SummaryRow label="Dates" value={`${windowMeta?.start} → ${windowMeta?.end}`} />
         </div>
 

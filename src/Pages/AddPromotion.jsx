@@ -62,13 +62,13 @@ const validityOptions = [
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const buildSidebarItems = (tier) => [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/partners/dashboard" },
-  { icon: Store, label: "My Listings", path: "/partners/dashboard" },
-  { icon: Megaphone, label: "Promotions", path: "/partners/dashboard#promotions" },
-  { icon: Crown, label: "Campaigns", path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
-  { icon: TrendingUp, label: "Analytics", path: "/partners/dashboard" },
-  { icon: CreditCard, label: "Billing", path: "/partners/dashboard" },
-  { icon: Settings, label: "Settings", path: "/partners/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard",   path: "/partners/dashboard#dashboard" },
+  { icon: Store,           label: "My Listings", path: "/partners/dashboard#listings" },
+  { icon: Megaphone,       label: "Promotions",  path: "/partners/dashboard#promotions" },
+  { icon: Crown,           label: "Campaigns",   path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
+  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
+  { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
+  { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },
 ];
 
 /* mock listing names → slugs (mirrors PartnerDashboard listings + EditListing mockListings) */

@@ -408,6 +408,74 @@
   gap: 6px;
 }
 
+.cmp-active-card-listings {
+  border-top: 1px solid #F0F0F3;
+  margin-top: 4px;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmp-active-listings-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+}
+
+.cmp-active-listings-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cmp-active-listing-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: #FFF1ED;
+  color: #FF4040;
+  padding: 4px 9px;
+  border-radius: 999px;
+  line-height: 1.3;
+}
+
+.cmp-active-listings-empty {
+  font-size: 12.5px;
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+.cmp-active-listings-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #11181C;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cmp-active-listings-btn:hover {
+  border-color: #FF4040;
+  color: #FF4040;
+  background: #FFF8F6;
+}
+
+.cmp-active-card--expired .cmp-active-listing-tag {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
 /* ── Window tabs ── */
 .cmp-window-tabs {
   display: flex;
@@ -1140,6 +1208,107 @@
 @media (max-width: 540px) {
   .cmp-bundle-occasion-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Assign-listings modal ── */
+.cmp-assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.cmp-assign-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid #F0F0F3;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+}
+
+.cmp-assign-row:hover {
+  border-color: #E5E7EB;
+  background: #FAFBFC;
+}
+
+.cmp-assign-row--on {
+  border-color: #FF4040;
+  background: #FFF8F6;
+}
+
+.cmp-assign-row--on:hover {
+  border-color: #FF4040;
+  background: #FFF1ED;
+}
+
+.cmp-assign-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1.5px solid #C4C9D0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff;
+  transition: all 0.12s;
+}
+
+.cmp-assign-radio--on {
+  border-color: #FF4040;
+}
+
+.cmp-assign-radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #FF4040;
+}
+
+.cmp-assign-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cmp-assign-row-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #11181C;
+}
+
+.cmp-assign-row-meta {
+  font-size: 11.5px;
+  color: #687076;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmp-assign-row-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cmp-assign-row-status--active   { background: #ECFDF5; color: #065F46; }
+.cmp-assign-row-status--pending  { background: #FFF7ED; color: #9A3412; }
+.cmp-assign-row-status--inactive { background: #F3F4F6; color: #6B7280; }
 
 @keyframes cmp-pop {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
