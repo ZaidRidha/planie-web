@@ -13,7 +13,47 @@
       "Bash(npm install:*)",
       "Bash(curl:*)",
       "Bash(npm run:*)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(openssl s_client -connect useplanie.com:443 -servername useplanie.com)",
+      "Bash(openssl x509 *)",
+      "Bash(openssl s_client -connect www.useplanie.com:443 -servername www.useplanie.com)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs stop idle \"Finished working\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs notification needs-input \"Needs input\""
+          }
+        ]
+      }
     ]
   }
 }

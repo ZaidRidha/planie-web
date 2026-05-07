@@ -17,6 +17,7 @@ import {
   AlertCircle,
   FileText,
   Megaphone,
+  Crown,
   Sparkles,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
@@ -27,6 +28,7 @@ import {
   publishPromotion,
   deactivatePromotion,
 } from "../utils/promotions";
+import { getTier, isFeatured } from "../utils/subscription";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 
@@ -54,16 +56,16 @@ const offerTypes = [
 
 const validityOptions = [
   { id: "always", label: "Always on" },
-  { id: "date_range", label: "Date range" },
   { id: "custom", label: "Custom" },
 ];
 
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const sidebarItems = [
+const buildSidebarItems = (tier) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/partners/dashboard" },
   { icon: Store, label: "My Listings", path: "/partners/dashboard" },
   { icon: Megaphone, label: "Promotions", path: "/partners/dashboard#promotions" },
+  { icon: Crown, label: "Campaigns", path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
   { icon: TrendingUp, label: "Analytics", path: "/partners/dashboard" },
   { icon: CreditCard, label: "Billing", path: "/partners/dashboard" },
   { icon: Settings, label: "Settings", path: "/partners/dashboard" },
@@ -88,7 +90,13 @@ export default function AddPromotion() {
   const isEditing = Boolean(existing);
 
   const [form, setForm] = useState(() => {
-    if (existing) return { ...existing, listingSlug: existing.listingSlug };
+    if (existing) {
+      const migrated =
+        existing.validityType === "date_range"
+          ? { ...existing, validityType: "custom" }
+          : existing;
+      return { ...migrated, listingSlug: existing.listingSlug };
+    }
     return { ...emptyPromotion(), listingSlug: queryListing };
   });
 
@@ -100,6 +108,22 @@ export default function AddPromotion() {
 
   const [conflicts, setConflicts] = useState([]); // [{ slug, name, conflict }]
   const [savedState, setSavedState] = useState(null); // 'draft' | 'published'
+
+  /* Explicit "All" toggles for the custom validity fields. They default to OFF
+     for new promotions and only activate when the user clicks the chip
+     (or — when editing — if the saved promo had empty date/time fields). */
+  const [allDates, setAllDates] = useState(() => {
+    if (!existing) return false;
+    const isCustom =
+      existing.validityType === "custom" || existing.validityType === "date_range";
+    return isCustom && !existing.validityFrom && !existing.validityTo;
+  });
+  const [allTimes, setAllTimes] = useState(() => {
+    if (!existing) return false;
+    const isCustom =
+      existing.validityType === "custom" || existing.validityType === "date_range";
+    return isCustom && !existing.validityTimeFrom && !existing.validityTimeTo;
+  });
 
   const listingName = useMemo(() => {
     if (!isEditing) return "";
@@ -149,6 +173,29 @@ export default function AddPromotion() {
   const valueIsPrefix = form.offerType !== "percentage"; // £ goes before, % goes after
 
   const targetSlugs = isEditing ? [form.listingSlug] : selectedSlugs;
+  const allDaysActive = (form.validityDays || []).length === 7;
+  const customNeedsDays =
+    form.validityType === "custom" && (form.validityDays || []).length === 0;
+  const canSubmit =
+    (isEditing || selectedSlugs.length > 0) && !customNeedsDays;
+
+  const toggleAllDates = () =>
+    setAllDates((prev) => {
+      const next = !prev;
+      if (next) setForm((p) => ({ ...p, validityFrom: "", validityTo: "" }));
+      return next;
+    });
+  const toggleAllDays = () =>
+    setForm((p) => ({
+      ...p,
+      validityDays: allDaysActive ? [] : [...daysOfWeek],
+    }));
+  const toggleAllTimes = () =>
+    setAllTimes((prev) => {
+      const next = !prev;
+      if (next) setForm((p) => ({ ...p, validityTimeFrom: "", validityTimeTo: "" }));
+      return next;
+    });
 
   const handleSaveDraft = () => {
     if (targetSlugs.length === 0) return;
@@ -165,6 +212,7 @@ export default function AddPromotion() {
 
   const handlePublish = () => {
     if (targetSlugs.length === 0) return;
+    if (customNeedsDays) return;
 
     if (isEditing) {
       const saved = savePromotion({ ...form, status: form.status });
@@ -544,79 +592,131 @@ export default function AddPromotion() {
               </div>
             </div>
 
-            {form.validityType === "date_range" && (
-              <div className="al-row al-field--divided">
-                <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
-                  <label className="al-label">From *</label>
-                  <input
-                    type="date"
-                    className="al-input"
-                    value={form.validityFrom}
-                    onChange={(e) => updateField("validityFrom", e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
-                  <label className="al-label">To *</label>
-                  <input
-                    type="date"
-                    className="al-input"
-                    value={form.validityTo}
-                    onChange={(e) => updateField("validityTo", e.target.value)}
-                    min={form.validityFrom || undefined}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
             {form.validityType === "custom" && (
-              <div className="al-field al-field--divided">
-                <label className="al-label">Days *</label>
-                <span className="al-help">
-                  Pick the days of the week the promotion is valid on. Leave times below blank for the whole day.
-                </span>
-                <div className="al-days-row">
-                  {daysOfWeek.map((d) => {
-                    const active = (form.validityDays || []).includes(d);
-                    return (
-                      <button
-                        key={d}
-                        type="button"
-                        className={`al-day-chip${active ? " al-day-chip--active" : ""}`}
-                        onClick={() => toggleDay(d)}
-                      >
-                        {d}
-                      </button>
-                    );
-                  })}
+              <>
+                <div className="al-field al-field--divided">
+                  <label className="al-label">Date range *</label>
+                  <span className="al-help">
+                    The window during which this promotion runs. Choose <strong>All dates</strong> below for an open-ended offer.
+                  </span>
+                  <div className="al-row" style={{ marginBottom: 0 }}>
+                    <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                      <label className="al-label">From{allDates ? "" : " *"}</label>
+                      <input
+                        type="date"
+                        className="al-input"
+                        value={form.validityFrom}
+                        onChange={(e) => {
+                          updateField("validityFrom", e.target.value);
+                          if (e.target.value && allDates) setAllDates(false);
+                        }}
+                        required={!allDates}
+                      />
+                    </div>
+                    <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                      <label className="al-label">To{allDates ? "" : " *"}</label>
+                      <input
+                        type="date"
+                        className="al-input"
+                        value={form.validityTo}
+                        onChange={(e) => {
+                          updateField("validityTo", e.target.value);
+                          if (e.target.value && allDates) setAllDates(false);
+                        }}
+                        min={form.validityFrom || undefined}
+                        required={!allDates}
+                      />
+                    </div>
+                  </div>
+                  <div className="al-validity-row" style={{ marginTop: 12 }}>
+                    <button
+                      type="button"
+                      className={`al-category-chip ${allDates ? "al-category-chip--active" : ""}`}
+                      onClick={toggleAllDates}
+                    >
+                      All dates
+                    </button>
+                  </div>
                 </div>
 
-                <div className="al-row" style={{ marginTop: 18 }}>
-                  <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
-                    <label className="al-label">Start time</label>
-                    <input
-                      type="time"
-                      className="al-input"
-                      value={form.validityTimeFrom}
-                      onChange={(e) => updateField("validityTimeFrom", e.target.value)}
-                    />
+                <div className="al-field al-field--divided">
+                  <label className="al-label">Days & times *</label>
+                  <span className="al-help">
+                    Pick the days of the week the promotion is valid on, plus the time window each day. Use <strong>All days</strong> or <strong>All day</strong> for the whole week or full 24 hours.
+                  </span>
+                  <div className="al-days-row">
+                    {daysOfWeek.map((d) => {
+                      const active = (form.validityDays || []).includes(d);
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          className={`al-day-chip${active ? " al-day-chip--active" : ""}`}
+                          onClick={() => toggleDay(d)}
+                        >
+                          {d}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
-                    <label className="al-label">End time</label>
-                    <input
-                      type="time"
-                      className="al-input"
-                      value={form.validityTimeTo}
-                      onChange={(e) => updateField("validityTimeTo", e.target.value)}
-                      min={form.validityTimeFrom || undefined}
-                    />
+                  <div className="al-validity-row" style={{ marginTop: 12 }}>
+                    <button
+                      type="button"
+                      className={`al-category-chip ${allDaysActive ? "al-category-chip--active" : ""}`}
+                      onClick={toggleAllDays}
+                    >
+                      All days
+                    </button>
                   </div>
+                  {(form.validityDays || []).length === 0 && (
+                    <span className="al-help" style={{ marginTop: 8, color: "#B45309" }}>
+                      Select at least one day, or choose All days.
+                    </span>
+                  )}
+
+                  <div className="al-row" style={{ marginTop: 18 }}>
+                    <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                      <label className="al-label">Start time{allTimes ? "" : " *"}</label>
+                      <input
+                        type="time"
+                        className="al-input"
+                        value={form.validityTimeFrom}
+                        onChange={(e) => {
+                          updateField("validityTimeFrom", e.target.value);
+                          if (e.target.value && allTimes) setAllTimes(false);
+                        }}
+                        required={!allTimes}
+                      />
+                    </div>
+                    <div className="al-field al-field--half" style={{ marginBottom: 0 }}>
+                      <label className="al-label">End time{allTimes ? "" : " *"}</label>
+                      <input
+                        type="time"
+                        className="al-input"
+                        value={form.validityTimeTo}
+                        onChange={(e) => {
+                          updateField("validityTimeTo", e.target.value);
+                          if (e.target.value && allTimes) setAllTimes(false);
+                        }}
+                        min={form.validityTimeFrom || undefined}
+                        required={!allTimes}
+                      />
+                    </div>
+                  </div>
+                  <div className="al-validity-row" style={{ marginTop: 12, marginBottom: 0 }}>
+                    <button
+                      type="button"
+                      className={`al-category-chip ${allTimes ? "al-category-chip--active" : ""}`}
+                      onClick={toggleAllTimes}
+                    >
+                      All day
+                    </button>
+                  </div>
+                  <span className="al-help" style={{ marginTop: 8 }}>
+                    e.g. Mon–Thu, 17:00 → 19:00 for a happy-hour promo.
+                  </span>
                 </div>
-                <span className="al-help" style={{ marginTop: 8 }}>
-                  e.g. Mon–Thu, 17:00 → 19:00 for a happy-hour promo. Leave both times blank to apply across the full day.
-                </span>
-              </div>
+              </>
             )}
           </section>
 
@@ -646,11 +746,11 @@ export default function AddPromotion() {
 
           {/* ── Promotion title ── */}
           <section className="pd-card al-section pd-animate pd-d4">
-            <h3 className="al-section-title">How should travelers see this offer?</h3>
+            <h3 className="al-section-title">Promotion Headline</h3>
             <div className="al-field">
               <label className="al-label">Promotion Title *</label>
               <span className="al-help">
-                Short, clear, and benefit-led — this is what users see in the app. e.g. "20% off" or "Free dessert on date nights".
+                What the users will see — e.g. "20% off" or "Free dessert on date nights".
               </span>
               <input
                 type="text"
@@ -700,7 +800,7 @@ export default function AddPromotion() {
             <button
               type="submit"
               className="pd-btn pd-btn--primary al-submit-btn"
-              disabled={!isEditing && selectedSlugs.length === 0}
+              disabled={!canSubmit}
             >
               <Sparkles size={15} strokeWidth={2} />
               {isEditing
@@ -717,6 +817,7 @@ export default function AddPromotion() {
 }
 
 function Sidebar() {
+  const sidebarItems = buildSidebarItems(getTier());
   return (
     <aside className="pd-sidebar">
       <div>
@@ -730,6 +831,7 @@ function Sidebar() {
               <Link key={item.label} to={item.path} className="pd-nav-btn">
                 <Icon size={18} strokeWidth={1.7} />
                 <span>{item.label}</span>
+                {item.badge && <span className="pd-nav-badge">{item.badge}</span>}
               </Link>
             );
           })}

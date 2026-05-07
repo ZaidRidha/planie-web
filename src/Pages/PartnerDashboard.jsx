@@ -56,6 +56,7 @@ import {
   deactivatePromotion,
   subscribePromotions,
 } from "../utils/promotions";
+import { getTier, isFeatured, subscribeTier } from "../utils/subscription";
 import "./PartnerDashboard.css";
 
 /* ─── Animated counter ─── */
@@ -198,6 +199,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: Store, label: "My Listings" },
   { icon: Megaphone, label: "Promotions" },
+  { icon: Crown, label: "Campaigns", external: "/partners/campaigns" },
   { icon: TrendingUp, label: "Analytics" },
   { icon: CreditCard, label: "Billing" },
   { icon: Settings, label: "Settings" },
@@ -796,7 +798,7 @@ function DraftsSection({ animClass = "pd-a2" }) {
       <div className="pd-drafts-head">
         <div className="pd-drafts-title">
           <FileText size={16} strokeWidth={2} />
-          <h3>Drafts</h3>
+          <h3>Listing Drafts</h3>
           <span className="pd-drafts-count">{drafts.length}</span>
         </div>
         <span className="pd-drafts-sub">Unfinished listings — pick up where you left off</span>
@@ -1095,21 +1097,296 @@ function formatPromoValue(p) {
 
 function formatValidity(p) {
   if (p.validityType === "always") return "Always on";
-  if (p.validityType === "date_range") {
-    if (!p.validityFrom && !p.validityTo) return "Date range — not set";
-    return `${p.validityFrom || "?"} → ${p.validityTo || "?"}`;
-  }
-  if (p.validityType === "custom" || p.validityType === "days_of_week") {
+  if (
+    p.validityType === "custom" ||
+    p.validityType === "days_of_week" ||
+    p.validityType === "date_range"
+  ) {
     const days = (p.validityDays || []).join(", ");
     const hasTimes = p.validityTimeFrom || p.validityTimeTo;
-    if (!days && !hasTimes) return "Custom — not set";
-    const dayPart = days || "Any day";
-    const timePart = hasTimes
-      ? `${p.validityTimeFrom || "00:00"}–${p.validityTimeTo || "23:59"}`
-      : "";
-    return timePart ? `${dayPart}, ${timePart}` : dayPart;
+    const hasRange = p.validityFrom || p.validityTo;
+    if (!days && !hasTimes && !hasRange) return "Custom — not set";
+    const parts = [];
+    if (hasRange) parts.push(`${p.validityFrom || "?"} → ${p.validityTo || "?"}`);
+    if (days || hasTimes) {
+      const dayPart = days || "Any day";
+      const timePart = hasTimes
+        ? `${p.validityTimeFrom || "00:00"}–${p.validityTimeTo || "23:59"}`
+        : "";
+      parts.push(timePart ? `${dayPart}, ${timePart}` : dayPart);
+    }
+    return parts.join(" · ");
   }
   return "";
+}
+
+const SETUP_STORAGE_KEY = "planie:setup:dismissed";
+
+function readSetupDone() {
+  try {
+    const raw = window.localStorage.getItem(SETUP_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSetupDone(ids) {
+  try {
+    window.localStorage.setItem(SETUP_STORAGE_KEY, JSON.stringify(ids));
+  } catch {
+    /* ignore */
+  }
+}
+
+function SetupChecklistSection({ setActiveTab, animClass = "pd-a2" }) {
+  const navigate = useNavigate();
+  const [done, setDone] = useState(() => readSetupDone());
+
+  const items = [
+    {
+      id: "billing",
+      icon: CreditCard,
+      title: "Connect billing information",
+      desc: "Add a payment method so we can run your subscription and traveler payouts.",
+      cta: "Set up billing",
+      onClick: () => setActiveTab("Billing"),
+    },
+    {
+      id: "profile",
+      icon: Settings,
+      title: "Complete your business profile",
+      desc: "Fill in your business name, contact details, and logo.",
+      cta: "Open settings",
+      onClick: () => setActiveTab("Settings"),
+    },
+    {
+      id: "listing",
+      icon: Store,
+      title: "Publish your first listing",
+      desc: "Get discoverable across Planie itineraries and search.",
+      cta: "Add a listing",
+      onClick: () => navigate("/partners/add-listing"),
+    },
+    {
+      id: "promotion",
+      icon: Megaphone,
+      title: "Launch a promotion",
+      desc: "Drive early bookings with a percentage off, free upgrade, or custom offer.",
+      cta: "Create promotion",
+      onClick: () => navigate("/partners/add-promotion"),
+    },
+    {
+      id: "verify",
+      icon: CheckCircle,
+      title: "Verify your business email",
+      desc: "Confirm the email on file so we can send booking and payout updates.",
+      cta: "Send verification",
+      onClick: () => setActiveTab("Settings"),
+    },
+  ];
+
+  const completedCount = done.length;
+  const totalCount = items.length;
+  const pct = Math.round((completedCount / totalCount) * 100);
+  const remaining = items.filter((i) => !done.includes(i.id));
+
+  if (remaining.length === 0) return null;
+
+  const markDone = (id) => {
+    const next = done.includes(id) ? done : [...done, id];
+    setDone(next);
+    writeSetupDone(next);
+  };
+
+  return (
+    <div
+      className={`pd-card pd-anim ${animClass}`}
+      style={{ marginBottom: 24, padding: 20 }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 6,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Sparkles size={16} strokeWidth={2} />
+          <h3 style={{ margin: 0, fontSize: 16 }}>Finish setting up your account</h3>
+        </div>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>
+          {completedCount}/{totalCount} complete
+        </span>
+      </div>
+      <p style={{ margin: "0 0 14px", color: "#6B7280", fontSize: 13 }}>
+        A couple of quick steps to get the most out of Planie.
+      </p>
+      <div
+        style={{
+          height: 6,
+          background: "#F3F4F6",
+          borderRadius: 999,
+          overflow: "hidden",
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            background: "#10B981",
+            transition: "width 0.3s ease",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gap: 10,
+        }}
+      >
+        {remaining.map((i) => {
+          const I = i.icon;
+          return (
+            <div
+              key={i.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 14px",
+                border: "1px solid #E5E7EB",
+                borderRadius: 12,
+                background: "#FAFAFA",
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <I size={16} strokeWidth={1.7} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{i.title}</div>
+                <div style={{ fontSize: 12, color: "#6B7280" }}>{i.desc}</div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button
+                  className="pd-btn pd-btn--ghost"
+                  style={{ padding: "6px 10px", fontSize: 12 }}
+                  onClick={() => markDone(i.id)}
+                  title="Mark as done"
+                >
+                  <CheckCircle size={13} strokeWidth={2} />
+                </button>
+                <button
+                  className="pd-btn pd-btn--fill"
+                  style={{ padding: "6px 12px", fontSize: 12 }}
+                  onClick={i.onClick}
+                >
+                  {i.cta}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PromotionDraftsSection({ promotions: promotionsProp, animClass = "pd-a2" }) {
+  const navigate = useNavigate();
+  const [internalPromotions, setInternalPromotions] = useState(() =>
+    promotionsProp || listPromotions()
+  );
+
+  useEffect(() => {
+    if (promotionsProp) return undefined;
+    return subscribePromotions(setInternalPromotions);
+  }, [promotionsProp]);
+
+  const promotions = promotionsProp || internalPromotions;
+  const drafts = promotions.filter((p) => p.status === "draft");
+
+  if (drafts.length === 0) return null;
+
+  const handleDelete = (id, title) => {
+    const ok = window.confirm(`Delete "${title || "this promotion"}"? This cannot be undone.`);
+    if (ok) deletePromotion(id);
+  };
+
+  return (
+    <div className={`pd-drafts pd-anim ${animClass}`}>
+      <div className="pd-drafts-head">
+        <div className="pd-drafts-title">
+          <FileText size={16} strokeWidth={2} />
+          <h3>Promotion Drafts</h3>
+          <span className="pd-drafts-count">{drafts.length}</span>
+        </div>
+        <span className="pd-drafts-sub">Unpublished promotions — finish setting up to go live</span>
+      </div>
+      <div className="pd-drafts-grid">
+        {drafts.map((p) => {
+          const meta = offerTypeMeta[p.offerType] || { icon: Tag, label: "" };
+          const I = meta.icon;
+          const venueName = slugToListingName[p.listingSlug] || p.listingSlug || "No venue";
+          const valueLabel = formatPromoValue(p);
+          return (
+            <div key={p.id} className="pd-draft-card">
+              <div className="pd-draft-card-top">
+                <div className="pd-draft-card-avatar">
+                  <I size={18} strokeWidth={1.6} />
+                </div>
+                <div className="pd-draft-card-info">
+                  <h4>{p.title || "Untitled promotion"}</h4>
+                  <div className="pd-draft-card-meta">
+                    <span>{venueName}</span>
+                    <span className="pd-draft-card-dot">·</span>
+                    <span>{valueLabel || "No offer set"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pd-draft-card-foot">
+                <span className="pd-draft-card-time">
+                  <Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(p.updatedAt)}
+                </span>
+                <div className="pd-draft-card-actions">
+                  <button
+                    className="pd-btn pd-btn--ghost pd-draft-btn"
+                    onClick={() => handleDelete(p.id, p.title)}
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                    Delete
+                  </button>
+                  <button
+                    className="pd-btn pd-btn--fill pd-draft-btn"
+                    onClick={() => navigate(`/partners/edit-promotion/${p.id}`)}
+                  >
+                    Continue
+                    <ChevronRight size={13} strokeWidth={2.2} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function PromotionsTab() {
@@ -1176,6 +1453,9 @@ function PromotionsTab() {
           <span className="pd-ml-summary-label">Drafts</span>
         </div>
       </div>
+
+      {/* Drafts */}
+      <PromotionDraftsSection promotions={promotions} animClass="pd-a2" />
 
       {/* Promotions per venue */}
       <div className="pd-promo-list pd-anim pd-a3">
@@ -1792,6 +2072,8 @@ function getTabFromHash() {
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTabState] = useState(getTabFromHash);
+  const [tier, setTier] = useState(() => getTier());
+  useEffect(() => subscribeTier(setTier), []);
 
   const setActiveTab = (tab) => {
     setActiveTabState(tab);
@@ -1834,6 +2116,16 @@ export default function PartnerDashboard() {
           <nav className="pd-nav">
             {navItems.map((n) => {
               const I = n.icon;
+              const badge = n.label === "Campaigns" && !isFeatured(tier) ? "Featured" : null;
+              if (n.external) {
+                return (
+                  <Link key={n.label} to={n.external} className="pd-nav-btn">
+                    <I size={18} strokeWidth={1.7} />
+                    <span>{n.label}</span>
+                    {badge && <span className="pd-nav-badge">{badge}</span>}
+                  </Link>
+                );
+              }
               return (
                 <button key={n.label} className={`pd-nav-btn${activeTab === n.label ? " pd-nav-btn--on" : ""}`} onClick={() => setActiveTab(n.label)}>
                   <I size={18} strokeWidth={1.7} />
@@ -1881,8 +2173,12 @@ export default function PartnerDashboard() {
               </div>
             </header>
 
+            {/* Setup checklist */}
+            <SetupChecklistSection setActiveTab={setActiveTab} animClass="pd-a2" />
+
             {/* Drafts */}
             <DraftsSection animClass="pd-a2" />
+            <PromotionDraftsSection animClass="pd-a2" />
 
             {/* Stats */}
             <div className="pd-stats pd-anim pd-a2">

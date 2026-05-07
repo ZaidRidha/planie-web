@@ -91,6 +91,25 @@
   color: #EF4444;
 }
 
+.pd-nav-badge {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #FFF1ED;
+  color: #FF4040;
+  line-height: 1;
+}
+
+.pd-nav-btn--on .pd-nav-badge {
+  background: #fff;
+  color: #FF4040;
+  border: 1px solid #FFD9CF;
+}
+
 /* ── Main ── */
 .pd-main {
   margin-left: 220px;

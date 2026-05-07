@@ -13,6 +13,8 @@ import {
   LogOut,
   LayoutDashboard,
   Store,
+  Megaphone,
+  Crown,
   TrendingUp,
   Settings,
   CreditCard,
@@ -21,6 +23,7 @@ import {
 } from "lucide-react";
 import ListingPreview from "../Components/ListingPreview";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import { getTier, isFeatured } from "../utils/subscription";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 
@@ -135,9 +138,11 @@ const bookingPlatforms = [
   { id: "platinumlist", name: "Platinum List", desc: "Events — Middle East", regions: ["middleeast"], cats: ["events","bars"], confirm: "/confirmation", booking: "https://www.platinumlist.net/...", affiliate: false },
 ];
 
-const sidebarItems = [
+const buildSidebarItems = (tier) => [
   { icon: LayoutDashboard, label: "Dashboard", path: "/partners/dashboard" },
   { icon: Store, label: "My Listings", path: "/partners/dashboard" },
+  { icon: Megaphone, label: "Promotions", path: "/partners/dashboard#promotions" },
+  { icon: Crown, label: "Campaigns", path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
   { icon: TrendingUp, label: "Analytics", path: "/partners/dashboard" },
   { icon: CreditCard, label: "Billing", path: "/partners/dashboard" },
   { icon: Settings, label: "Settings", path: "/partners/dashboard" },
@@ -843,6 +848,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
 
 /* Sidebar (reused from dashboard) */
 function Sidebar() {
+  const sidebarItems = buildSidebarItems(getTier());
   return (
     <aside className="pd-sidebar">
       <div>
@@ -856,6 +862,7 @@ function Sidebar() {
               <Link key={item.label} to={item.path} className="pd-nav-btn">
                 <Icon size={18} strokeWidth={1.7} />
                 <span>{item.label}</span>
+                {item.badge && <span className="pd-nav-badge">{item.badge}</span>}
               </Link>
             );
           })}
