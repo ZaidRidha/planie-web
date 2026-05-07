@@ -4,7 +4,7 @@
 
 const INVENTORY_KEY = "planie:campaign-inventory";
 const OWNED_KEY = "planie:campaign-owned";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const INVENTORY_EVENT = "planie:campaign-inventory-changed";
 const OWNED_EVENT = "planie:campaign-owned-changed";
 
@@ -53,7 +53,38 @@ export const WINDOWS = [
   { id: "christmas",  label: "Christmas",    start: "Dec 14, 2026", end: "Dec 28, 2026", durationLabel: "2-week", durationDays: 14 },
 ];
 
-export const CITIES = ["London", "Manchester", "Edinburgh", "Bristol", "Birmingham"];
+export const CITIES = [
+  "London",
+  "Manchester",
+  "Edinburgh",
+  "Bristol",
+  "Birmingham",
+  "Glasgow",
+  "Leeds",
+  "Liverpool",
+  "Newcastle",
+  "Nottingham",
+  "Sheffield",
+  "Cardiff",
+  "Belfast",
+  "Brighton",
+  "Cambridge",
+  "Oxford",
+  "Bath",
+  "York",
+  "Aberdeen",
+  "Dundee",
+  "Southampton",
+  "Portsmouth",
+  "Leicester",
+  "Coventry",
+  "Norwich",
+  "Reading",
+  "Plymouth",
+  "Hull",
+  "Exeter",
+  "Inverness",
+];
 export const OCCASIONS = ["Date Night", "Groups", "Families", "Experiences"];
 
 const safeParse = (raw, fallback) => {
