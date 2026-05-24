@@ -10,6 +10,7 @@ import AddListing from "./Pages/AddListing";
 import EditListing from "./Pages/EditListing";
 import AddPromotion from "./Pages/AddPromotion";
 import Campaigns from "./Pages/Campaigns";
+import SharedItinerary from "./Pages/SharedItinerary";
 import "./index.css"; // Tailwind directives live here
 
 function ScrollToTop() {
@@ -33,6 +34,7 @@ function App() {
         <Route path="/partners/add-promotion" element={<AddPromotion />} />
         <Route path="/partners/edit-promotion/:id" element={<AddPromotion />} />
         <Route path="/partners/campaigns" element={<Campaigns />} />
+        <Route path="/share/:shareCode" element={<SharedItinerary />} />
 
         {/* Main layout */}
         <Route
