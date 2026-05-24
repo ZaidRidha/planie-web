@@ -14,6 +14,7 @@ import {
   Star,
   Zap,
 } from "lucide-react";
+
 import "./PartnerPage.css";
 
 const benefits = [
