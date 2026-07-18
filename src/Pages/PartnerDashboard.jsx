@@ -200,6 +200,7 @@ const navItems = [
   { icon: Store, label: "My Listings" },
   { icon: Megaphone, label: "Promotions" },
   { icon: Crown, label: "Campaigns", external: "/partners/campaigns" },
+  { icon: Sparkles, label: "AI visibility", external: "/partners/geo" },
   { icon: TrendingUp, label: "Analytics" },
   { icon: CreditCard, label: "Billing" },
   { icon: Settings, label: "Settings" },

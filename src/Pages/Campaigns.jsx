@@ -67,6 +67,7 @@ const buildSidebarItems = (tier) => [
     active: true,
     badge: !isFeatured(tier) ? "Featured" : null,
   },
+  { icon: Sparkles,        label: "AI visibility", path: "/partners/geo" },
   { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
   { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
   { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },

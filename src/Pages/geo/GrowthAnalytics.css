@@ -1,0 +1,169 @@
+/* ═══════════════════════════════════════════════════════
+   Growth analytics — locked "coming soon" teaser cards
+   Reuses .pd-card / .geo-card / .pd-btn from the GEO page;
+   only the locked-specific styles live here.
+   ═══════════════════════════════════════════════════════ */
+
+.geo-locked {
+  margin-top: 34px;
+}
+
+.geo-locked-head {
+  margin-bottom: 16px;
+}
+
+.geo-locked-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #11181C;
+  letter-spacing: -0.02em;
+}
+
+.geo-locked-sub {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+/* Count of registered features, under the heading (shown when > 1) */
+.geo-locked-count {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 550;
+  color: #10B981;
+}
+
+/* Dismissible "you're on the list" banner (first registration onward) */
+.geo-early-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: 12px;
+}
+
+.geo-early-banner-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #065F46;
+}
+
+.geo-early-banner-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #059669;
+  cursor: pointer;
+}
+
+.geo-early-banner-close:hover {
+  background: #D1FAE5;
+}
+
+/* Responsive grid: 3 → 2 → 1 columns */
+.geo-locked-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.geo-locked-card {
+  position: relative;
+}
+
+.geo-locked-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.geo-locked-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #11181C;
+}
+
+.geo-locked-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+/* Blurred fake value. The blur is cosmetic only — the real figure is
+   never present in the DOM (see GrowthAnalytics.jsx header). */
+.geo-locked-value {
+  width: fit-content;
+  margin: 14px 0 10px;
+  font-size: 2rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #11181C;
+  filter: blur(6px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.geo-locked-teaser {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin-bottom: 16px;
+}
+
+.geo-locked-btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* Registered state — a muted green "done" pill, clearly distinct from the
+   solid primary "Get early access" button it replaces. */
+.geo-locked-done {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+.geo-locked-err {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #FF4040;
+}
+
+@media (max-width: 900px) {
+  .geo-locked-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .geo-locked-grid {
+    grid-template-columns: 1fr;
+  }
+}

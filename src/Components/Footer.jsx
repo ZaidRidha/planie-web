@@ -34,7 +34,7 @@ export default function Footer() {
             {/* ── Column 1: Brand ── */}
             <div className="sm:col-span-2 lg:col-span-1">
               <Link to="/" className="inline-block mb-4">
-                <img src={PlanieLogo} alt="Planie" className="h-8 w-auto" />
+                <img src={PlanieLogo} alt="Planie" className="h-10 w-auto" />
               </Link>
               <p className="text-sm text-[#687076] leading-relaxed max-w-xs">
                 AI-powered travel planning that builds your perfect

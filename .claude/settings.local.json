@@ -20,12 +20,43 @@
       "Bash(git check-ignore *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(python -c ' *)"
     ]
   },
   "hooks": {
-    "UserPromptSubmit": [],
-    "Stop": [],
-    "Notification": []
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs stop idle \"Finished working\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node C:/Users/zaidr/OneDrive/Desktop/planie-web/.bridgespace/bin/bs-claude-hook.cjs notification needs-input \"Needs input\""
+          }
+        ]
+      }
+    ]
   }
 }
