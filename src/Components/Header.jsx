@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,19 +16,20 @@ export default function Header() {
   const navItems = [
     { label: "Home", to: "/" },
     { label: "Partners", to: "/partners" },
+    { label: "How placement works", to: "/placements" },
   ];
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/90 backdrop-blur-xl shadow-[0_1px_30px_rgba(0,0,0,0.06)]"
+          ? "bg-[#FAF7F1]/90 backdrop-blur-xl border-b border-[#1C1114]/10"
           : "bg-transparent"
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10">
         <div className="relative flex items-center justify-between h-[72px]">
-          {/* ─── Logo ─── */}
+          {/* â”€â”€â”€ Logo â”€â”€â”€ */}
           <Link to="/" className="relative z-10 shrink-0 group">
             <img
               src={PlanieLogo}
@@ -37,7 +38,7 @@ export default function Header() {
             />
           </Link>
 
-          {/* ─── Desktop Nav (truly centered) ─── */}
+          {/* â”€â”€â”€ Desktop Nav (truly centered) â”€â”€â”€ */}
           <nav className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
             {navItems.map(({ label, to }) => (
               <NavLink
@@ -48,7 +49,7 @@ export default function Header() {
                   `relative text-[15px] font-medium tracking-[-0.01em] transition-colors duration-300 py-1 ${
                     isActive
                       ? "text-[#FF4040]"
-                      : "text-[#11181C]/60 hover:text-[#11181C]"
+                      : "text-[#1C1114]/60 hover:text-[#1C1114]"
                   }`
                 }
               >
@@ -66,20 +67,20 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* ─── Right Side ─── */}
+          {/* â”€â”€â”€ Right Side â”€â”€â”€ */}
           <div className="flex items-center gap-3">
-            <a
-              href="#get-started"
-              className="hidden md:inline-flex items-center px-6 py-2.5 bg-[#FF4040] text-white text-sm font-semibold rounded-full
+            <Link
+              to="/partners/login"
+              className="hidden md:inline-flex items-center px-6 py-2.5 bg-[#1C1114] text-white text-sm font-semibold rounded-full
                 transition-all duration-300
-                hover:bg-[#e63636] hover:shadow-[0_8px_30px_rgba(255,64,64,0.3)] hover:-translate-y-[1px]
+                hover:bg-[#FF4040] hover:-translate-y-[1px]
                 active:translate-y-0 active:shadow-[0_4px_15px_rgba(255,64,64,0.2)]"
             >
               Get Started
-            </a>
+            </Link>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-[#11181C] hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-lg text-[#1C1114] hover:bg-[#1C1114]/5 transition-colors"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -88,13 +89,13 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ─── Mobile Menu ─── */}
+      {/* â”€â”€â”€ Mobile Menu â”€â”€â”€ */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
           mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="bg-white/95 backdrop-blur-xl border-t border-gray-100 px-6 py-5 space-y-1">
+        <div className="bg-[#FAF7F1]/95 backdrop-blur-xl border-t border-[#1C1114]/10 px-6 py-5 space-y-1">
           {navItems.map(({ label, to }) => (
             <NavLink
               key={label}
@@ -105,7 +106,7 @@ export default function Header() {
                 `block py-2.5 px-3 rounded-lg text-base font-medium transition-colors ${
                   isActive
                     ? "text-[#FF4040] bg-red-50"
-                    : "text-[#11181C]/70 hover:text-[#11181C] hover:bg-gray-50"
+                    : "text-[#1C1114]/70 hover:text-[#1C1114] hover:bg-[#1C1114]/5"
                 }`
               }
             >
@@ -113,13 +114,14 @@ export default function Header() {
             </NavLink>
           ))}
           <div className="pt-3">
-            <a
-              href="#get-started"
-              className="block text-center px-6 py-3 bg-[#FF4040] text-white font-semibold rounded-full
-                hover:bg-[#e63636] transition-colors"
+            <Link
+              to="/partners/login"
+              onClick={() => setMobileOpen(false)}
+              className="block text-center px-6 py-3 bg-[#1C1114] text-white font-semibold rounded-full
+                hover:bg-[#FF4040] transition-colors"
             >
               Get Started
-            </a>
+            </Link>
           </div>
         </div>
       </div>

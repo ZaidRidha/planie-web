@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,11 +23,12 @@ import {
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import {
   emptyPromotion,
-  getPromotion,
-  savePromotion,
-  publishPromotion,
+  fetchPromotion,
+  createPromotion,
+  updatePromotion,
   deactivatePromotion,
 } from "../utils/promotions";
+import { fetchMyListings } from "../utils/listings";
 import { getTier, isFeatured } from "../utils/subscription";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
@@ -49,9 +50,9 @@ const allOccasions = [
 
 const offerTypes = [
   { id: "percentage", label: "Percentage discount", desc: "e.g. 20% off", icon: Percent },
-  { id: "fixed", label: "Fixed amount off", desc: "e.g. £10 off", icon: Tag },
+  { id: "fixed", label: "Fixed amount off", desc: "e.g. Â£10 off", icon: Tag },
   { id: "free_item", label: "Free item", desc: "e.g. free dessert, welcome drink", icon: Gift },
-  { id: "custom", label: "Custom", desc: "Free text — e.g. 'Complimentary upgrade on arrival'", icon: Pencil },
+  { id: "custom", label: "Custom", desc: "Free text â€” e.g. 'Complimentary upgrade on arrival'", icon: Pencil },
 ];
 
 const validityOptions = [
@@ -62,23 +63,31 @@ const validityOptions = [
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const buildSidebarItems = (tier) => [
-  { icon: LayoutDashboard, label: "Dashboard",   path: "/partners/dashboard#dashboard" },
-  { icon: Store,           label: "My Listings", path: "/partners/dashboard#listings" },
+  { icon: LayoutDashboard, label: "Overview",    path: "/partners/dashboard#dashboard" },
+  { icon: Store,           label: "Listings",    path: "/partners/dashboard#listings" },
   { icon: Megaphone,       label: "Promotions",  path: "/partners/dashboard#promotions" },
   { icon: Crown,           label: "Campaigns",   path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
-  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
+  { icon: TrendingUp,      label: "Insights",    path: "/partners/dashboard#analytics" },
   { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
   { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },
 ];
 
-/* mock listing names → slugs (mirrors PartnerDashboard listings + EditListing mockListings) */
-const knownListings = [
-  { slug: "sunset-rooftop-bar", name: "Sunset Rooftop Bar" },
-  { slug: "desert-safari-tours", name: "Desert Safari Tours" },
-  { slug: "coastal-yoga-retreat", name: "Coastal Yoga Retreat" },
-  { slug: "old-town-walking-tour", name: "Old Town Walking Tour" },
-  { slug: "neon-night-market", name: "Neon Night Market" },
-];
+/* The form fields a promotion round-trips through the API. */
+const promoFormFields = (f) => ({
+  title: f.title || "",
+  offerType: f.offerType || "",
+  discountValue: f.discountValue || "",
+  discountCode: f.discountCode || "",
+  applicableOccasions: f.applicableOccasions || [],
+  validityType: f.validityType || "always",
+  validityFrom: f.validityFrom || "",
+  validityTo: f.validityTo || "",
+  validityDays: f.validityDays || [],
+  validityTimeFrom: f.validityTimeFrom || "",
+  validityTimeTo: f.validityTimeTo || "",
+  minBookingSize: f.minBookingSize || "",
+  internalNote: f.internalNote || "",
+});
 
 export default function AddPromotion() {
   const navigate = useNavigate();
@@ -86,64 +95,90 @@ export default function AddPromotion() {
   const [searchParams] = useSearchParams();
   const queryListing = searchParams.get("listing") || "";
 
-  const existing = editId ? getPromotion(editId) : null;
-  const isEditing = Boolean(existing);
+  const isEditing = Boolean(editId);
 
-  const [form, setForm] = useState(() => {
-    if (existing) {
-      const migrated =
-        existing.validityType === "date_range"
-          ? { ...existing, validityType: "custom" }
-          : existing;
-      return { ...migrated, listingSlug: existing.listingSlug };
-    }
-    return { ...emptyPromotion(), listingSlug: queryListing };
-  });
+  const [form, setForm] = useState(() => ({ ...emptyPromotion(), listingId: queryListing }));
+  const [loading, setLoading] = useState(isEditing);
+  const [loadError, setLoadError] = useState(null);
 
-  /* Multi-listing selection — only used when creating new */
-  const [selectedSlugs, setSelectedSlugs] = useState(() => {
-    if (existing) return [existing.listingSlug];
-    return queryListing ? [queryListing] : [];
-  });
+  /* Approved venues (active/inactive) â€” promotions attach to these. */
+  const [listings, setListings] = useState(null);
 
-  const [conflicts, setConflicts] = useState([]); // [{ slug, name, conflict }]
+  /* Multi-listing selection â€” only used when creating new */
+  const [selectedIds, setSelectedIds] = useState(() => (queryListing ? [queryListing] : []));
+
+  const [conflicts, setConflicts] = useState([]); // [{ listingId, name, conflict, retry }]
   const [savedState, setSavedState] = useState(null); // 'draft' | 'published'
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   /* Explicit "All" toggles for the custom validity fields. They default to OFF
      for new promotions and only activate when the user clicks the chip
-     (or — when editing — if the saved promo had empty date/time fields). */
-  const [allDates, setAllDates] = useState(() => {
-    if (!existing) return false;
-    const isCustom =
-      existing.validityType === "custom" || existing.validityType === "date_range";
-    return isCustom && !existing.validityFrom && !existing.validityTo;
-  });
-  const [allTimes, setAllTimes] = useState(() => {
-    if (!existing) return false;
-    const isCustom =
-      existing.validityType === "custom" || existing.validityType === "date_range";
-    return isCustom && !existing.validityTimeFrom && !existing.validityTimeTo;
-  });
+     (or â€” when editing â€” if the saved promo had empty date/time fields). */
+  const [allDates, setAllDates] = useState(false);
+  const [allTimes, setAllTimes] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { items } = await fetchMyListings();
+        if (cancelled) return;
+        setListings((items ?? []).filter((l) => l.status === "active" || l.status === "inactive"));
+      } catch {
+        if (!cancelled) setListings([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!editId) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { promotion } = await fetchPromotion(editId);
+        if (cancelled) return;
+        const base = emptyPromotion();
+        const merged = {
+          ...base,
+          ...Object.fromEntries(Object.keys(base).map((k) => [k, promotion[k] ?? base[k]])),
+          id: editId,
+        };
+        setForm(merged);
+        setSelectedIds([merged.listingId]);
+        const isCustom = merged.validityType === "custom";
+        setAllDates(isCustom && !merged.validityFrom && !merged.validityTo);
+        setAllTimes(isCustom && !merged.validityTimeFrom && !merged.validityTimeTo);
+        setLoadError(null);
+      } catch (err) {
+        if (!cancelled) setLoadError(err.message || "Could not load this promotion.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editId]);
 
   const listingName = useMemo(() => {
     if (!isEditing) return "";
-    const found = knownListings.find((l) => l.slug === form.listingSlug);
+    const found = (listings ?? []).find((l) => l.id === form.listingId);
     return found?.name || "";
-  }, [form.listingSlug, isEditing]);
+  }, [form.listingId, isEditing, listings]);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleSlug = (slug) => {
-    setSelectedSlugs((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+  const toggleId = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );
   };
 
-  const allSelected = selectedSlugs.length === knownListings.length;
+  const allSelected = listings !== null && selectedIds.length === listings.length && listings.length > 0;
   const toggleAll = () => {
-    setSelectedSlugs(allSelected ? [] : knownListings.map((l) => l.slug));
+    setSelectedIds(allSelected ? [] : (listings ?? []).map((l) => l.id));
   };
 
   const toggleOccasion = (occ) => {
@@ -169,15 +204,15 @@ export default function AddPromotion() {
   };
 
   const requiresValue = form.offerType === "percentage" || form.offerType === "fixed";
-  const valuePrefix = form.offerType === "percentage" ? "%" : "£";
-  const valueIsPrefix = form.offerType !== "percentage"; // £ goes before, % goes after
+  const valuePrefix = form.offerType === "percentage" ? "%" : "Â£";
+  const valueIsPrefix = form.offerType !== "percentage"; // Â£ goes before, % goes after
 
-  const targetSlugs = isEditing ? [form.listingSlug] : selectedSlugs;
+  const targetIds = isEditing ? [form.listingId] : selectedIds;
   const allDaysActive = (form.validityDays || []).length === 7;
   const customNeedsDays =
     form.validityType === "custom" && (form.validityDays || []).length === 0;
   const canSubmit =
-    (isEditing || selectedSlugs.length > 0) && !customNeedsDays;
+    (isEditing || selectedIds.length > 0) && !customNeedsDays && !submitting;
 
   const toggleAllDates = () =>
     setAllDates((prev) => {
@@ -197,75 +232,130 @@ export default function AddPromotion() {
       return next;
     });
 
-  const handleSaveDraft = () => {
-    if (targetSlugs.length === 0) return;
-    if (isEditing) {
-      const saved = savePromotion({ ...form, status: "draft" });
-      setForm(saved);
-    } else {
-      targetSlugs.forEach((slug) => {
-        savePromotion({ ...form, id: "", listingSlug: slug, status: "draft" });
-      });
+  const handleSaveDraft = async () => {
+    if (targetIds.length === 0 || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      if (isEditing) {
+        await updatePromotion(editId, promoFormFields(form), { submit: false });
+      } else {
+        for (const listingId of targetIds) {
+          await createPromotion({ ...promoFormFields(form), listingId }, { submit: false });
+        }
+      }
+      setSavedState("draft");
+    } catch (err) {
+      setSubmitError(err.message || "Could not save the draft.");
+    } finally {
+      setSubmitting(false);
     }
-    setSavedState("draft");
   };
 
-  const handlePublish = () => {
-    if (targetSlugs.length === 0) return;
-    if (customNeedsDays) return;
-
-    if (isEditing) {
-      const saved = savePromotion({ ...form, status: form.status });
-      const result = publishPromotion(saved.id);
-      if (!result.ok && result.reason === "conflict") {
-        const venue = knownListings.find((l) => l.slug === saved.listingSlug);
-        setForm(saved);
-        setConflicts([{ slug: saved.listingSlug, name: venue?.name || saved.listingSlug, conflict: result.conflict, promoId: saved.id }]);
-        return;
-      }
-      setForm({ ...saved, status: "active" });
-      setSavedState("published");
-      return;
-    }
-
-    /* Multi-listing publish: save one promo per slug, then publish each */
-    const saved = targetSlugs.map((slug) =>
-      savePromotion({ ...form, id: "", listingSlug: slug, status: "draft" })
-    );
-    const issues = [];
-    saved.forEach((s) => {
-      const result = publishPromotion(s.id);
-      if (!result.ok && result.reason === "conflict") {
-        const venue = knownListings.find((l) => l.slug === s.listingSlug);
-        issues.push({
-          slug: s.listingSlug,
-          name: venue?.name || s.listingSlug,
-          conflict: result.conflict,
-          promoId: s.id,
-        });
-      }
-    });
-    if (issues.length > 0) {
-      setConflicts(issues);
-      return;
-    }
-    setSavedState("published");
-  };
-
-  const handleResolveConflicts = () => {
-    if (conflicts.length === 0) return;
-    conflicts.forEach((c) => {
-      deactivatePromotion(c.conflict.id);
-      publishPromotion(c.promoId);
-    });
+  /* Submits into the staff review queue. The backend answers 409
+     PROMO_CONFLICT when a venue already has a live promotion â€” those are
+     collected so the user can choose "deactivate & submit". */
+  const handlePublish = async () => {
+    if (targetIds.length === 0 || customNeedsDays || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
     setConflicts([]);
-    setSavedState("published");
+    const issues = [];
+    const errors = [];
+    try {
+      if (isEditing) {
+        try {
+          await updatePromotion(editId, promoFormFields(form), { submit: true });
+        } catch (err) {
+          if (err.code === "PROMO_CONFLICT" && err.data?.conflict) {
+            issues.push({
+              listingId: form.listingId,
+              name: listingName || "this venue",
+              conflict: err.data.conflict,
+              retry: () => updatePromotion(editId, promoFormFields(form), { submit: true }),
+            });
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        for (const listingId of targetIds) {
+          const name = (listings ?? []).find((l) => l.id === listingId)?.name || "this venue";
+          try {
+            await createPromotion({ ...promoFormFields(form), listingId }, { submit: true });
+          } catch (err) {
+            if (err.code === "PROMO_CONFLICT" && err.data?.conflict) {
+              issues.push({
+                listingId,
+                name,
+                conflict: err.data.conflict,
+                retry: () => createPromotion({ ...promoFormFields(form), listingId }, { submit: true }),
+              });
+            } else {
+              errors.push(`${name}: ${err.message}`);
+            }
+          }
+        }
+      }
+      if (errors.length > 0) setSubmitError(errors.join(" Â· "));
+      if (issues.length > 0) {
+        setConflicts(issues);
+      } else if (errors.length === 0) {
+        setSavedState("published");
+      }
+    } catch (err) {
+      setSubmitError(err.message || "Could not submit the promotion.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  /* ── Success state ── */
+  const handleResolveConflicts = async () => {
+    if (conflicts.length === 0 || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      for (const c of conflicts) {
+        await deactivatePromotion(c.conflict.id);
+        await c.retry();
+      }
+      setConflicts([]);
+      setSavedState("published");
+    } catch (err) {
+      setSubmitError(err.message || "Could not resolve the conflict â€” please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /* â”€â”€ Loading / not-found (edit mode) â”€â”€ */
+  if (isEditing && (loading || loadError)) {
+    return (
+      <div className="pd-layout">
+        <Sidebar />
+        <main className="pd-main">
+          <div className="al-success pd-animate pd-d1">
+            {loading ? (
+              <p style={{ color: "#687076" }}>Loading promotionâ€¦</p>
+            ) : (
+              <>
+                <h2>Promotion not found</h2>
+                <p>{loadError}</p>
+                <Link to="/partners/dashboard#promotions" className="pd-btn pd-btn--primary">
+                  Back to Promotions
+                </Link>
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /* â”€â”€ Success state â”€â”€ */
   if (savedState) {
     const isPublished = savedState === "published";
-    const venueCount = isEditing ? 1 : selectedSlugs.length;
+    const venueCount = isEditing ? 1 : selectedIds.length;
     return (
       <div className="pd-layout">
         <Sidebar />
@@ -282,15 +372,13 @@ export default function AddPromotion() {
             </div>
             <h2>
               {isPublished
-                ? venueCount > 1 ? `Live across ${venueCount} venues` : "Promotion Live"
+                ? venueCount > 1 ? `Submitted for ${venueCount} venues` : "Submitted for Review"
                 : venueCount > 1 ? `${venueCount} drafts saved` : "Draft Saved"}
             </h2>
             <p>
               {isPublished
-                ? venueCount > 1
-                  ? "Your promotion is now live across each selected venue in Planie Discovery and itineraries. Each venue's promo can be edited or deactivated individually."
-                  : "Your promotion is live and now appears alongside your venue card in Planie Discovery and itineraries."
-                : "Your draft is saved. Come back any time to finish setting up and publish."}
+                ? "Our staff review every promotion before it goes live â€” typically within 24â€“48 hours. You can follow the status from the Promotions tab, and it will appear alongside your venue in Planie once approved."
+                : "Your draft is saved. Come back any time to finish setting up and submit it for review."}
             </p>
             <div className="al-success-actions">
               <Link to="/partners/dashboard#promotions" className="pd-btn pd-btn--primary">
@@ -319,10 +407,13 @@ export default function AddPromotion() {
             <ArrowLeft size={20} strokeWidth={2} />
           </button>
           <div>
-            <h1 className="pd-greeting">{isEditing ? "Edit Promotion" : "Create a Promotion"}</h1>
-            <p className="pd-greeting-sub">
+            <p className="nu-microlabel" style={{ marginBottom: 6 }}>{isEditing ? "Edit promotion" : "New promotion"}</p>
+            <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 34, letterSpacing: "-0.02em" }}>
+              {isEditing ? "Refine your offer." : "Create an offer."}
+            </h1>
+            <p style={{ margin: "8px 0 0", fontSize: 15, opacity: 0.6 }}>
               {isEditing && listingName
-                ? `For ${listingName}`
+                ? `For ${listingName} â€” edits go back to review.`
                 : "Pick which venues this offer applies to and we'll set it up across them."}
             </p>
           </div>
@@ -338,25 +429,25 @@ export default function AddPromotion() {
                   : `${conflicts.length} venues already have active promotions`}
               </strong>
               <span>
-                Only one promotion can be active per listing. Deactivate the existing offer
-                {conflicts.length > 1 ? "s" : ""} to publish this one
+                Only one promotion can be live per listing. Deactivate the existing offer
+                {conflicts.length > 1 ? "s" : ""} to submit this one for review
                 {conflicts.length > 1 ? " across all selected venues" : ""}.
                 {conflicts.length > 1 && (
                   <>
                     <br />
                     <em>
-                      {conflicts.map((c) => `${c.name} → "${c.conflict.title || "Untitled"}"`).join(", ")}
+                      {conflicts.map((c) => `${c.name} â†’ "${c.conflict.title || "Untitled"}"`).join(", ")}
                     </em>
                   </>
                 )}
               </span>
             </div>
             <div className="al-conflict-actions">
-              <button className="pd-btn pd-btn--ghost" onClick={() => setConflicts([])}>
+              <button className="pd-btn pd-btn--ghost" onClick={() => setConflicts([])} disabled={submitting}>
                 Cancel
               </button>
-              <button className="pd-btn pd-btn--primary" onClick={handleResolveConflicts}>
-                Deactivate & publish
+              <button className="pd-btn pd-btn--primary" onClick={handleResolveConflicts} disabled={submitting}>
+                {submitting ? "Workingâ€¦" : "Deactivate & submit"}
               </button>
             </div>
           </div>
@@ -369,7 +460,7 @@ export default function AddPromotion() {
             handlePublish();
           }}
         >
-          {/* Listing picker — multi-select for new, locked for edit */}
+          {/* Listing picker â€” multi-select for new, locked for edit */}
           {isEditing ? (
             <section className="pd-card al-section pd-animate pd-d1">
               <h3 className="al-section-title">Applied to</h3>
@@ -379,7 +470,7 @@ export default function AddPromotion() {
                 </span>
                 <div className="al-listing-locked">
                   <Store size={16} strokeWidth={1.7} />
-                  <span>{listingName || form.listingSlug}</span>
+                  <span>{listingName || "Your venue"}</span>
                 </div>
               </div>
             </section>
@@ -394,24 +485,33 @@ export default function AddPromotion() {
                   </button>
                 </div>
                 <span className="al-help">
-                  Pick one venue, several, or all of them. We'll create a copy of this promotion for each selected listing — they can be edited or deactivated individually later.
+                  Pick one venue, several, or all of them. We'll create a copy of this promotion for each selected listing â€” they can be edited or deactivated individually later. Only approved listings can carry promotions.
                 </span>
-                <div className="al-category-grid">
-                  {knownListings.map((l) => {
-                    const active = selectedSlugs.includes(l.slug);
-                    return (
-                      <button
-                        key={l.slug}
-                        type="button"
-                        className={`al-category-chip ${active ? "al-category-chip--active" : ""}`}
-                        onClick={() => toggleSlug(l.slug)}
-                      >
-                        {l.name}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selectedSlugs.length === 0 && (
+                {listings === null ? (
+                  <span className="al-help" style={{ marginTop: 10 }}>Loading your venuesâ€¦</span>
+                ) : listings.length === 0 ? (
+                  <span className="al-help" style={{ marginTop: 10, color: "#B45309" }}>
+                    You don't have an approved listing yet â€” promotions attach to approved venues.{" "}
+                    <Link to="/partners/add-listing" className="pd-link">Create a listing</Link> first.
+                  </span>
+                ) : (
+                  <div className="al-category-grid">
+                    {listings.map((l) => {
+                      const active = selectedIds.includes(l.id);
+                      return (
+                        <button
+                          key={l.id}
+                          type="button"
+                          className={`al-category-chip ${active ? "al-category-chip--active" : ""}`}
+                          onClick={() => toggleId(l.id)}
+                        >
+                          {l.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {listings !== null && listings.length > 0 && selectedIds.length === 0 && (
                   <span className="al-help" style={{ marginTop: 10, color: "#B45309" }}>
                     Select at least one venue to continue.
                   </span>
@@ -420,7 +520,7 @@ export default function AddPromotion() {
             </section>
           )}
 
-          {/* ── Offer Type ── */}
+          {/* â”€â”€ Offer Type â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d1">
             <h3 className="al-section-title">What kind of offer is this?</h3>
             <div className="al-field">
@@ -503,7 +603,7 @@ export default function AddPromotion() {
               <div className="al-field al-field--divided">
                 <label className="al-label">Custom Offer *</label>
                 <span className="al-help">
-                  Describe your offer in your own words — travelers will see this exactly as written.
+                  Describe your offer in your own words â€” travelers will see this exactly as written.
                 </span>
                 <input
                   type="text"
@@ -518,7 +618,7 @@ export default function AddPromotion() {
             )}
           </section>
 
-          {/* ── Discount code ── */}
+          {/* â”€â”€ Discount code â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d2">
             <h3 className="al-section-title">Discount Code</h3>
             <div className="al-field">
@@ -538,7 +638,7 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* ── Applicable Occasions ── */}
+          {/* â”€â”€ Applicable Occasions â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d2">
             <h3 className="al-section-title">When does this offer apply?</h3>
             <div className="al-field">
@@ -571,7 +671,7 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* ── Validity ── */}
+          {/* â”€â”€ Validity â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d3">
             <h3 className="al-section-title">
               <Calendar size={18} strokeWidth={2} /> When is the promotion valid?
@@ -713,14 +813,14 @@ export default function AddPromotion() {
                     </button>
                   </div>
                   <span className="al-help" style={{ marginTop: 8 }}>
-                    e.g. Mon–Thu, 17:00 → 19:00 for a happy-hour promo.
+                    e.g. Monâ€“Thu, 17:00 â†’ 19:00 for a happy-hour promo.
                   </span>
                 </div>
               </>
             )}
           </section>
 
-          {/* ── Minimum booking size ── */}
+          {/* â”€â”€ Minimum booking size â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d3">
             <h3 className="al-section-title">
               <Users size={18} strokeWidth={2} /> Minimum Booking Size
@@ -744,13 +844,13 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* ── Promotion title ── */}
+          {/* â”€â”€ Promotion title â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d4">
             <h3 className="al-section-title">Promotion Headline</h3>
             <div className="al-field">
               <label className="al-label">Promotion Title *</label>
               <span className="al-help">
-                What the users will see — e.g. "20% off" or "Free dessert on date nights".
+                What the users will see â€” e.g. "20% off" or "Free dessert on date nights".
               </span>
               <input
                 type="text"
@@ -765,25 +865,25 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* ── Internal note ── */}
+          {/* â”€â”€ Internal note â”€â”€ */}
           <section className="pd-card al-section pd-animate pd-d4">
             <h3 className="al-section-title">Internal Note</h3>
             <div className="al-field">
               <label className="al-label">Note (optional)</label>
               <span className="al-help">
-                Not shown to users — for your own reference (e.g. campaign source, end-of-quarter target).
+                Not shown to users â€” for your own reference (e.g. campaign source, end-of-quarter target).
               </span>
               <textarea
                 className="al-textarea"
                 rows={3}
-                placeholder="Any context only your team needs to see…"
+                placeholder="Any context only your team needs to seeâ€¦"
                 value={form.internalNote}
                 onChange={(e) => updateField("internalNote", e.target.value)}
               />
             </div>
           </section>
 
-          {/* ── Submit row ── */}
+          {/* â”€â”€ Submit row â”€â”€ */}
           <div className="al-submit-row pd-animate pd-d4">
             <Link to="/partners/dashboard#promotions" className="pd-btn pd-btn--outline">
               Cancel
@@ -792,10 +892,10 @@ export default function AddPromotion() {
               type="button"
               className="pd-btn pd-btn--ghost al-submit-btn"
               onClick={handleSaveDraft}
-              disabled={!isEditing && selectedSlugs.length === 0}
+              disabled={submitting || (!isEditing && selectedIds.length === 0)}
             >
               <FileText size={15} strokeWidth={2} />
-              Save as Draft{!isEditing && selectedSlugs.length > 1 ? `s (${selectedSlugs.length})` : ""}
+              Save as Draft{!isEditing && selectedIds.length > 1 ? `s (${selectedIds.length})` : ""}
             </button>
             <button
               type="submit"
@@ -803,13 +903,20 @@ export default function AddPromotion() {
               disabled={!canSubmit}
             >
               <Sparkles size={15} strokeWidth={2} />
-              {isEditing
-                ? form.status === "active" ? "Update & Republish" : "Publish Promotion"
-                : selectedSlugs.length > 1
-                  ? `Publish to ${selectedSlugs.length} venues`
-                  : "Publish Promotion"}
+              {submitting
+                ? "Submittingâ€¦"
+                : isEditing
+                  ? form.status === "active" ? "Update & Resubmit" : "Submit for Review"
+                  : selectedIds.length > 1
+                    ? `Submit for ${selectedIds.length} venues`
+                    : "Submit for Review"}
             </button>
           </div>
+          {submitError && (
+            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", borderRadius: 12, padding: "10px 14px", fontSize: 14, marginTop: 12 }} role="alert">
+              {submitError}
+            </div>
+          )}
         </form>
       </main>
     </div>

@@ -1,12 +1,23 @@
-/* Mock campaigns inventory + purchase API.
-   In production all pricing/inventory would come from the backend
-   with server-side tier checks and an optimistic lock on purchase. */
+/* Campaigns — real API (Phase 5). The localStorage mock is gone.
 
-const INVENTORY_KEY = "planie:campaign-inventory";
-const OWNED_KEY = "planie:campaign-owned";
-const SCHEMA_VERSION = 2;
-const INVENTORY_EVENT = "planie:campaign-inventory-changed";
-const OWNED_EVENT = "planie:campaign-owned-changed";
+   Split of responsibilities:
+   - The CATALOG (surfaces, windows, cities, occasions, display pricing) is
+     mirrored here for instant rendering. The backend keeps the same constants
+     (functions/src/website/partnerCampaigns.ts) and is authoritative — it
+     recomputes prices at purchase time and rejects unknown combinations, so
+     drift can never change what a partner is charged.
+   - INVENTORY and PURCHASES live in Firestore behind partner endpoints. This
+     module keeps a small cache so the page's original sync accessors
+     (listInventoryForWindow / listOwned / getBundleSlots) still work; call
+     the async refresh* functions to (re)populate, and subscribe* fires after
+     every refresh exactly like the mock's storage events did.
+   - Purchases now go through Stripe Checkout (one-off payment). purchaseSlot
+     and purchaseBundle return { ok: true, url } — redirect the browser to
+     `url`; the backend holds the slot for 30 minutes, and the webhook marks
+     it paid. Cancelling returns to /partners/campaigns?campaign=cancelled,
+     where releaseCancelledCheckout frees the hold. */
+
+import { callFunction } from "./api";
 
 export const SURFACES = [
   {
@@ -45,7 +56,8 @@ export const MULTI_SLOT_DISCOUNT_PCT = 10;
 export const MULTI_SLOT_THRESHOLD = 3;
 
 /* Window templates — months/days only; the actual year rolls forward
-   so we never display a window whose end date has already passed. */
+   so we never display a window whose end date has already passed.
+   (Must stay in sync with WINDOW_TEMPLATES in partnerCampaigns.ts.) */
 const WINDOW_TEMPLATES = [
   { id: "new-year",   label: "New Year",    startMonth: 11, startDay: 28, endMonth: 0,  endDay: 11, durationLabel: "2-week", durationDays: 14 },
   { id: "valentines", label: "Valentine's", startMonth: 1,  startDay: 8,  endMonth: 1,  endDay: 15, durationLabel: "1-week", durationDays: 7  },
@@ -58,9 +70,6 @@ const WINDOW_TEMPLATES = [
 const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtDate = (d) => `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 
-/* Find the next instance of a window template whose end date is >= now.
-   Considers the prior calendar year first to handle windows that wrap
-   year-end (e.g. New Year: Dec 28 → Jan 11). */
 const nextOccurrence = (template, now) => {
   const tryYear = (y) => {
     const start = new Date(y, template.startMonth, template.startDay);
@@ -78,8 +87,6 @@ const nextOccurrence = (template, now) => {
 
 const buildWindow = (template, now = new Date()) => {
   const { start, end } = nextOccurrence(template, now);
-  /* Target year — for windows that span year-end (New Year), the
-     "celebration" year is the end year; for everything else it's the start. */
   const targetYear = template.endMonth < template.startMonth
     ? end.getFullYear()
     : start.getFullYear();
@@ -101,134 +108,19 @@ export const WINDOWS = WINDOW_TEMPLATES
   .sort((a, b) => a.startTs - b.startTs);
 
 export const CITIES = [
-  "London",
-  "Manchester",
-  "Edinburgh",
-  "Bristol",
-  "Birmingham",
-  "Glasgow",
-  "Leeds",
-  "Liverpool",
-  "Newcastle",
-  "Nottingham",
-  "Sheffield",
-  "Cardiff",
-  "Belfast",
-  "Brighton",
-  "Cambridge",
-  "Oxford",
-  "Bath",
-  "York",
-  "Aberdeen",
-  "Dundee",
-  "Southampton",
-  "Portsmouth",
-  "Leicester",
-  "Coventry",
-  "Norwich",
-  "Reading",
-  "Plymouth",
-  "Hull",
-  "Exeter",
-  "Inverness",
+  "London", "Manchester", "Edinburgh", "Bristol", "Birmingham", "Glasgow",
+  "Leeds", "Liverpool", "Newcastle", "Nottingham", "Sheffield", "Cardiff",
+  "Belfast", "Brighton", "Cambridge", "Oxford", "Bath", "York", "Aberdeen",
+  "Dundee", "Southampton", "Portsmouth", "Leicester", "Coventry", "Norwich",
+  "Reading", "Plymouth", "Hull", "Exeter", "Inverness",
 ];
 export const OCCASIONS = ["Date Night", "Groups", "Families", "Experiences"];
-
-const safeParse = (raw, fallback) => {
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-/* Deterministic 32-bit hash (xfnv1a-ish) so seeded inventory is reproducible. */
-const hashString = (str) => {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 16777619) >>> 0;
-  }
-  return h >>> 0;
-};
-
-const seededRemaining = (capacity, ...parts) => {
-  const h = hashString(parts.join("|"));
-  // ~70% of slots stay close to full, ~20% mid, ~10% sold out
-  const r = (h % 100) / 100;
-  if (r < 0.10) return 0;
-  if (r < 0.30) return Math.max(1, Math.floor(capacity * 0.4));
-  if (r < 0.60) return Math.max(1, Math.floor(capacity * 0.7));
-  return capacity;
-};
-
-const buildSlotId = ({ windowId, surfaceId, city, occasion }) =>
-  occasion
-    ? `${windowId}__${surfaceId}__${city}__${occasion}`.toLowerCase().replace(/\s+/g, "-")
-    : `${windowId}__${surfaceId}__${city}`.toLowerCase().replace(/\s+/g, "-");
-
-const buildInitialInventory = () => {
-  const slots = {};
-  for (const w of WINDOWS) {
-    for (const surface of SURFACES) {
-      const occasions = surface.perOccasion ? OCCASIONS : [null];
-      for (const city of CITIES) {
-        for (const occasion of occasions) {
-          const id = buildSlotId({ windowId: w.id, surfaceId: surface.id, city, occasion });
-          slots[id] = {
-            id,
-            windowId: w.id,
-            surfaceId: surface.id,
-            city,
-            occasion,
-            capacity: surface.capacity,
-            remaining: seededRemaining(surface.capacity, w.id, surface.id, city, occasion || ""),
-          };
-        }
-      }
-    }
-  }
-  return { schemaVersion: SCHEMA_VERSION, slots };
-};
-
-const readInventory = () => {
-  if (typeof window === "undefined") return buildInitialInventory();
-  const raw = window.localStorage.getItem(INVENTORY_KEY);
-  const parsed = raw ? safeParse(raw, null) : null;
-  if (!parsed || parsed.schemaVersion !== SCHEMA_VERSION || !parsed.slots) {
-    const fresh = buildInitialInventory();
-    window.localStorage.setItem(INVENTORY_KEY, JSON.stringify(fresh));
-    return fresh;
-  }
-  return parsed;
-};
-
-const writeInventory = (inv) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(INVENTORY_KEY, JSON.stringify(inv));
-  window.dispatchEvent(new Event(INVENTORY_EVENT));
-};
-
-const readOwned = () => {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(OWNED_KEY);
-  return Array.isArray(safeParse(raw, [])) ? safeParse(raw, []) : [];
-};
-
-const writeOwned = (owned) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(OWNED_KEY, JSON.stringify(owned));
-  window.dispatchEvent(new Event(OWNED_EVENT));
-};
-
-const newPurchaseId = () =>
-  `cp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
 export const getWindow = (id) => WINDOWS.find((w) => w.id === id) || null;
 export const getSurface = (id) => SURFACES.find((s) => s.id === id) || null;
 
-/* Prices scale with window duration — base prices are for a 2-week slot. */
+/* Prices scale with window duration — base prices are for a 2-week slot.
+   Display only; the backend recomputes the amount actually charged. */
 export const windowPricing = (windowId) => {
   const w = getWindow(windowId);
   const ratio = (w?.durationDays ?? 14) / 14;
@@ -246,152 +138,136 @@ export const windowPricing = (windowId) => {
   };
 };
 
-export const listInventoryForWindow = (windowId) => {
-  const inv = readInventory();
-  return Object.values(inv.slots).filter((s) => s.windowId === windowId);
+/* ————— cache + events (same subscribe API the mock had) ————— */
+
+const INVENTORY_EVENT = "planie:campaign-inventory-changed";
+const OWNED_EVENT = "planie:campaign-owned-changed";
+
+const inventoryCache = {}; // windowId → slots[]
+let ownedCache = [];
+
+const emit = (name) => window.dispatchEvent(new Event(name));
+
+export const refreshInventory = async (windowId) => {
+  const { slots } = await callFunction(
+    `partnerListCampaignInventory?windowId=${encodeURIComponent(windowId)}`,
+    null,
+    { method: "GET" }
+  );
+  inventoryCache[windowId] = slots;
+  emit(INVENTORY_EVENT);
+  return slots;
 };
 
-export const listOwned = () => {
-  const owned = readOwned();
-  const now = Date.now();
-  return owned
-    .map((p) => ({ ...p, status: deriveStatus(p, now) }))
-    .sort((a, b) => (b.purchasedAt || 0) - (a.purchasedAt || 0));
+export const refreshOwned = async () => {
+  const { items } = await callFunction("partnerListCampaignPurchases", null, { method: "GET" });
+  ownedCache = items;
+  emit(OWNED_EVENT);
+  return listOwned();
 };
+
+export const listInventoryForWindow = (windowId) => inventoryCache[windowId] || [];
 
 const deriveStatus = (purchase, now) => {
-  /* Read dates the purchase was recorded with — not the current rolled window —
-     so a purchase made for a 2026 instance still reads as Expired even after
-     the WINDOWS array has rolled forward to 2027. */
+  if (purchase.status === "pending_payment") return "Processing";
   const start = new Date(purchase.windowStart).getTime();
-  const end = new Date(purchase.windowEnd).getTime();
+  const end = new Date(purchase.windowEnd).setHours(23, 59, 59, 999);
   if (Number.isNaN(start) || Number.isNaN(end)) return "Upcoming";
   if (now < start) return "Upcoming";
   if (now > end) return "Expired";
   return "Active";
 };
 
-/* Look up the 3 slots that make up a bundle for a given window/city/occasion. */
+export const listOwned = () => {
+  const now = Date.now();
+  return ownedCache
+    .map((p) => ({ ...p, status: deriveStatus(p, now) }))
+    .sort((a, b) => (b.purchasedAt || 0) - (a.purchasedAt || 0));
+};
+
+/* The 3 slots that make up a bundle, out of the cached inventory. */
 export const getBundleSlots = ({ windowId, city, occasion }) => {
-  const inv = readInventory();
-  const ids = [
-    buildSlotId({ windowId, surfaceId: "homepage", city, occasion: null }),
-    buildSlotId({ windowId, surfaceId: "category", city, occasion }),
-    buildSlotId({ windowId, surfaceId: "guide",    city, occasion }),
-  ];
-  return ids.map((id) => inv.slots[id] || null);
+  const slots = listInventoryForWindow(windowId);
+  const find = (surfaceId, occ) =>
+    slots.find((s) => s.surfaceId === surfaceId && s.city === city && s.occasion === occ) || null;
+  return [find("homepage", null), find("category", occasion), find("guide", occasion)];
 };
 
-/* Atomic 3-slot bundle purchase. All-or-nothing — fails if any leg is sold out. */
-export const purchaseBundle = ({ windowId, city, occasion }) => {
-  const inv = readInventory();
-  const slots = getBundleSlots({ windowId, city, occasion });
-  if (slots.some((s) => !s)) return { ok: false, reason: "not_found" };
-  const soldOut = slots.find((s) => s.remaining <= 0);
-  if (soldOut) return { ok: false, reason: "sold_out", soldOutSurfaceId: soldOut.surfaceId };
+/* ————— purchases (Stripe Checkout redirects) ————— */
 
-  const updatedSlots = { ...inv.slots };
-  for (const slot of slots) {
-    updatedSlots[slot.id] = { ...slot, remaining: slot.remaining - 1 };
+const purchaseErrorShape = (err) => ({
+  ok: false,
+  reason:
+    err?.code === "SOLD_OUT" ? "sold_out" :
+    err?.code === "PAYMENTS_NOT_CONFIGURED" ? "payments_not_configured" :
+    err?.code === "FEATURED_REQUIRED" ? "featured_required" :
+    err?.code === "LISTING_REQUIRED" ? "listing_required" : "error",
+  soldOutSurfaceId: err?.data?.soldOutSurfaceId ?? null,
+});
+
+/* { ok: true, url } on success — send the browser to `url` (Stripe Checkout).
+   listingId (a Featured-tier listing) is required: a campaign is bought FOR
+   one venue since billing went per-listing. */
+export const purchaseSlot = async (slot, listingId) => {
+  try {
+    const { url } = await callFunction("partnerPurchaseCampaign", {
+      listingId,
+      windowId: slot.windowId,
+      city: slot.city,
+      surfaceId: slot.surfaceId,
+      occasion: slot.occasion ?? null,
+    });
+    return { ok: true, url };
+  } catch (err) {
+    return purchaseErrorShape(err);
   }
-  writeInventory({ ...inv, slots: updatedSlots });
-
-  const now = Date.now();
-  const w = getWindow(windowId);
-  const pricing = windowPricing(windowId);
-  const bundleId = `cb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-  const newPurchases = slots.map((slot) => ({
-    id: newPurchaseId(),
-    bundleId,
-    slotId: slot.id,
-    windowId: slot.windowId,
-    surfaceId: slot.surfaceId,
-    city: slot.city,
-    occasion: slot.occasion,
-    price: pricing.surfacePrices[slot.surfaceId] ?? 0,
-    windowStart: w?.start || "",
-    windowEnd: w?.end || "",
-    purchasedAt: now,
-    listingSlugs: [],
-  }));
-  const owned = readOwned();
-  writeOwned([...newPurchases, ...owned]);
-  return { ok: true, bundleId, purchases: newPurchases };
 };
 
-/* Optimistic-lock-style purchase: re-reads inventory at commit time and
-   refuses if the slot is now sold out. */
-export const purchaseSlot = (slotId) => {
-  const inv = readInventory();
-  const slot = inv.slots[slotId];
-  if (!slot) return { ok: false, reason: "not_found" };
-  if (slot.remaining <= 0) return { ok: false, reason: "sold_out" };
-
-  const updated = {
-    ...inv,
-    slots: {
-      ...inv.slots,
-      [slotId]: { ...slot, remaining: slot.remaining - 1 },
-    },
-  };
-  writeInventory(updated);
-
-  const now = Date.now();
-  const w = getWindow(slot.windowId);
-  const pricing = windowPricing(slot.windowId);
-  const purchase = {
-    id: newPurchaseId(),
-    slotId,
-    windowId: slot.windowId,
-    surfaceId: slot.surfaceId,
-    city: slot.city,
-    occasion: slot.occasion,
-    price: pricing.surfacePrices[slot.surfaceId] ?? 0,
-    windowStart: w?.start || "",
-    windowEnd: w?.end || "",
-    purchasedAt: now,
-    listingSlugs: [],
-  };
-  const owned = readOwned();
-  writeOwned([purchase, ...owned]);
-  return { ok: true, purchase };
+export const purchaseBundle = async ({ windowId, city, occasion, listingId }) => {
+  try {
+    const { url } = await callFunction("partnerPurchaseCampaign", {
+      listingId,
+      windowId,
+      city,
+      occasion,
+      bundle: true,
+    });
+    return { ok: true, url };
+  } catch (err) {
+    return purchaseErrorShape(err);
+  }
 };
 
-/* Assign listings to a campaign purchase. If the purchase is part of a bundle
-   the assignment propagates to all bundle members so the venue's listing
-   selection stays consistent across the 3 surfaces. */
-export const assignListingsToPurchase = (purchaseId, slugs) => {
-  const owned = readOwned();
-  const target = owned.find((p) => p.id === purchaseId);
-  if (!target) return { ok: false, reason: "not_found" };
-  const list = Array.isArray(slugs) ? [...new Set(slugs)] : [];
-  const updated = owned.map((p) => {
-    const matchBundle = target.bundleId && p.bundleId === target.bundleId;
-    if (matchBundle || p.id === purchaseId) return { ...p, listingSlugs: list };
-    return p;
-  });
-  writeOwned(updated);
-  return { ok: true };
+/* Frees the hold after a cancelled checkout (plus any expired holds). */
+export const releaseCancelledCheckout = async (sessionId) => {
+  try {
+    await callFunction("partnerReleaseCampaignCheckout", { sessionId: sessionId || null });
+  } catch {
+    /* Non-fatal — expired holds are also released server-side on later calls. */
+  }
+};
+
+/* Assign listings (by id) to a paid campaign; bundles stay in sync server-side. */
+export const assignListingsToPurchase = async (purchaseId, listingIds) => {
+  try {
+    await callFunction("partnerAssignCampaignListings", { purchaseId, listingIds });
+    await refreshOwned();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: err?.code === "NOT_PAID" ? "not_paid" : "error" };
+  }
 };
 
 export const subscribeInventory = (callback) => {
   if (typeof window === "undefined") return () => {};
-  const handler = () => callback(readInventory());
+  const handler = () => callback(inventoryCache);
   window.addEventListener(INVENTORY_EVENT, handler);
-  window.addEventListener("storage", handler);
-  return () => {
-    window.removeEventListener(INVENTORY_EVENT, handler);
-    window.removeEventListener("storage", handler);
-  };
+  return () => window.removeEventListener(INVENTORY_EVENT, handler);
 };
 
 export const subscribeOwned = (callback) => {
   if (typeof window === "undefined") return () => {};
   const handler = () => callback(listOwned());
   window.addEventListener(OWNED_EVENT, handler);
-  window.addEventListener("storage", handler);
-  return () => {
-    window.removeEventListener(OWNED_EVENT, handler);
-    window.removeEventListener("storage", handler);
-  };
+  return () => window.removeEventListener(OWNED_EVENT, handler);
 };

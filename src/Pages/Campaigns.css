@@ -1,9 +1,9 @@
-/* ═══════════════════════════════════════════════════════
-   Campaigns — partner portal
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Campaigns â€” partner portal
    Reuses portal tokens (#FF4040 accent, #11181C text, etc.)
-   ═══════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Demo tier switcher ── */
+/* â”€â”€ Demo tier switcher â”€â”€ */
 .cmp-demo-tier {
   display: inline-flex;
   align-items: center;
@@ -55,9 +55,9 @@
   color: #fff;
 }
 
-/* ════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    UPSELL STATE
-   ════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .cmp-hero {
   text-align: center;
@@ -262,9 +262,9 @@
   color: #687076;
 }
 
-/* ════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ACTIVE STATE
-   ════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .cmp-section {
   margin-bottom: 32px;
@@ -386,6 +386,7 @@
 .cmp-active-status--active   { background: #ECFDF5; color: #065F46; }
 .cmp-active-status--upcoming { background: #FFF7ED; color: #9A3412; }
 .cmp-active-status--expired  { background: #F3F4F6; color: #6B7280; }
+.cmp-active-status--processing { background: #EFF6FF; color: #1D4ED8; }
 
 .cmp-active-card-title {
   font-size: 15px;
@@ -476,7 +477,7 @@
   color: #6B7280;
 }
 
-/* ── Window tabs ── */
+/* â”€â”€ Window tabs â”€â”€ */
 .cmp-window-tabs {
   display: flex;
   gap: 4px;
@@ -1007,7 +1008,7 @@
   font-style: italic;
 }
 
-/* ── Modal ── */
+/* â”€â”€ Modal â”€â”€ */
 .cmp-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1209,7 +1210,7 @@
   .cmp-bundle-occasion-grid { grid-template-columns: 1fr; }
 }
 
-/* ── Assign-listings modal ── */
+/* â”€â”€ Assign-listings modal â”€â”€ */
 .cmp-assign-list {
   display: flex;
   flex-direction: column;
@@ -1402,7 +1403,7 @@
   gap: 8px;
 }
 
-/* ── Responsive ── */
+/* â”€â”€ Responsive â”€â”€ */
 @media (max-width: 960px) {
   .cmp-tiles,
   .cmp-why-grid {

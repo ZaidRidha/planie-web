@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Eye,
@@ -14,8 +14,6 @@ import {
   LayoutDashboard,
   Store,
   Settings,
-  ArrowUpRight,
-  ArrowDownRight,
   CreditCard,
   CheckCircle,
   Download,
@@ -27,39 +25,50 @@ import {
   MoreVertical,
   Trash2,
   Clock,
-  Building2,
-  Mail,
-  Phone,
-  Globe,
-  Bell,
-  Lock,
   Shield,
   ChevronDown,
   Pause,
   Play,
-  User,
-  Briefcase,
-  Hash,
   FileText,
   Megaphone,
   Sparkles,
   Tag,
   Percent,
   Gift,
+  Globe2,
+  MessageSquare,
+  Check,
 } from "lucide-react";
-import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 import { listDrafts, deleteDraft, subscribeDrafts } from "../utils/listingDrafts";
 import {
-  listPromotions,
+  fetchMyPromotions,
   deletePromotion,
-  publishPromotion,
+  updatePromotion,
   deactivatePromotion,
-  subscribePromotions,
+  reactivatePromotion,
 } from "../utils/promotions";
-import { getTier, isFeatured, subscribeTier } from "../utils/subscription";
+import {
+  getTier,
+  isFeatured,
+  subscribeTier,
+  fetchBilling,
+  startListingCheckout,
+  changeListingPlan,
+  openBillingPortal,
+} from "../utils/subscription";
+import {
+  fetchMyListings,
+  deactivateListing,
+  reactivateListing,
+  deleteListing,
+  toCardShape,
+} from "../utils/listings";
+import { usePartnerAuth } from "../Context/PartnerAuthContext";
+import VerificationBanner from "../Components/VerificationBanner";
 import "./PartnerDashboard.css";
 
-/* ─── Animated counter ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Animated counter ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 function useCounter(end, duration = 1400, delay = 0) {
   const [value, setValue] = useState(0);
   const raf = useRef(null);
@@ -78,27 +87,7 @@ function useCounter(end, duration = 1400, delay = 0) {
   return value;
 }
 
-/* ─── Sparkline ─── */
-function Sparkline({ data, height = 32, width = 100 }) {
-  const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
-  const pts = data.map((v, i) =>
-    `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 4) - 2}`
-  );
-  return (
-    <svg width={width} height={height} className="pd-sparkline">
-      <defs>
-        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FF4040" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#FF4040" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`M0,${height} L${pts.join(" L")} L${width},${height} Z`} fill="url(#sparkFill)" />
-      <polyline points={pts.join(" ")} fill="none" stroke="#FF4040" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.45" />
-    </svg>
-  );
-}
-
-/* ─── Performance chart ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Performance chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const views = [320, 480, 390, 620, 540, 710, 680];
 const clicks = [85, 130, 110, 195, 160, 220, 200];
@@ -152,7 +141,7 @@ function PerfChart() {
   );
 }
 
-/* ─── Donut ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Donut ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const sources = [
   { label: "Discovery Page", value: 42, color: "#FF4040" },
   { label: "AI Itineraries", value: 31, color: "#11181C" },
@@ -183,10 +172,64 @@ function Donut({ size = 160, data = sources }) {
   );
 }
 
-/* ─── Helpers ─── */
-const toSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Helpers ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* Loads the signed-in partner's real listings; null while loading. */
+function useMyListings() {
+  const [items, setItems] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const reload = useCallback(async () => {
+    try {
+      const { items: raw } = await fetchMyListings();
+      setItems((raw ?? []).map(toCardShape));
+      setLoadError(null);
+    } catch (err) {
+      setItems([]);
+      setLoadError(err.message || "Could not load listings.");
+    }
+  }, []);
+  useEffect(() => { reload(); }, [reload]);
+  return { items, loadError, reload };
+}
 
-/* ─── Data ─── */
+/* Loads the signed-in partner's real promotions; null while loading.
+   Pass enabled=false when the data arrives via props instead. */
+function useMyPromotions(enabled = true) {
+  const [items, setItems] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const reload = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      const { items: raw } = await fetchMyPromotions();
+      setItems(raw ?? []);
+      setLoadError(null);
+    } catch (err) {
+      setItems([]);
+      setLoadError(err.message || "Could not load promotions.");
+    }
+  }, [enabled]);
+  useEffect(() => { reload(); }, [reload]);
+  return { items, loadError, reload };
+}
+
+/* The form fields a promotion round-trips through partnerUpdatePromotion.
+   Needed because "submit for review" resends content alongside the flag. */
+const promoFormFields = (p) => ({
+  title: p.title || "",
+  offerType: p.offerType || "",
+  discountValue: p.discountValue || "",
+  discountCode: p.discountCode || "",
+  applicableOccasions: p.applicableOccasions || [],
+  validityType: p.validityType || "always",
+  validityFrom: p.validityFrom || "",
+  validityTo: p.validityTo || "",
+  validityDays: p.validityDays || [],
+  validityTimeFrom: p.validityTimeFrom || "",
+  validityTimeTo: p.validityTimeTo || "",
+  minBookingSize: p.minBookingSize || "",
+  internalNote: p.internalNote || "",
+});
+
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Legacy mock data (Analytics tab only ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Phase 6 replaces it) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const listings = [
   { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Marrakech, Morocco", rating: 4.8, views: 1240, clicks: 340, bookings: 47, conversionRate: 3.8, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music." },
   { name: "Desert Safari Tours", category: "Activity & Tour", location: "Dubai, UAE", rating: 4.9, views: 2100, clicks: 580, bookings: 92, conversionRate: 4.4, status: "active", created: "Dec 3, 2025", description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners." },
@@ -196,50 +239,47 @@ const listings = [
 ];
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard" },
-  { icon: Store, label: "My Listings" },
+  { icon: LayoutDashboard, label: "Overview" },
+  { icon: Store, label: "Listings" },
   { icon: Megaphone, label: "Promotions" },
   { icon: Crown, label: "Campaigns", external: "/partners/campaigns" },
-  { icon: TrendingUp, label: "Analytics" },
+  { icon: TrendingUp, label: "Insights" },
+  { icon: Globe2, label: "GEO", external: "/partners/geo" },
   { icon: CreditCard, label: "Billing" },
   { icon: Settings, label: "Settings" },
 ];
 
-/* ─── Billing data ─── */
-const invoices = [
-  { id: "INV-2026-003", date: "Mar 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
-  { id: "INV-2026-002", date: "Feb 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
-  { id: "INV-2026-001", date: "Jan 1, 2026", amount: "$49.00", status: "paid", plan: "Pro Plan" },
-  { id: "INV-2025-012", date: "Dec 1, 2025", amount: "$29.00", status: "paid", plan: "Starter Plan" },
-  { id: "INV-2025-011", date: "Nov 1, 2025", amount: "$29.00", status: "paid", plan: "Starter Plan" },
-];
-
-const plans = [
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Billing: tier catalog copy (prices come live from Stripe) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+const TIER_PLANS = [
   {
-    name: "Starter",
-    price: "$29",
-    period: "/mo",
-    features: ["Up to 3 listings", "Basic analytics", "Email support", "Standard placement"],
-    current: false,
+    tier: "Listed",
+    features: ["Listings in the Planie app", "Promotions on your listings", "Staff-reviewed publishing", "Email support"],
   },
   {
-    name: "Pro",
-    price: "$49",
-    period: "/mo",
-    features: ["Up to 10 listings", "Advanced analytics", "Priority support", "Featured placement", "AI itinerary boost"],
-    current: true,
+    tier: "Partner",
     popular: true,
+    features: ["Everything in Listed", "Priority placement in Featured", "Priority listing review", "Priority support"],
   },
   {
-    name: "Enterprise",
-    price: "$99",
-    period: "/mo",
-    features: ["Unlimited listings", "Custom analytics", "Dedicated manager", "Premium placement", "API access", "White-label options"],
-    current: false,
+    tier: "Featured",
+    features: ["Everything in Partner", "Access to Campaigns", "Top placement in Featured", "Dedicated support"],
   },
 ];
 
-/* ─── Analytics data ─── */
+const fmtMoney = (amount, currency) =>
+  amount == null
+    ? null
+    : new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: (currency || "eur").toUpperCase(),
+      }).format(amount / 100);
+
+const fmtUnixDate = (unix) =>
+  unix
+    ? new Date(unix * 1000).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+    : null;
+
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics data ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const monthLabels = ["Feb 5","Feb 12","Feb 19","Feb 26","Mar 5","Mar 12","Mar 19","Mar 26","Apr 2","Apr 9","Apr 16","Apr 23"];
 const monthViews = [1800,2200,1950,2600,2400,3100,2800,3400,3200,3600,3900,4200];
 const monthClicks = [420,530,470,640,580,760,690,850,780,900,960,1020];
@@ -270,11 +310,11 @@ const genderData = [
 ];
 
 const ageData = [
-  { label: "18–24", views: 710, pct: 14 },
-  { label: "25–34", views: 1920, pct: 38 },
-  { label: "35–44", views: 1210, pct: 24 },
-  { label: "45–54", views: 760, pct: 15 },
-  { label: "55–64", views: 300, pct: 6 },
+  { label: "18ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“24", views: 710, pct: 14 },
+  { label: "25ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“34", views: 1920, pct: 38 },
+  { label: "35ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“44", views: 1210, pct: 24 },
+  { label: "45ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“54", views: 760, pct: 15 },
+  { label: "55ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“64", views: 300, pct: 6 },
   { label: "65+", views: 150, pct: 3 },
 ];
 
@@ -295,7 +335,7 @@ const visitorOrigin = [
   { country: "Others", views: 1130, pct: 21 },
 ];
 
-/* ─── Analytics Chart ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics Chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 function AnalyticsLineChart({ labels, datasets, height = 220 }) {
   const w = 680, h = height, px = 48, py = 20;
   const iw = w - px * 2, ih = h - py * 2;
@@ -465,7 +505,7 @@ function AnalyticsLineChart({ labels, datasets, height = 220 }) {
   );
 }
 
-/* ─── Horizontal Bar Chart ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Horizontal Bar Chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 function HBarChart({ data, maxVal }) {
   return (
     <div className="pd-an-hbar-list">
@@ -485,314 +525,159 @@ function HBarChart({ data, maxVal }) {
   );
 }
 
-/* ─── Analytics Tab ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const timeRanges = ["7 Days", "30 Days", "90 Days"];
 
 function AnalyticsTab() {
-  const [range, setRange] = useState("30 Days");
-  const [selectedNames, setSelectedNames] = useState([]);
-
-  const totalViews = useCounter(34200, 1400, 200);
-  const totalClicks = useCounter(8580, 1400, 300);
-  const totalConv = useCounter(1765, 1200, 400);
-  const bookingsMade = useCounter(187, 1400, 500);
-  const avgRating = 4.72;
-  const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
-  const conversionRate = totalClicks > 0 ? ((totalConv / totalClicks) * 100).toFixed(1) : "0.0";
-
-  const toggleListing = (name) => {
-    setSelectedNames((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
-    );
-  };
-
-  const selectedListings = listings.filter((l) => selectedNames.includes(l.name));
-  const listingsForChart = selectedListings.length
-    ? selectedListings
-    : listings.filter((l) => l.status === "active");
-  const chartSeries = listingsForChart
-    .map(buildListingSeries)
-    .reduce(
-      (acc, s) => ({
-        views: acc.views.map((v, i) => v + s.views[i]),
-        clicks: acc.clicks.map((v, i) => v + s.clicks[i]),
-        conversions: acc.conversions.map((v, i) => v + s.conversions[i]),
-      }),
-      { views: Array(monthViews.length).fill(0), clicks: Array(monthClicks.length).fill(0), conversions: Array(monthConversions.length).fill(0) }
-    );
-
+  const [place, setPlace] = useState("All listings");
+  const H = { fontFamily: "'Gabarito', sans-serif" };
+  const ages = [
+    { label: "18–24", pct: 22, color: "#FF4040" }, { label: "25–34", pct: 38, color: "#1C1114" },
+    { label: "35–44", pct: 21, color: "#1C1114" }, { label: "45–54", pct: 12, color: "#1C1114" },
+    { label: "55+", pct: 7, color: "#1C1114" },
+  ];
+  const origins = [
+    { label: "Local (<5km)", pct: 46, color: "#FF4040" }, { label: "Visiting the city", pct: 28, color: "#1C1114" },
+    { label: "Tourists", pct: 16, color: "#1C1114" }, { label: "Business trips", pct: 10, color: "#1C1114" },
+  ];
+  const asks = [
+    { rank: 1, quote: "Somewhere for a relaxed date night", visits: 214, trend: "+12%", up: true },
+    { rank: 2, quote: "Good food, not too loud", visits: 168, trend: "+8%", up: true },
+    { rank: 3, quote: "A spot for a small group dinner", visits: 121, trend: "+3%", up: true },
+    { rank: 4, quote: "Late-night, walkable from the river", visits: 74, trend: "−2%", up: false },
+  ];
+  const parties = [
+    { label: "Couples", pct: 44, color: "#FF4040" }, { label: "Small groups", pct: 31, color: "#1C1114" },
+    { label: "Solo", pct: 15, color: "rgba(28,17,20,0.5)" }, { label: "Families", pct: 10, color: "rgba(28,17,20,0.25)" },
+  ];
+  const surfaces = [
+    { name: "For You", value: "1,240", share: 80, barColor: "#FF4040", note: "Personalised home picks" },
+    { name: "Category", value: "540", share: 42, barColor: "#1C1114", note: "Occasion category pages" },
+    { name: "AI Guide", value: "310", share: 24, barColor: "#1C1114", note: "AI-generated local guides" },
+  ];
   return (
     <>
-      <header className="pd-head pd-anim pd-a1">
-        <div>
-          <h1 className="pd-title">Analytics</h1>
-          <p className="pd-subtitle">Deep dive into your listings' performance and visitor behavior</p>
-        </div>
-        <div className="pd-an-range">
-          {timeRanges.map((t) => (
-            <button
-              key={t}
-              className={`pd-an-range-btn${range === t ? " pd-an-range-btn--on" : ""}`}
-              onClick={() => setRange(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+      <header className="pd-anim pd-a1">
+        <p className="nu-microlabel" style={{ marginBottom: 6 }}>Insights</p>
+        <h1 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Who Planie sends you.</h1>
+        <p style={{ margin: "12px 0 0", fontSize: 15, opacity: 0.6, maxWidth: "62ch" }}>The people arriving through plans — where they came from, and what they were really looking for. <strong>Sample data</strong> until the Insights platform goes live.</p>
       </header>
 
-      {/* Stat cards */}
-      <div className="pd-an-stats pd-anim pd-a2">
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--red"><Eye size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Total Views</span>
-            <span className="pd-an-stat-val">{totalViews.toLocaleString()}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 12.5%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--blue"><MousePointerClick size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Total Clicks</span>
-            <span className="pd-an-stat-val">{totalClicks.toLocaleString()}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 8.3%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon" style={{ background: "#F3F4F6", color: "#6B7280" }}><TrendingUp size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">CTR</span>
-            <span className="pd-an-stat-val">{ctr}%</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 1.2%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Conversion Rate</span>
-            <span className="pd-an-stat-val">{conversionRate}%</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 2.4%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--green"><CalendarCheck size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Bookings Made</span>
-            <span className="pd-an-stat-val">{bookingsMade.toLocaleString()}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 18.7%</div>
-        </div>
-        <div className="pd-an-stat">
-          <div className="pd-an-stat-icon pd-an-stat-icon--amber"><Star size={18} strokeWidth={1.8} /></div>
-          <div className="pd-an-stat-body">
-            <span className="pd-an-stat-lbl">Avg. Rating</span>
-            <span className="pd-an-stat-val">{avgRating}</span>
-          </div>
-          <div className="pd-stat-chg pd-stat-chg--up"><ArrowUpRight size={12} /> 0.3</div>
-        </div>
+      <div className="pd-anim pd-a2" style={{ marginTop: 30, display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", flexWrap: "wrap" }}>
+        {["All listings", "My venue"].map((t) => (
+          <button key={t} onClick={() => setPlace(t)} style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: "none", padding: "9px 18px", borderRadius: 100, background: place === t ? "#1C1114" : "transparent", color: place === t ? "#FAF7F1" : "#1C1114", transition: "all 0.25s" }}>{t}</button>
+        ))}
       </div>
 
-      {/* Views & Clicks over time */}
-      <div className="pd-card pd-anim pd-a3">
-        <div className="pd-card-top">
-          <div className="pd-an-chart-head">
-            <h3>Views, Clicks & Conversions</h3>
-            {selectedListings.length === 0 ? (
-              <span className="pd-an-chart-scope">All Listings</span>
-            ) : (
-              <div className="pd-an-chart-chips">
-                {selectedListings.map((l) => (
-                  <span key={l.name} className="pd-an-chart-chip">
-                    {l.name}
-                    <button
-                      type="button"
-                      className="pd-an-chart-chip-x"
-                      onClick={() => toggleListing(l.name)}
-                      aria-label={`Remove ${l.name}`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-                <button
-                  type="button"
-                  className="pd-an-chart-clear"
-                  onClick={() => setSelectedNames([])}
-                >
-                  Clear all
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="pd-legend">
-            <span><span className="pd-dot" style={{ background: "#FF4040" }} />Views</span>
-            <span><span className="pd-dot" style={{ background: "#3B82F6" }} />Clicks</span>
-            <span><span className="pd-dot" style={{ background: "#10B981" }} />Conversions</span>
-          </div>
-        </div>
-        <AnalyticsLineChart
-          labels={monthLabels}
-          datasets={[
-            { label: "Views", data: chartSeries.views, color: "#FF4040" },
-            { label: "Clicks", data: chartSeries.clicks, color: "#3B82F6" },
-            { label: "Conversions", data: chartSeries.conversions, color: "#10B981" },
-          ]}
-        />
-      </div>
+      <section className="pd-anim pd-a2" style={{ marginTop: 32 }}>
+        <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: "clamp(22px,2.4vw,30px)", letterSpacing: "-0.015em", lineHeight: 1.25, maxWidth: "30ch" }}>Mostly locals in their late twenties, planning a relaxed night out.</p>
+      </section>
 
-      {/* Per-listing breakdown */}
-      <div className="pd-card pd-anim pd-a3" style={{ marginTop: 16 }}>
-        <div className="pd-card-top">
-          <h3>Per-Listing Breakdown</h3>
-          <span className="pd-an-table-hint">Click rows to filter the chart (multi-select)</span>
-        </div>
-        <div className="pd-an-table">
-          <div className="pd-an-table-header">
-            <span>Listing</span>
-            <span>Views</span>
-            <span>Clicks</span>
-            <span>CTR</span>
-            <span>Bookings</span>
-            <span>Conversion Rate</span>
-            <span>Rating</span>
-          </div>
-          {listings.filter((l) => l.status === "active").map((l) => {
-            const ctr = ((l.clicks / l.views) * 100).toFixed(1);
-            const isSelected = selectedNames.includes(l.name);
-            return (
-              <div
-                key={l.name}
-                role="button"
-                tabIndex={0}
-                aria-pressed={isSelected}
-                className={`pd-an-table-row pd-an-table-row--clickable${isSelected ? " pd-an-table-row--selected" : ""}`}
-                onClick={() => toggleListing(l.name)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    toggleListing(l.name);
-                  }
-                }}
-              >
-                <div className="pd-an-table-name">
-                  <div className="pd-an-table-av"><Store size={16} strokeWidth={1.5} /></div>
-                  <div>
-                    <span className="pd-an-table-title">{l.name}</span>
-                    <span className="pd-an-table-loc"><MapPin size={10} /> {l.location}</span>
-                  </div>
-                </div>
-                <span className="pd-an-table-val">{l.views.toLocaleString()}</span>
-                <span className="pd-an-table-val">{l.clicks.toLocaleString()}</span>
-                <span className="pd-an-table-val pd-an-table-val--accent">{ctr}%</span>
-                <span className="pd-an-table-val">{l.bookings.toLocaleString()}</span>
-                <span className="pd-an-table-val">{l.conversionRate}%</span>
-                <span className="pd-an-table-val">
-                  <Star size={12} fill="#F59E0B" stroke="#F59E0B" /> {l.rating}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Bottom row: Gender + Age + Affinities + Visitor Origin */}
-      <div className="pd-an-bottom pd-anim pd-a4">
-        {/* Gender */}
-        <div className="pd-card">
-          <div className="pd-card-top"><h3>Gender</h3></div>
-          <div className="pd-an-device-donut">
-            <Donut size={130} data={genderData} />
-            <div className="pd-donut-ctr">
-              <span className="pd-donut-num" style={{ fontSize: "1.2rem" }}>54%</span>
-              <span className="pd-donut-lbl">Female</span>
+      <section className="pd-anim pd-a3" style={{ marginTop: 40, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,300px),1fr))", gap: 44 }}>
+        <div>
+          <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Age</h2>
+          <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Who plans included you this month.</p>
+          {ages.map((a) => (
+            <div key={a.label} style={{ display: "grid", gridTemplateColumns: "52px 1fr 44px", alignItems: "center", gap: 12, padding: "6px 0" }}>
+              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{a.label}</span>
+              <div style={{ height: 6, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${a.pct}%`, height: "100%", borderRadius: 3, background: a.color }} /></div>
+              <span style={{ fontSize: 13, opacity: 0.55, textAlign: "right" }}>{a.pct}%</span>
             </div>
-          </div>
-          <HBarChart data={genderData} maxVal={60} />
+          ))}
         </div>
+        <div>
+          <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where they come from</h2>
+          <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Distance and travel intent.</p>
+          {origins.map((o) => (
+            <div key={o.label} style={{ display: "grid", gridTemplateColumns: "110px 1fr 44px", alignItems: "center", gap: 12, padding: "6px 0" }}>
+              <span style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.label}</span>
+              <div style={{ height: 6, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${o.pct}%`, height: "100%", borderRadius: 3, background: o.color }} /></div>
+              <span style={{ fontSize: 13, opacity: 0.55, textAlign: "right" }}>{o.pct}%</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {/* Age */}
-        <div className="pd-card">
-          <div className="pd-card-top"><h3>Age</h3></div>
-          <div className="pd-an-countries">
-            {ageData.map((a) => (
-              <div key={a.label} className="pd-an-country-row">
-                <span className="pd-an-country-name">{a.label}</span>
-                <div className="pd-an-country-bar-wrap">
-                  <div className="pd-an-country-bar" style={{ width: `${(a.pct / 38) * 100}%` }} />
-                </div>
-                <span className="pd-an-country-views">{a.views.toLocaleString()}</span>
-                <span className="pd-an-country-pct">{a.pct}%</span>
-              </div>
-            ))}
+      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
+        <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>What they asked Planie for</h2>
+        <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>The desires behind the plans that included you — ranked by volume.</p>
+        {asks.map((ak) => (
+          <div key={ak.rank} style={{ display: "flex", alignItems: "baseline", gap: 18, padding: "15px 4px", borderBottom: "1px solid rgba(28,17,20,0.08)" }}>
+            <span style={{ ...H, fontWeight: 700, fontSize: 15, opacity: 0.35, minWidth: 20 }}>{ak.rank}</span>
+            <p style={{ margin: 0, fontSize: 15.5, fontWeight: 600, flex: 1, minWidth: 0 }}>“{ak.quote}”</p>
+            <span style={{ fontSize: 13, opacity: 0.5, whiteSpace: "nowrap" }}>{ak.visits} plans</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: ak.up ? "#15803d" : "#FF4040", whiteSpace: "nowrap", minWidth: 44, textAlign: "right" }}>{ak.trend}</span>
           </div>
-        </div>
+        ))}
+      </section>
 
-        {/* Top Related Affinities */}
-        <div className="pd-card">
-          <div className="pd-card-top"><h3>Top Related Affinities</h3></div>
-          <div className="pd-an-referrers">
-            {topAffinities.map((r, i) => (
-              <div key={r.source} className="pd-an-ref-row">
-                <span className="pd-an-ref-rank">{i + 1}</span>
-                <div className="pd-an-ref-info">
-                  <span className="pd-an-ref-source">{r.source}</span>
-                  <span className="pd-an-ref-visits">{r.visits.toLocaleString()} visits</span>
-                </div>
-                <span className={`pd-stat-chg ${r.change.startsWith("+") ? "pd-stat-chg--up" : "pd-stat-chg--dn"}`}>
-                  {r.change.startsWith("+") ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {r.change}
-                </span>
-              </div>
-            ))}
-          </div>
+      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
+        <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Who they came with</h2>
+        <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>Party composition across plans that placed you.</p>
+        <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", gap: 3 }}>
+          {parties.map((p) => <div key={p.label} style={{ width: `${p.pct}%`, background: p.color }} />)}
         </div>
+        <div style={{ marginTop: 14, display: "flex", gap: 26, flexWrap: "wrap" }}>
+          {parties.map((p) => (
+            <span key={p.label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} /><strong>{p.pct}%</strong> <span style={{ opacity: 0.55 }}>{p.label}</span></span>
+          ))}
+        </div>
+      </section>
 
-        {/* Visitor Origin */}
-        <div className="pd-card">
-          <div className="pd-card-top"><h3>Visitor Origin</h3></div>
-          <div className="pd-an-countries">
-            {visitorOrigin.map((c) => (
-              <div key={c.country} className="pd-an-country-row">
-                <span className="pd-an-country-name">{c.country}</span>
-                <div className="pd-an-country-bar-wrap">
-                  <div className="pd-an-country-bar" style={{ width: `${(c.pct / 28) * 100}%` }} />
-                </div>
-                <span className="pd-an-country-views">{c.views.toLocaleString()}</span>
-                <span className="pd-an-country-pct">{c.pct}%</span>
-              </div>
-            ))}
-          </div>
+      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
+        <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where you appeared <span style={{ fontWeight: 500, fontSize: 13, opacity: 0.45 }}>· last 30 days</span></h2>
+        <p style={{ margin: "4px 0 20px", fontSize: 13, opacity: 0.5 }}>The surfaces that carried you into people's plans.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,190px),1fr))", gap: 28 }}>
+          {surfaces.map((s) => (
+            <div key={s.name}>
+              <p style={{ margin: 0, fontSize: 12.5, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{s.name}</p>
+              <p style={{ ...H, margin: "8px 0 0", fontWeight: 700, fontSize: 32, letterSpacing: "-0.02em" }}>{s.value}</p>
+              <div style={{ marginTop: 12, height: 5, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${s.share}%`, height: "100%", borderRadius: 3, background: s.barColor }} /></div>
+              <p style={{ margin: "8px 0 0", fontSize: 12.5, opacity: 0.5 }}>{s.note}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      <section className="pd-anim pd-a4" style={{ marginTop: 52 }}>
+        <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Recent placements</h2>
+        <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.5, display: "flex", alignItems: "center", gap: 9 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF4040", animation: "nuPulseDot 2s ease-out infinite" }} />Every time a plan chose you, as it happens.</p>
+        <div style={{ textAlign: "center", padding: "56px 24px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ width: 54, height: 54, borderRadius: 16, background: "rgba(28,17,20,0.05)", display: "grid", placeItems: "center", color: "rgba(28,17,20,0.4)", marginBottom: 16 }}><TrendingUp size={25} /></div>
+          <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: 18, letterSpacing: "-0.01em" }}>No placements yet</p>
+          <p style={{ margin: "8px 0 0", fontSize: 14, opacity: 0.55, maxWidth: "42ch", lineHeight: 1.55 }}>As soon as Planie places one of your venues in a plan, it'll appear here in real time.</p>
+        </div>
+      </section>
     </>
   );
 }
 
-/* ─── Listings Tab ─── */
-const statusFilters = ["All", "Active", "Pending", "Inactive"];
+/* Listing status filters (used by ListingsTab summary cards). */
+const statusFilters = ["All", "Active", "Pending", "Inactive", "Denied"];
 
-function formatDraftTimestamp(ts) {
-  if (!ts) return "";
-  const diffMs = Date.now() - ts;
-  const min = Math.floor(diffMs / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min} min ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} hour${hr > 1 ? "s" : ""} ago`;
-  const day = Math.floor(hr / 24);
-  if (day < 7) return `${day} day${day > 1 ? "s" : ""} ago`;
-  return new Date(ts).toLocaleDateString();
+/* Relative "edited N ago" label for draft cards. */
+function formatDraftTimestamp(ms) {
+  if (!ms) return "just now";
+  const mins = Math.floor((Date.now() - ms) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return new Date(ms).toLocaleDateString();
 }
 
+/* Unpublished listing drafts (localStorage) — finish to submit. */
 function DraftsSection({ animClass = "pd-a2" }) {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState(() => listDrafts());
-
   useEffect(() => subscribeDrafts(setDrafts), []);
-
   if (drafts.length === 0) return null;
-
+  const handleDelete = (id, name) => {
+    if (!window.confirm(`Delete "${name || "this draft"}"? This cannot be undone.`)) return;
+    deleteDraft(id);
+  };
   return (
     <div className={`pd-drafts pd-anim ${animClass}`}>
       <div className="pd-drafts-head">
@@ -801,50 +686,30 @@ function DraftsSection({ animClass = "pd-a2" }) {
           <h3>Listing Drafts</h3>
           <span className="pd-drafts-count">{drafts.length}</span>
         </div>
-        <span className="pd-drafts-sub">Unfinished listings — pick up where you left off</span>
+        <span className="pd-drafts-sub">Unpublished listings — finish setting up to submit</span>
       </div>
       <div className="pd-drafts-grid">
         {drafts.map((d) => {
-          const name = d.form?.name?.trim() || "Untitled draft";
-          const cat = d.form?.category || "No category yet";
-          const loc =
-            d.form?.city || d.form?.country
-              ? [d.form.city, d.form.country].filter(Boolean).join(", ")
-              : "Location not set";
+          const name = d.form?.name || "Untitled listing";
+          const cat = d.form?.category || "";
+          const city = d.form?.city || "";
           return (
             <div key={d.id} className="pd-draft-card">
               <div className="pd-draft-card-top">
-                <div className="pd-draft-card-avatar">
-                  <FileText size={18} strokeWidth={1.6} />
-                </div>
+                <div className="pd-draft-card-avatar"><Store size={18} strokeWidth={1.6} /></div>
                 <div className="pd-draft-card-info">
                   <h4>{name}</h4>
                   <div className="pd-draft-card-meta">
-                    <span>{cat}</span>
-                    <span className="pd-draft-card-dot">·</span>
-                    <span>{loc}</span>
+                    <span>{cat || "No category"}</span>
+                    {city && <><span className="pd-draft-card-dot">·</span><span>{city}</span></>}
                   </div>
                 </div>
               </div>
               <div className="pd-draft-card-foot">
-                <span className="pd-draft-card-time">
-                  <Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(d.updatedAt)}
-                </span>
+                <span className="pd-draft-card-time"><Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(d.updatedAt)}</span>
                 <div className="pd-draft-card-actions">
-                  <button
-                    className="pd-btn pd-btn--ghost pd-draft-btn"
-                    onClick={() => deleteDraft(d.id)}
-                  >
-                    <Trash2 size={13} strokeWidth={2} />
-                    Delete
-                  </button>
-                  <button
-                    className="pd-btn pd-btn--fill pd-draft-btn"
-                    onClick={() => navigate(`/partners/add-listing?draft=${d.id}`)}
-                  >
-                    Continue
-                    <ChevronRight size={13} strokeWidth={2.2} />
-                  </button>
+                  <button className="pd-btn pd-btn--ghost pd-draft-btn" onClick={() => handleDelete(d.id, name)}><Trash2 size={13} strokeWidth={2} /> Delete</button>
+                  <button className="pd-btn pd-btn--fill pd-draft-btn" onClick={() => navigate(`/partners/add-listing?draft=${d.id}`)}>Continue <ChevronRight size={13} strokeWidth={2.2} /></button>
                 </div>
               </div>
             </div>
@@ -860,18 +725,36 @@ function ListingsTab() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
-  const [listingData, setListingData] = useState(listings);
+  const { items, loadError, reload } = useMyListings();
   const [sortBy, setSortBy] = useState("newest");
+  const [actionError, setActionError] = useState(null);
+  const listingData = items ?? [];
+  const loading = items === null;
 
-  const togglePause = (name) => {
-    setListingData((prev) =>
-      prev.map((l) =>
-        l.name === name
-          ? { ...l, status: l.status === "inactive" ? (l.previousStatus || "active") : "inactive", previousStatus: l.status === "inactive" ? undefined : l.status }
-          : l
-      )
-    );
+  // Pause/resume only applies to approved listings; pending/denied can't toggle.
+  const togglePause = async (l) => {
     setOpenMenu(null);
+    setActionError(null);
+    try {
+      if (l.status === "inactive") await reactivateListing(l.id);
+      else if (l.status === "active") await deactivateListing(l.id);
+      else return;
+      await reload();
+    } catch (err) {
+      setActionError(err.message || "Could not update the listing.");
+    }
+  };
+
+  const handleDelete = async (l) => {
+    setOpenMenu(null);
+    if (!window.confirm(`Delete "${l.name}"? This cannot be undone.`)) return;
+    setActionError(null);
+    try {
+      await deleteListing(l.id);
+      await reload();
+    } catch (err) {
+      setActionError(err.message || "Could not delete the listing.");
+    }
   };
 
   const filtered = listingData.filter((l) => {
@@ -886,8 +769,8 @@ function ListingsTab() {
 
   const sorted = [...filtered].sort((a, b) => {
     switch (sortBy) {
-      case "newest": return new Date(b.created) - new Date(a.created);
-      case "oldest": return new Date(a.created) - new Date(b.created);
+      case "newest": return new Date(b.createdISO || 0) - new Date(a.createdISO || 0);
+      case "oldest": return new Date(a.createdISO || 0) - new Date(b.createdISO || 0);
       case "name-az": return a.name.localeCompare(b.name);
       case "name-za": return b.name.localeCompare(a.name);
       case "views": return b.views - a.views;
@@ -904,37 +787,37 @@ function ListingsTab() {
     active: listingData.filter((l) => l.status === "active").length,
     pending: listingData.filter((l) => l.status === "pending").length,
     inactive: listingData.filter((l) => l.status === "inactive").length,
+    denied: listingData.filter((l) => l.status === "denied").length,
   };
 
   return (
     <>
-      <header className="pd-head pd-anim pd-a1">
+      <header className="pd-anim pd-a1" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
         <div>
-          <h1 className="pd-title">My Listings</h1>
-          <p className="pd-subtitle">Manage and monitor all your business listings</p>
+          <p className="nu-microlabel" style={{ marginBottom: 6 }}>Listings</p>
+          <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Your places.</h1>
         </div>
-        <div className="pd-actions">
-          <Link to="/partners/add-listing" className="pd-btn pd-btn--fill">
-            <Plus size={17} strokeWidth={2.2} />
-            Add a Listing
-          </Link>
-        </div>
+        <Link to="/partners/add-listing" className="nu-btn nu-btn--fill" style={{ padding: "12px 24px" }}>
+          <Plus size={16} strokeWidth={2.2} /> New listing
+        </Link>
       </header>
 
-      {/* Summary cards */}
-      <div className="pd-ml-summary pd-anim pd-a2">
+      {/* Status filter pills (design) */}
+      <div className="pd-anim pd-a2" style={{ marginTop: 24, display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", flexWrap: "wrap" }}>
         {statusFilters.map((s) => {
-          const key = s.toLowerCase();
-          const count = counts[key];
           const isActive = statusFilter === s;
           return (
             <button
               key={s}
-              className={`pd-ml-summary-card${isActive ? " pd-ml-summary-card--on" : ""}`}
               onClick={() => setStatusFilter(s)}
+              style={{
+                fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer",
+                border: "none", padding: "8px 16px", borderRadius: 100, display: "flex", alignItems: "center", gap: 7,
+                background: isActive ? "#1C1114" : "transparent", color: isActive ? "#FAF7F1" : "#1C1114",
+                transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
+              }}
             >
-              <span className="pd-ml-summary-count">{count}</span>
-              <span className="pd-ml-summary-label">{s}</span>
+              {s} <span style={{ opacity: 0.5, fontWeight: 500 }}>{counts[s.toLowerCase()]}</span>
             </button>
           );
         })}
@@ -957,8 +840,8 @@ function ListingsTab() {
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="pd-ml-sort-select">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="name-az">Name A–Z</option>
-            <option value="name-za">Name Z–A</option>
+            <option value="name-az">Name AÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Z</option>
+            <option value="name-za">Name ZÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“A</option>
             <option value="views">Most Views</option>
             <option value="clicks">Most Clicks</option>
             <option value="rating">Highest Rating</option>
@@ -971,17 +854,28 @@ function ListingsTab() {
       {/* Drafts */}
       <DraftsSection animClass="pd-a2" />
 
+      {/* Errors */}
+      {(loadError || actionError) && (
+        <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", borderRadius: 12, padding: "10px 14px", fontSize: 14, marginBottom: 14 }} role="alert">
+          {loadError || actionError}
+        </div>
+      )}
+
       {/* Listings */}
       <div className="pd-ml-list pd-anim pd-a3">
-        {sorted.length === 0 ? (
+        {loading ? (
+          <div className="pd-ml-empty">
+            <h4>Loading your listingsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</h4>
+          </div>
+        ) : sorted.length === 0 ? (
           <div className="pd-ml-empty">
             <Store size={40} strokeWidth={1.2} />
             <h4>No listings found</h4>
-            <p>Try adjusting your search or filter</p>
+            <p>{listingData.length === 0 ? "Create your first listing to get started" : "Try adjusting your search or filter"}</p>
           </div>
         ) : (
           sorted.map((l) => (
-            <div key={l.name} className="pd-ml-card">
+            <div key={l.id} className="pd-ml-card">
               <div className="pd-ml-card-top">
                 <div className="pd-ml-card-left">
                   <div className="pd-ml-card-avatar">
@@ -1004,19 +898,21 @@ function ListingsTab() {
                   <div className="pd-ml-card-menu-wrap">
                     <button
                       className="pd-ml-card-menu-btn"
-                      onClick={() => setOpenMenu(openMenu === l.name ? null : l.name)}
+                      onClick={() => setOpenMenu(openMenu === l.id ? null : l.id)}
                     >
                       <MoreVertical size={16} strokeWidth={2} />
                     </button>
-                    {openMenu === l.name && (
+                    {openMenu === l.id && (
                       <div className="pd-ml-card-dropdown">
-                        <button className="pd-ml-dropdown-item" onClick={() => navigate(`/partners/edit-listing/${toSlug(l.name)}`)}>
+                        <button className="pd-ml-dropdown-item" onClick={() => navigate(`/partners/edit-listing/${l.id}`)}>
                           <Pencil size={14} /> Edit Listing
                         </button>
-                        <button className="pd-ml-dropdown-item" onClick={() => togglePause(l.name)}>
-                          {l.status === "inactive" ? <><Play size={14} /> Resume Listing</> : <><Pause size={14} /> Pause Listing</>}
-                        </button>
-                        <button className="pd-ml-dropdown-item pd-ml-dropdown-item--danger">
+                        {(l.status === "active" || l.status === "inactive") && (
+                          <button className="pd-ml-dropdown-item" onClick={() => togglePause(l)}>
+                            {l.status === "inactive" ? <><Play size={14} /> Resume Listing</> : <><Pause size={14} /> Pause Listing</>}
+                          </button>
+                        )}
+                        <button className="pd-ml-dropdown-item pd-ml-dropdown-item--danger" onClick={() => handleDelete(l)}>
                           <Trash2 size={14} /> Delete
                         </button>
                       </div>
@@ -1026,6 +922,12 @@ function ListingsTab() {
               </div>
 
               <p className="pd-ml-card-desc">{l.description}</p>
+
+              {l.status === "denied" && l.denialReason && (
+                <p style={{ color: "#B91C1C", fontSize: 13, margin: "6px 0 0" }}>
+                  Denied: {l.denialReason}
+                </p>
+              )}
 
               <div className="pd-ml-card-stats">
                 <div className="pd-ml-card-stat">
@@ -1072,27 +974,27 @@ function ListingsTab() {
   );
 }
 
-/* ─── Promotions Tab ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Promotions Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const offerTypeMeta = {
   percentage: { icon: Percent, label: "% off" },
-  fixed: { icon: Tag, label: "£ off" },
+  fixed: { icon: Tag, label: "Ãƒâ€šÃ‚Â£ off" },
   free_item: { icon: Gift, label: "Free item" },
   custom: { icon: Sparkles, label: "Custom" },
 };
 
-const slugToListingName = {
-  "sunset-rooftop-bar": "Sunset Rooftop Bar",
-  "desert-safari-tours": "Desert Safari Tours",
-  "coastal-yoga-retreat": "Coastal Yoga Retreat",
-  "old-town-walking-tour": "Old Town Walking Tour",
-  "neon-night-market": "Neon Night Market",
+const promoStatusLabel = {
+  draft: "Draft",
+  pending: "In review",
+  active: "Live",
+  denied: "Denied",
+  inactive: "Paused",
 };
 
 function formatPromoValue(p) {
   if (!p.offerType) return "";
-  if (p.offerType === "percentage") return p.discountValue ? `${p.discountValue}% off` : "—";
-  if (p.offerType === "fixed") return p.discountValue ? `£${p.discountValue} off` : "—";
-  return p.discountValue || "—";
+  if (p.offerType === "percentage") return p.discountValue ? `${p.discountValue}% off` : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
+  if (p.offerType === "fixed") return p.discountValue ? `Ãƒâ€šÃ‚Â£${p.discountValue} off` : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
+  return p.discountValue || "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
 }
 
 function formatValidity(p) {
@@ -1105,17 +1007,17 @@ function formatValidity(p) {
     const days = (p.validityDays || []).join(", ");
     const hasTimes = p.validityTimeFrom || p.validityTimeTo;
     const hasRange = p.validityFrom || p.validityTo;
-    if (!days && !hasTimes && !hasRange) return "Custom — not set";
+    if (!days && !hasTimes && !hasRange) return "Custom ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â not set";
     const parts = [];
-    if (hasRange) parts.push(`${p.validityFrom || "?"} → ${p.validityTo || "?"}`);
+    if (hasRange) parts.push(`${p.validityFrom || "?"} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ${p.validityTo || "?"}`);
     if (days || hasTimes) {
       const dayPart = days || "Any day";
       const timePart = hasTimes
-        ? `${p.validityTimeFrom || "00:00"}–${p.validityTimeTo || "23:59"}`
+        ? `${p.validityTimeFrom || "00:00"}ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“${p.validityTimeTo || "23:59"}`
         : "";
       parts.push(timePart ? `${dayPart}, ${timePart}` : dayPart);
     }
-    return parts.join(" · ");
+    return parts.join(" Ãƒâ€šÃ‚Â· ");
   }
   return "";
 }
@@ -1308,25 +1210,26 @@ function SetupChecklistSection({ setActiveTab, animClass = "pd-a2" }) {
   );
 }
 
-function PromotionDraftsSection({ promotions: promotionsProp, animClass = "pd-a2" }) {
+/* Renders the partner's promotion drafts. Self-loads when no `promotions`
+   prop is given (overview usage); `listingNames` maps listingId ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ name. */
+function PromotionDraftsSection({ promotions: promotionsProp, listingNames = {}, onChanged, animClass = "pd-a2" }) {
   const navigate = useNavigate();
-  const [internalPromotions, setInternalPromotions] = useState(() =>
-    promotionsProp || listPromotions()
-  );
-
-  useEffect(() => {
-    if (promotionsProp) return undefined;
-    return subscribePromotions(setInternalPromotions);
-  }, [promotionsProp]);
-
-  const promotions = promotionsProp || internalPromotions;
+  const own = useMyPromotions(promotionsProp === undefined);
+  const promotions = promotionsProp ?? own.items ?? [];
   const drafts = promotions.filter((p) => p.status === "draft");
 
   if (drafts.length === 0) return null;
 
-  const handleDelete = (id, title) => {
+  const handleDelete = async (id, title) => {
     const ok = window.confirm(`Delete "${title || "this promotion"}"? This cannot be undone.`);
-    if (ok) deletePromotion(id);
+    if (!ok) return;
+    try {
+      await deletePromotion(id);
+    } catch {
+      /* surfaced on next load */
+    }
+    if (onChanged) onChanged();
+    else own.reload();
   };
 
   return (
@@ -1337,13 +1240,13 @@ function PromotionDraftsSection({ promotions: promotionsProp, animClass = "pd-a2
           <h3>Promotion Drafts</h3>
           <span className="pd-drafts-count">{drafts.length}</span>
         </div>
-        <span className="pd-drafts-sub">Unpublished promotions — finish setting up to go live</span>
+        <span className="pd-drafts-sub">Unpublished promotions ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â finish setting up to go live</span>
       </div>
       <div className="pd-drafts-grid">
         {drafts.map((p) => {
           const meta = offerTypeMeta[p.offerType] || { icon: Tag, label: "" };
           const I = meta.icon;
-          const venueName = slugToListingName[p.listingSlug] || p.listingSlug || "No venue";
+          const venueName = listingNames[p.listingId] || "No venue";
           const valueLabel = formatPromoValue(p);
           return (
             <div key={p.id} className="pd-draft-card">
@@ -1355,14 +1258,14 @@ function PromotionDraftsSection({ promotions: promotionsProp, animClass = "pd-a2
                   <h4>{p.title || "Untitled promotion"}</h4>
                   <div className="pd-draft-card-meta">
                     <span>{venueName}</span>
-                    <span className="pd-draft-card-dot">·</span>
+                    <span className="pd-draft-card-dot">Ãƒâ€šÃ‚Â·</span>
                     <span>{valueLabel || "No offer set"}</span>
                   </div>
                 </div>
               </div>
               <div className="pd-draft-card-foot">
                 <span className="pd-draft-card-time">
-                  <Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(p.updatedAt)}
+                  <Clock size={12} strokeWidth={1.8} /> Edited {formatDraftTimestamp(p.updatedAt ? new Date(p.updatedAt).getTime() : 0)}
                 </span>
                 <div className="pd-draft-card-actions">
                   <button
@@ -1391,78 +1294,133 @@ function PromotionDraftsSection({ promotions: promotionsProp, animClass = "pd-a2
 
 function PromotionsTab() {
   const navigate = useNavigate();
-  const [promotions, setPromotions] = useState(() => listPromotions());
+  const { items: listings, loadError: listingsError } = useMyListings();
+  const { items: promotions, loadError, reload } = useMyPromotions();
+  const [actionError, setActionError] = useState(null);
 
-  useEffect(() => subscribePromotions(setPromotions), []);
+  const loading = promotions === null || listings === null;
+  const promos = promotions ?? [];
+  const listingNames = Object.fromEntries((listings ?? []).map((l) => [l.id, l.name]));
 
-  const venues = Object.keys(slugToListingName);
-  const grouped = venues.map((slug) => ({
-    slug,
-    name: slugToListingName[slug],
-    promos: promotions.filter((p) => p.listingSlug === slug),
+  const grouped = (listings ?? []).map((l) => ({
+    id: l.id,
+    name: l.name,
+    promos: promos.filter((p) => p.listingId === l.id),
   }));
 
-  const handlePublish = (id) => {
-    const result = publishPromotion(id);
-    if (!result.ok && result.reason === "conflict") {
-      const ok = window.confirm(
-        `You already have an active promotion ("${result.conflict.title || "Untitled"}") for this venue. Deactivate it and publish this one instead?`
-      );
-      if (ok) {
-        deactivatePromotion(result.conflict.id);
-        publishPromotion(id);
+  const run = async (fn) => {
+    setActionError(null);
+    try {
+      await fn();
+      await reload();
+    } catch (err) {
+      setActionError(err.message || "Action failed.");
+    }
+  };
+
+  /* Submit a draft/denied promo into the review queue. On PROMO_CONFLICT the
+     server refused because another promo is live ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â offer deactivate & retry. */
+  const handleSubmit = async (p) => {
+    setActionError(null);
+    try {
+      await updatePromotion(p.id, promoFormFields(p), { submit: true });
+      await reload();
+    } catch (err) {
+      if (err.code === "PROMO_CONFLICT" && err.data?.conflict) {
+        const ok = window.confirm(
+          `"${err.data.conflict.title || "An existing promotion"}" is already live for this venue. Deactivate it and submit this one for review instead?`
+        );
+        if (ok) {
+          await run(async () => {
+            await deactivatePromotion(err.data.conflict.id);
+            await updatePromotion(p.id, promoFormFields(p), { submit: true });
+          });
+        }
+      } else {
+        setActionError(err.message || "Could not submit the promotion.");
+      }
+    }
+  };
+
+  const handleReactivate = async (p) => {
+    setActionError(null);
+    try {
+      await reactivatePromotion(p.id);
+      await reload();
+    } catch (err) {
+      if (err.code === "PROMO_CONFLICT" && err.data?.conflict) {
+        const ok = window.confirm(
+          `"${err.data.conflict.title || "An existing promotion"}" is already live for this venue. Deactivate it and reactivate this one instead?`
+        );
+        if (ok) {
+          await run(async () => {
+            await deactivatePromotion(err.data.conflict.id);
+            await reactivatePromotion(p.id);
+          });
+        }
+      } else {
+        setActionError(err.message || "Could not reactivate the promotion.");
       }
     }
   };
 
   const handleDelete = (id, title) => {
     const ok = window.confirm(`Delete "${title || "this promotion"}"? This cannot be undone.`);
-    if (ok) deletePromotion(id);
+    if (ok) run(() => deletePromotion(id));
   };
 
-  const totalActive = promotions.filter((p) => p.status === "active").length;
-  const totalDrafts = promotions.filter((p) => p.status === "draft").length;
+  const totalActive = promos.filter((p) => p.status === "active").length;
+  const totalPending = promos.filter((p) => p.status === "pending").length;
+  const totalDrafts = promos.filter((p) => p.status === "draft").length;
 
   return (
     <>
-      <header className="pd-head pd-anim pd-a1">
+      <header className="pd-anim pd-a1" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
         <div>
-          <h1 className="pd-title">Promotions</h1>
-          <p className="pd-subtitle">Create offers that show alongside your venue across Planie Discovery and itineraries</p>
+          <p className="nu-microlabel" style={{ marginBottom: 6 }}>Promotions</p>
+          <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Offers that travel.</h1>
         </div>
-        <div className="pd-actions">
-          <Link to="/partners/add-promotion" className="pd-btn pd-btn--fill">
-            <Plus size={17} strokeWidth={2.2} />
-            Create a Promotion
-          </Link>
-        </div>
+        <Link to="/partners/add-promotion" className="nu-btn nu-btn--fill" style={{ padding: "12px 24px" }}>
+          <Plus size={16} strokeWidth={2.2} /> New promotion
+        </Link>
       </header>
 
-      {/* Summary */}
-      <div className="pd-ml-summary pd-anim pd-a2">
-        <div className="pd-ml-summary-card">
-          <span className="pd-ml-summary-count">{promotions.length}</span>
-          <span className="pd-ml-summary-label">All</span>
+      {/* Summary — hairline metric band (design) */}
+      <section className="pd-anim pd-a2" style={{ marginTop: 32, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", rowGap: 24 }}>
+        {[["All", promos.length], ["Live", totalActive], ["In review", totalPending], ["Drafts", totalDrafts]].map(([label, val], i, arr) => (
+          <div key={label} style={{ padding: "4px 20px 8px 0", marginRight: 20, borderRight: i < arr.length - 1 ? "1px solid rgba(28,17,20,0.08)" : "none", minWidth: 0 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{label}</p>
+            <p style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 38, letterSpacing: "-0.02em", lineHeight: 1 }}>{val}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Errors */}
+      {(loadError || listingsError || actionError) && (
+        <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", borderRadius: 12, padding: "10px 14px", fontSize: 14, marginBottom: 14 }} role="alert">
+          {loadError || listingsError || actionError}
         </div>
-        <div className="pd-ml-summary-card">
-          <span className="pd-ml-summary-count">{totalActive}</span>
-          <span className="pd-ml-summary-label">Active</span>
-        </div>
-        <div className="pd-ml-summary-card">
-          <span className="pd-ml-summary-count">{totalDrafts}</span>
-          <span className="pd-ml-summary-label">Drafts</span>
-        </div>
-      </div>
+      )}
 
       {/* Drafts */}
-      <PromotionDraftsSection promotions={promotions} animClass="pd-a2" />
+      <PromotionDraftsSection promotions={promos} listingNames={listingNames} onChanged={reload} animClass="pd-a2" />
 
       {/* Promotions per venue */}
       <div className="pd-promo-list pd-anim pd-a3">
+        {loading ? (
+          <div className="pd-promo-empty">
+            <span>Loading your promotionsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</span>
+          </div>
+        ) : grouped.length === 0 ? (
+          <div className="pd-promo-empty">
+            <Megaphone size={20} strokeWidth={1.5} />
+            <span>Create a listing first ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â promotions are offers attached to one of your venues.</span>
+          </div>
+        ) : null}
         {grouped.map((group) => {
           const hasPromos = group.promos.length > 0;
           return (
-            <div key={group.slug} className="pd-promo-venue">
+            <div key={group.id} className="pd-promo-venue">
               <div className="pd-promo-venue-head">
                 <div className="pd-promo-venue-info">
                   <Store size={16} strokeWidth={1.7} />
@@ -1471,7 +1429,7 @@ function PromotionsTab() {
                 </div>
                 <button
                   className="pd-btn pd-btn--ghost pd-promo-add-btn"
-                  onClick={() => navigate(`/partners/add-promotion?listing=${group.slug}`)}
+                  onClick={() => navigate(`/partners/add-promotion?listing=${group.id}`)}
                 >
                   <Plus size={14} strokeWidth={2.2} />
                   Create a Promotion
@@ -1493,18 +1451,18 @@ function PromotionsTab() {
                             <h4>{p.title || "Untitled promotion"}</h4>
                             <div className="pd-promo-card-meta">
                               <span>{formatPromoValue(p)}</span>
-                              <span className="pd-promo-card-dot">·</span>
+                              <span className="pd-promo-card-dot">Ãƒâ€šÃ‚Â·</span>
                               <span>{formatValidity(p)}</span>
                               {p.discountCode && (
                                 <>
-                                  <span className="pd-promo-card-dot">·</span>
+                                  <span className="pd-promo-card-dot">Ãƒâ€šÃ‚Â·</span>
                                   <span className="pd-promo-card-code">{p.discountCode}</span>
                                 </>
                               )}
                             </div>
                           </div>
                           <span className={`pd-badge pd-promo-status pd-promo-status--${p.status}`}>
-                            {p.status === "active" ? "Live" : "Draft"}
+                            {promoStatusLabel[p.status] || p.status}
                           </span>
                         </div>
 
@@ -1516,6 +1474,12 @@ function PromotionsTab() {
                           </div>
                         )}
 
+                        {p.status === "denied" && p.denialReason && (
+                          <p style={{ color: "#B91C1C", fontSize: 13, margin: "8px 0 0" }}>
+                            Denied: {p.denialReason}
+                          </p>
+                        )}
+
                         <div className="pd-promo-card-actions">
                           <button
                             className="pd-btn pd-btn--ghost pd-promo-action-btn"
@@ -1524,21 +1488,31 @@ function PromotionsTab() {
                             <Pencil size={13} strokeWidth={2} />
                             Edit
                           </button>
-                          {p.status === "active" ? (
+                          {p.status === "active" && (
                             <button
                               className="pd-btn pd-btn--ghost pd-promo-action-btn"
-                              onClick={() => deactivatePromotion(p.id)}
+                              onClick={() => run(() => deactivatePromotion(p.id))}
                             >
                               <Pause size={13} strokeWidth={2} />
                               Deactivate
                             </button>
-                          ) : (
+                          )}
+                          {p.status === "inactive" && (
                             <button
                               className="pd-btn pd-btn--fill pd-promo-action-btn"
-                              onClick={() => handlePublish(p.id)}
+                              onClick={() => handleReactivate(p)}
+                            >
+                              <Play size={13} strokeWidth={2} />
+                              Reactivate
+                            </button>
+                          )}
+                          {(p.status === "draft" || p.status === "denied") && (
+                            <button
+                              className="pd-btn pd-btn--fill pd-promo-action-btn"
+                              onClick={() => handleSubmit(p)}
                             >
                               <Sparkles size={13} strokeWidth={2} />
-                              Publish
+                              Submit for review
                             </button>
                           )}
                           <button
@@ -1566,514 +1540,628 @@ function PromotionsTab() {
   );
 }
 
-/* ─── Billing Tab ─── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Billing Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+   PER-LISTING Stripe billing (rework 2026-07-25). Each venue has its own
+   Listed/Partner/Featured plan. Upgrading a Listed venue Ã¢â€ â€™ Stripe Checkout;
+   switching between paid tiers or cancelling Ã¢â€ â€™ partnerChangeListingPlan (no
+   redirect). Cards/invoices/cancel also available via the Customer Portal.
+   Tiers only change when the backend webhook writes them. */
 function BillingTab() {
-  const currentPlan = plans.find((p) => p.current); // eslint-disable-line no-unused-vars
+  const { refreshProfile } = usePartnerAuth();
+  const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [notice, setNotice] = useState(null); // "success" | "cancelled"
+  const [busyId, setBusyId] = useState(null); // listingId being changed, or "portal"
+  const [actionError, setActionError] = useState(null);
+  const [comparing, setComparing] = useState(false);
+
+  const reload = useCallback(async () => {
+    try {
+      setData(await fetchBilling());
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err.message || "Could not load billing information.");
+    }
+  }, []);
+  useEffect(() => { reload(); }, [reload]);
+
+  /* Returning from Stripe Checkout (?billing=success|cancelled). */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const flag = params.get("billing");
+    if (!flag) return undefined;
+    params.delete("billing");
+    const qs = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`);
+    if (flag === "cancelled") { setNotice("cancelled"); return undefined; }
+    setNotice("success");
+    const t = setTimeout(() => { refreshProfile(); reload(); }, 2500);
+    return () => clearTimeout(t);
+  }, [refreshProfile, reload]);
+
+  const portal = async () => {
+    setBusyId("portal");
+    setActionError(null);
+    try {
+      await openBillingPortal(); // redirects away
+    } catch (err) {
+      setActionError(err.message || "Could not open the billing portal.");
+      setBusyId(null);
+    }
+  };
+
+  /* Set a listing to a tier. ListedÃ¢â€ â€™paid opens Checkout (redirect); any change
+     on a listing that already has a subscription goes through changeListingPlan. */
+  const setListingTier = async (listing, nextTier) => {
+    if (nextTier === listing.tier) return;
+    setBusyId(listing.listingId);
+    setActionError(null);
+    try {
+      const hasSub = ["active", "trialing", "past_due"].includes(listing.status);
+      if (!hasSub && nextTier !== "Listed") {
+        await startListingCheckout(listing.listingId, nextTier); // redirects
+        return;
+      }
+      await changeListingPlan(listing.listingId, nextTier);
+      // Give the webhook a moment, then refresh.
+      setTimeout(() => { refreshProfile(); reload(); setBusyId(null); }, 2000);
+    } catch (err) {
+      setActionError(err.message || "Could not change this listing's plan.");
+      setBusyId(null);
+    }
+  };
+
+  const listings = data?.listings ?? [];
+  const plans = data?.plans ?? [];
+  const summary = data?.summary;
+  const currency = summary?.currency ?? "gbp";
+  const anySub = listings.some((l) => ["active", "trialing", "past_due"].includes(l.status));
+  const priceOf = (t) => (t === "Listed" ? 0 : plans.find((p) => p.tier === t)?.amount ?? null);
+  const compositionParts = summary
+    ? ["Featured", "Partner", "Listed"].filter((t) => summary.counts[t] > 0).map((t) => `${summary.counts[t]} ${t}`)
+    : [];
 
   return (
     <>
-      <header className="pd-head pd-anim pd-a1">
+      <header className="pd-anim pd-a1" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
         <div>
-          <h1 className="pd-title">Billing</h1>
-          <p className="pd-subtitle">Manage your subscription, payment method, and invoices</p>
+          <p className="nu-microlabel" style={{ marginBottom: 6 }}>Billing</p>
+          <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Plans, per venue.</h1>
         </div>
+        <span className="pd-billing-plan-badge" style={{ alignSelf: "center" }}>
+          <Calendar size={14} strokeWidth={2} /> Monthly billing
+        </span>
       </header>
 
-      {/* Current Plan Banner */}
+      {notice === "success" && (
+        <div className="pd-card pd-anim pd-a1" style={{ marginBottom: 16 }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+            <CheckCircle size={16} strokeWidth={2} />
+            Payment received ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the venue's plan updates as soon as Stripe confirms it (usually seconds).
+          </p>
+        </div>
+      )}
+      {notice === "cancelled" && (
+        <div className="pd-card pd-anim pd-a1" style={{ marginBottom: 16 }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+            <AlertCircle size={16} strokeWidth={2} />
+            Checkout was cancelled ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no changes were made.
+          </p>
+        </div>
+      )}
+      {(loadError || actionError) && (
+        <div className="pd-card pd-anim pd-a1" style={{ marginBottom: 16 }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, color: "#B42318" }}>
+            <AlertCircle size={16} strokeWidth={2} />
+            {loadError || actionError}
+          </p>
+        </div>
+      )}
+
+      {/* Composition + total */}
       <div className="pd-billing-banner pd-anim pd-a2">
         <div className="pd-billing-banner-left">
           <div className="pd-billing-plan-badge">
             <Crown size={14} strokeWidth={2} />
-            Pro Plan
+            {listings.length} {listings.length === 1 ? "listing" : "listings"}
           </div>
-          <div className="pd-billing-price">
-            <span className="pd-billing-price-amt">$49</span>
+          {compositionParts.length > 0 && (
+            <p className="pd-billing-renew" style={{ marginTop: 6 }}>{compositionParts.join(" Ãƒâ€šÃ‚Â· ")}</p>
+          )}
+          <div className="pd-billing-price" style={{ marginTop: 8 }}>
+            <span className="pd-billing-price-amt">
+              {summary ? (fmtMoney(summary.netMonthly, currency) ?? "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â") : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â"}
+            </span>
             <span className="pd-billing-price-per">/month</span>
           </div>
-          <p className="pd-billing-renew">
-            <Calendar size={13} />
-            Next billing date: <strong>April 1, 2026</strong>
-          </p>
+          {summary?.discountMonthly > 0 && (
+            <p className="pd-billing-renew" style={{ color: "#15803d" }}>
+              <CheckCircle size={13} /> Includes {summary.volumePct}% volume discount
+              (ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢{fmtMoney(summary.discountMonthly, currency)})
+            </p>
+          )}
         </div>
         <div className="pd-billing-banner-right">
-          <div className="pd-billing-usage">
-            <div className="pd-billing-usage-row">
-              <span>Listings used</span>
-              <span className="pd-billing-usage-val">3 / 10</span>
-            </div>
-            <div className="pd-billing-usage-bar">
-              <div className="pd-billing-usage-fill" style={{ width: "30%" }} />
-            </div>
-          </div>
-          <div className="pd-billing-usage">
-            <div className="pd-billing-usage-row">
-              <span>AI Boosts used</span>
-              <span className="pd-billing-usage-val">7 / 20</span>
-            </div>
-            <div className="pd-billing-usage-bar">
-              <div className="pd-billing-usage-fill" style={{ width: "35%" }} />
-            </div>
-          </div>
+          {anySub && (
+            <button className="pd-btn pd-btn--ghost" onClick={portal} disabled={busyId !== null}>
+              <CreditCard size={15} strokeWidth={2} />
+              {busyId === "portal" ? "OpeningÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦" : "Manage billing"}
+            </button>
+          )}
+          <p className="pd-billing-renew" style={{ marginTop: 8 }}>
+            Cards, receipts and cancellation are handled securely by Stripe.
+          </p>
         </div>
       </div>
 
-      {/* Plans */}
+      {/* Per-listing plan selector */}
       <div className="pd-anim pd-a3">
-        <h3 className="pd-billing-section-title">Change Plan</h3>
-        <div className="pd-billing-plans">
-          {plans.map((p) => (
-            <div key={p.name} className={`pd-billing-plan-card${p.current ? " pd-billing-plan-card--active" : ""}`}>
-              {p.popular && <span className="pd-billing-popular">Most Popular</span>}
-              <h4 className="pd-billing-plan-name">{p.name}</h4>
-              <div className="pd-billing-plan-price">
-                <span className="pd-billing-plan-amt">{p.price}</span>
-                <span className="pd-billing-plan-per">{p.period}</span>
-              </div>
-              <ul className="pd-billing-plan-features">
-                {p.features.map((f) => (
-                  <li key={f}>
-                    <CheckCircle size={14} strokeWidth={2} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <button className={`pd-btn ${p.current ? "pd-btn--ghost pd-btn--current" : "pd-btn--fill"}`}>
-                {p.current ? "Current Plan" : "Upgrade"}
-              </button>
-            </div>
-          ))}
-        </div>
+        <h3 className="pd-billing-section-title">Listings &amp; plans</h3>
+        {data == null && !loadError ? (
+          <p className="pd-billing-renew">Loading your listingsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</p>
+        ) : listings.length === 0 ? (
+          <div className="pd-card">
+            <p style={{ margin: 0 }}>You have no listings yet. Add a listing first, then choose its plan here.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {listings.map((l) => {
+              const busy = busyId === l.listingId;
+              const renew = fmtUnixDate(l.currentPeriodEnd);
+              return (
+                <div key={l.listingId} className="pd-card" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div style={{ minWidth: 200 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Store size={15} strokeWidth={1.8} />
+                      <strong>{l.name}</strong>
+                    </div>
+                    {["active", "trialing", "past_due"].includes(l.status) && renew && (
+                      <p className="pd-billing-renew" style={{ marginTop: 4 }}>
+                        <Calendar size={12} />
+                        {l.cancelAtPeriodEnd ? "Ends on" : "Renews on"} <strong>{renew}</strong>
+                        {l.status === "past_due" && <span style={{ color: "#B42318" }}> Ãƒâ€šÃ‚Â· payment failed</span>}
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {["Listed", "Partner", "Featured"].map((t) => {
+                      const on = t === l.tier;
+                      const price = priceOf(t);
+                      const missing = t !== "Listed" && price == null;
+                      return (
+                        <button
+                          key={t}
+                          className={`al-category-chip${on ? " al-category-chip--active" : ""}`}
+                          disabled={busy || missing || on}
+                          onClick={() => setListingTier(l, t)}
+                          title={missing ? "Price not configured in Stripe yet" : ""}
+                          style={{ opacity: missing ? 0.5 : 1 }}
+                        >
+                          {t}{t !== "Listed" && price != null ? ` Ãƒâ€šÃ‚Â· ${fmtMoney(price, currency)}` : ""}
+                          {on ? " ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“" : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {busy && <span className="pd-billing-renew">UpdatingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p className="pd-billing-renew" style={{ marginTop: 10 }}>
+          When 2ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“5 of your venues share a paid tier, each gets {summary?.volumePct ?? 20}% off automatically.
+        </p>
       </div>
 
-      {/* Payment Method */}
-      <div className="pd-card pd-anim pd-a3" style={{ marginTop: 24 }}>
-        <div className="pd-card-top">
-          <h3>Payment Method</h3>
-          <button className="pd-link">Update <Pencil size={13} /></button>
-        </div>
-        <div className="pd-billing-payment">
-          <div className="pd-billing-card-icon">
-            <CreditCard size={22} strokeWidth={1.5} />
+      {/* Compare plans (reference only) */}
+      <div className="pd-anim pd-a3">
+        <button
+          className="cmp-pricing-toggle"
+          onClick={() => setComparing((v) => !v)}
+          aria-expanded={comparing}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, padding: "8px 0", fontWeight: 600 }}
+        >
+          Compare plans
+          <ChevronDown size={16} style={{ transform: comparing ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        </button>
+        {comparing && (
+          <div className="pd-billing-plans">
+            {TIER_PLANS.map((p) => {
+              const price = plans.find((pl) => pl.tier === p.tier);
+              const priceLabel = p.tier === "Listed" ? "Free" : fmtMoney(price?.amount, price?.currency) ?? "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
+              return (
+                <div key={p.tier} className="pd-billing-plan-card">
+                  {p.popular && <span className="pd-billing-popular">Most Popular</span>}
+                  <h4 className="pd-billing-plan-name">{p.tier}</h4>
+                  <div className="pd-billing-plan-price">
+                    <span className="pd-billing-plan-amt">{priceLabel}</span>
+                    {p.tier !== "Listed" && <span className="pd-billing-plan-per">/{price?.interval ?? "month"}</span>}
+                  </div>
+                  <ul className="pd-billing-plan-features">
+                    {p.features.map((f) => (
+                      <li key={f}><CheckCircle size={14} strokeWidth={2} />{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
-          <div className="pd-billing-card-info">
-            <span className="pd-billing-card-number">Visa ending in 4242</span>
-            <span className="pd-billing-card-exp">Expires 08/2028</span>
-          </div>
-          <span className="pd-badge pd-badge--active">Default</span>
-        </div>
+        )}
       </div>
 
       {/* Invoices */}
       <div className="pd-card pd-anim pd-a4">
         <div className="pd-card-top">
           <h3>Invoice History</h3>
-          <button className="pd-link">Download All <Download size={13} /></button>
         </div>
-        <div className="pd-billing-invoices">
-          <div className="pd-billing-invoice-header">
-            <span>Invoice</span>
-            <span>Date</span>
-            <span>Plan</span>
-            <span>Amount</span>
-            <span>Status</span>
-            <span></span>
-          </div>
-          {invoices.map((inv) => (
-            <div key={inv.id} className="pd-billing-invoice-row">
-              <span className="pd-billing-invoice-id">{inv.id}</span>
-              <span className="pd-billing-invoice-date">{inv.date}</span>
-              <span className="pd-billing-invoice-plan">{inv.plan}</span>
-              <span className="pd-billing-invoice-amount">{inv.amount}</span>
-              <span className={`pd-badge pd-badge--${inv.status}`}>
-                <CheckCircle size={11} /> Paid
-              </span>
-              <button className="pd-billing-invoice-dl">
-                <Download size={14} strokeWidth={1.8} />
-              </button>
+        {data == null && !loadError ? (
+          <p className="pd-billing-renew">Loading invoicesÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</p>
+        ) : (data?.invoices?.length ?? 0) === 0 ? (
+          <p className="pd-billing-renew">No invoices yet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â they'll appear here after your first payment.</p>
+        ) : (
+          <div className="pd-billing-invoices">
+            <div className="pd-billing-invoice-header">
+              <span>Invoice</span>
+              <span>Date</span>
+              <span>Description</span>
+              <span>Amount</span>
+              <span>Status</span>
+              <span></span>
             </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* ─── Settings Tab ─── */
-function SettingsTab() {
-  const [notifs, setNotifs] = useState({
-    newBookings: true,
-    weeklyReport: true,
-    monthlyGeoReport: true,
-    listingUpdates: false,
-    growthInsights: false,
-    platformUpdates: false,
-  });
-
-  const [profileOpen, setProfileOpen] = useState(true);
-  const [notifsOpen, setNotifsOpen] = useState(true);
-  const [securityOpen, setSecurityOpen] = useState(true);
-  const [billingDifferent, setBillingDifferent] = useState(false);
-
-  const toggleNotif = (key) =>
-    setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  const notifItems = [
-    { key: "newBookings", label: "New bookings", desc: "Get notified when a traveler books your listing" },
-    { key: "weeklyReport", label: "Weekly performance report", desc: "Receive a summary of your listings' performance every Monday" },
-    { key: "monthlyGeoReport", label: "Monthly GEO score report", desc: "Monthly breakdown of your GEO score and ranking trends" },
-    { key: "listingUpdates", label: "Listing review updates", desc: "Notifications when your listings are approved or need changes" },
-    { key: "growthInsights", label: "Growth insights & improvements", desc: "Occasional insights to improve your listings and grow your business" },
-    { key: "platformUpdates", label: "Planie platform updates", desc: "Product announcements and new features from Planie" },
-  ];
-
-  return (
-    <>
-      <header className="pd-head pd-anim pd-a1">
-        <div>
-          <h1 className="pd-title">Settings</h1>
-          <p className="pd-subtitle">Manage your account preferences and security</p>
-        </div>
-      </header>
-
-      {/* ── Business Information ── */}
-      <div className="pd-set-section pd-anim pd-a2">
-        <button className="pd-set-section-header" onClick={() => setProfileOpen(!profileOpen)}>
-          <div className="pd-set-section-left">
-            <div className="pd-set-section-icon">
-              <Building2 size={18} strokeWidth={1.7} />
-            </div>
-            <div>
-              <h3 className="pd-set-section-title">Business Information</h3>
-              <p className="pd-set-section-desc">Your account and company details</p>
-            </div>
-          </div>
-          <ChevronDown size={18} className={`pd-set-chevron${profileOpen ? " pd-set-chevron--open" : ""}`} />
-        </button>
-
-        {profileOpen && (
-          <div className="pd-set-section-body">
-            <div className="pd-set-field-grid">
-              <div className="pd-set-field pd-set-field--full">
-                <label className="pd-set-label">Business Name</label>
-                <div className="pd-set-input-wrap">
-                  <Building2 size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" defaultValue="Sunset Hospitality Group" />
-                </div>
-              </div>
-            </div>
-
-            <h4 className="pd-set-subheading">Primary Contact</h4>
-            <div className="pd-set-field-grid">
-              <div className="pd-set-field">
-                <label className="pd-set-label">First Name</label>
-                <div className="pd-set-input-wrap">
-                  <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" defaultValue="" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Last Name</label>
-                <div className="pd-set-input-wrap">
-                  <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" defaultValue="" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Job Role</label>
-                <div className="pd-set-input-wrap">
-                  <Briefcase size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" defaultValue="" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Contact Number</label>
-                <div className="pd-set-input-wrap">
-                  <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="tel" className="pd-set-input" defaultValue="+971 4 123 4567" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Contact Email</label>
-                <div className="pd-set-input-wrap">
-                  <Mail size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="email" className="pd-set-input" defaultValue="hello@sunsethospitality.com" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Website</label>
-                <div className="pd-set-input-wrap">
-                  <Globe size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="url" className="pd-set-input" defaultValue="https://sunsethospitality.com" />
-                </div>
-              </div>
-            </div>
-
-            <div className="pd-set-field pd-set-field--full" style={{ marginTop: 4 }}>
-              <label className="pd-set-label">Business Description</label>
-              <textarea
-                className="pd-set-textarea"
-                rows={3}
-                defaultValue="A leading hospitality group offering premium dining, nightlife, and wellness experiences across the Middle East and beyond."
-              />
-            </div>
-
-            {/* Billing contact toggle */}
-            <div className="pd-set-choice-row">
-              <span className="pd-set-choice-label">Is the Billing Contact different from the Primary Contact?</span>
-              <div className="pd-set-choice-options" role="radiogroup">
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={billingDifferent}
-                  className={`pd-set-choice-pill${billingDifferent ? " pd-set-choice-pill--on" : ""}`}
-                  onClick={() => setBillingDifferent(true)}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={!billingDifferent}
-                  className={`pd-set-choice-pill${!billingDifferent ? " pd-set-choice-pill--on" : ""}`}
-                  onClick={() => setBillingDifferent(false)}
-                >
-                  No
-                </button>
-              </div>
-            </div>
-
-            {billingDifferent && (
-              <>
-                <h4 className="pd-set-subheading">Billing Contact</h4>
-                <div className="pd-set-field-grid">
-                  <div className="pd-set-field">
-                    <label className="pd-set-label">First Name</label>
-                    <div className="pd-set-input-wrap">
-                      <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                      <input type="text" className="pd-set-input" />
-                    </div>
-                  </div>
-
-                  <div className="pd-set-field">
-                    <label className="pd-set-label">Last Name</label>
-                    <div className="pd-set-input-wrap">
-                      <User size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                      <input type="text" className="pd-set-input" />
-                    </div>
-                  </div>
-
-                  <div className="pd-set-field">
-                    <label className="pd-set-label">Job Role</label>
-                    <div className="pd-set-input-wrap">
-                      <Briefcase size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                      <input type="text" className="pd-set-input" />
-                    </div>
-                  </div>
-
-                  <div className="pd-set-field">
-                    <label className="pd-set-label">Contact Number</label>
-                    <div className="pd-set-input-wrap">
-                      <Phone size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                      <input type="tel" className="pd-set-input" />
-                    </div>
-                  </div>
-
-                  <div className="pd-set-field">
-                    <label className="pd-set-label">Contact Email</label>
-                    <div className="pd-set-input-wrap">
-                      <Mail size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                      <input type="email" className="pd-set-input" />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            <h4 className="pd-set-subheading">Registered Business Address</h4>
-            <div className="pd-set-field-grid">
-              <div className="pd-set-field pd-set-field--full">
-                <label className="pd-set-label">Address Line 1</label>
-                <div className="pd-set-input-wrap">
-                  <MapPin size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-
-              <div className="pd-set-field pd-set-field--full">
-                <label className="pd-set-label">Address Line 2</label>
-                <div className="pd-set-input-wrap">
-                  <MapPin size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">City</label>
-                <div className="pd-set-input-wrap">
-                  <Building2 size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Post / ZIP Code</label>
-                <div className="pd-set-input-wrap">
-                  <Hash size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Country</label>
-                <div className="pd-set-input-wrap">
-                  <Globe size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-
-              <div className="pd-set-field">
-                <label className="pd-set-label">Company Registration Number</label>
-                <div className="pd-set-input-wrap">
-                  <FileText size={16} strokeWidth={1.7} className="pd-set-input-icon" />
-                  <input type="text" className="pd-set-input" />
-                </div>
-              </div>
-            </div>
-
-            <div className="pd-set-field-actions">
-              <button className="pd-btn pd-btn--fill">Save Changes</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Notifications ── */}
-      <div className="pd-set-section pd-anim pd-a3">
-        <button className="pd-set-section-header" onClick={() => setNotifsOpen(!notifsOpen)}>
-          <div className="pd-set-section-left">
-            <div className="pd-set-section-icon">
-              <Bell size={18} strokeWidth={1.7} />
-            </div>
-            <div>
-              <h3 className="pd-set-section-title">Notifications</h3>
-              <p className="pd-set-section-desc">Choose what email notifications you receive</p>
-            </div>
-          </div>
-          <ChevronDown size={18} className={`pd-set-chevron${notifsOpen ? " pd-set-chevron--open" : ""}`} />
-        </button>
-
-        {notifsOpen && (
-          <div className="pd-set-section-body">
-            {notifItems.map((item) => (
-              <div key={item.key} className="pd-set-toggle-row">
-                <div className="pd-set-toggle-info">
-                  <span className="pd-set-toggle-label">{item.label}</span>
-                  <span className="pd-set-toggle-desc">{item.desc}</span>
-                </div>
-                <button
-                  className={`pd-set-toggle${notifs[item.key] ? " pd-set-toggle--on" : ""}`}
-                  onClick={() => toggleNotif(item.key)}
-                >
-                  <span className="pd-set-toggle-knob" />
-                </button>
+            {data.invoices.map((inv) => (
+              <div key={inv.id} className="pd-billing-invoice-row">
+                <span className="pd-billing-invoice-id">{inv.number || inv.id}</span>
+                <span className="pd-billing-invoice-date">{fmtUnixDate(inv.created)}</span>
+                <span className="pd-billing-invoice-plan">{inv.description || "Subscription"}</span>
+                <span className="pd-billing-invoice-amount">{fmtMoney(inv.total, inv.currency)}</span>
+                <span className={`pd-badge pd-badge--${inv.status === "paid" ? "paid" : "pending"}`}>
+                  {inv.status === "paid" && <CheckCircle size={11} />} {inv.status}
+                </span>
+                {inv.hostedInvoiceUrl ? (
+                  <a
+                    className="pd-billing-invoice-dl"
+                    href={inv.invoicePdf || inv.hostedInvoiceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Download size={14} strokeWidth={1.8} />
+                  </a>
+                ) : (
+                  <span />
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+    </>
+  );
+}
 
-      {/* ── Security ── */}
-      <div className="pd-set-section pd-anim pd-a3">
-        <button className="pd-set-section-header" onClick={() => setSecurityOpen(!securityOpen)}>
-          <div className="pd-set-section-left">
-            <div className="pd-set-section-icon">
-              <Shield size={18} strokeWidth={1.7} />
-            </div>
-            <div>
-              <h3 className="pd-set-section-title">Security</h3>
-              <p className="pd-set-section-desc">Password and authentication settings</p>
-            </div>
-          </div>
-          <ChevronDown size={18} className={`pd-set-chevron${securityOpen ? " pd-set-chevron--open" : ""}`} />
-        </button>
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Settings Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+function SettingsTab() {
+  const { profile, logout } = usePartnerAuth();
+  const [notifs, setNotifs] = useState({
+    newBookings: true, weeklyReport: true, monthlyGeoReport: true,
+    listingUpdates: false, growthInsights: false, platformUpdates: false,
+  });
+  const toggle = (k) => setNotifs((p) => ({ ...p, [k]: !p[k] }));
+  const H = { fontFamily: "'Gabarito', sans-serif" };
+  const CARD = { borderRadius: 22, background: "rgba(255,255,255,0.66)", boxShadow: "0 1px 0 rgba(255,255,255,0.9) inset, 0 16px 48px rgba(28,17,20,0.05)", padding: "30px 34px", scrollMarginTop: 24 };
+  const INP = { width: "100%", boxSizing: "border-box", fontSize: 15, padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(28,17,20,0.14)", background: "rgba(255,255,255,0.7)", color: "#1C1114", fontFamily: "'Instrument Sans', sans-serif", outline: "none" };
+  const LBL = { display: "block", fontSize: 13, fontWeight: 600, opacity: 0.7, marginBottom: 8 };
+  const KICK = { margin: "26px 0 14px", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45, fontWeight: 600 };
+  const bizName = profile?.businessName || "";
+  const email = profile?.email || "";
+  const notifItems = [
+    { key: "newBookings", title: "New bookings", desc: "When a traveler books your listing." },
+    { key: "weeklyReport", title: "Weekly performance report", desc: "A summary of your listings every Monday." },
+    { key: "monthlyGeoReport", title: "Monthly GEO score report", desc: "GEO score and ranking trends.", soon: true },
+    { key: "listingUpdates", title: "Listing review updates", desc: "When your listings are approved or need changes." },
+    { key: "growthInsights", title: "Growth insights", desc: "Occasional tips to grow your business.", soon: true },
+    { key: "platformUpdates", title: "Planie platform updates", desc: "Product announcements and new features." },
+  ];
+  const jump = [
+    { label: "Business profile", href: "#set-business" },
+    { label: "Team & access", href: "#set-team" },
+    { label: "Notifications", href: "#set-notifications" },
+    { label: "Security", href: "#set-security" },
+    { label: "Danger zone", href: "#set-danger" },
+  ];
+  const Toggle = ({ on, onClick }) => (
+    <button onClick={onClick} style={{ flexShrink: 0, cursor: "pointer", width: 46, height: 27, borderRadius: 100, border: "none", padding: 3, background: on ? "#FF4040" : "rgba(28,17,20,0.15)", transition: "background 0.25s", display: "flex", justifyContent: on ? "flex-end" : "flex-start" }}>
+      <span style={{ width: 21, height: 21, borderRadius: "50%", background: "#FAF7F1", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+    </button>
+  );
+  return (
+    <>
+      <header className="pd-anim pd-a1">
+        <p className="nu-microlabel" style={{ marginBottom: 6 }}>Settings</p>
+        <h1 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Account &amp; preferences.</h1>
+      </header>
 
-        {securityOpen && (
-          <div className="pd-set-section-body">
-            <div className="pd-set-security-item">
-              <div className="pd-set-security-info">
-                <div className="pd-set-security-icon">
-                  <Lock size={16} strokeWidth={1.7} />
-                </div>
-                <div>
-                  <h4 className="pd-set-security-title">Password</h4>
-                  <p className="pd-set-security-desc">Last changed 3 months ago</p>
-                </div>
+      <div style={{ marginTop: 36, display: "flex", flexWrap: "wrap", gap: 44, alignItems: "flex-start" }}>
+        <div style={{ flex: "10 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Business profile */}
+          <section id="set-business" style={CARD} className="pd-anim pd-a2">
+            <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 20, letterSpacing: "-0.015em" }}>Business profile</h2>
+            <p style={{ margin: "4px 0 24px", fontSize: 13.5, opacity: 0.5 }}>Your Business Profile â€” the account every venue listing sits under.</p>
+            <label style={LBL}>Business name</label>
+            <input type="text" defaultValue={bizName} placeholder="Your business name" style={INP} />
+            <p style={KICK}>Primary contact</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,220px),1fr))", gap: 16 }}>
+              <div><label style={LBL}>Contact email</label><input type="text" defaultValue={email} style={INP} /></div>
+              <div><label style={LBL}>Phone</label><input type="text" placeholder="+44 â€¦" style={INP} /></div>
+            </div>
+            <label style={{ ...LBL, margin: "22px 0 8px" }}>Business description</label>
+            <textarea rows={3} placeholder="A short description of your business." style={{ ...INP, resize: "vertical", lineHeight: 1.5 }} />
+            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>
+              <button className="nu-btn nu-btn--fill">Save changes</button>
+            </div>
+          </section>
+
+          {/* Team & access */}
+          <section id="set-team" style={CARD}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 20, letterSpacing: "-0.015em" }}>Team &amp; access</h2>
+                <p style={{ margin: "4px 0 0", fontSize: 13.5, opacity: 0.5 }}>Who can manage this Business Profile and its listings.</p>
               </div>
-              <button className="pd-btn pd-btn--ghost">Change Password</button>
+              <button className="nu-btn nu-btn--outline">+ Invite teammate</button>
             </div>
-
-            <div className="pd-set-security-item">
-              <div className="pd-set-security-info">
-                <div className="pd-set-security-icon">
-                  <Shield size={16} strokeWidth={1.7} />
+            <div style={{ marginTop: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 4px", borderTop: "1px solid rgba(28,17,20,0.07)" }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#1C1114", color: "#FAF7F1", display: "flex", alignItems: "center", justifyContent: "center", ...H, fontWeight: 700, fontSize: 15 }}>{(bizName || email || "?").slice(0, 1).toUpperCase()}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{bizName || "You"}</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.5 }}>{email}</p>
                 </div>
-                <div>
-                  <h4 className="pd-set-security-title">Two-Factor Authentication</h4>
-                  <p className="pd-set-security-desc">Add an extra layer of security to your account</p>
-                </div>
+                <span style={{ fontSize: 12.5, fontWeight: 600, padding: "6px 13px", borderRadius: 100, color: "#15803d", background: "rgba(21,128,61,0.1)" }}>Owner</span>
               </div>
-              <button className="pd-btn pd-btn--ghost">Enable 2FA</button>
             </div>
-          </div>
-        )}
-      </div>
+          </section>
 
-      {/* ── Danger Zone ── */}
-      <div className="pd-set-section pd-set-section--danger pd-anim pd-a4">
-        <div className="pd-set-danger-content">
-          <div className="pd-set-danger-info">
-            <div className="pd-set-section-icon pd-set-section-icon--danger">
-              <AlertCircle size={18} strokeWidth={1.7} />
+          {/* Notifications */}
+          <section id="set-notifications" style={CARD}>
+            <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 20, letterSpacing: "-0.015em" }}>Notifications</h2>
+            <p style={{ margin: "4px 0 20px", fontSize: 13.5, opacity: 0.5 }}>Choose what lands in your inbox.</p>
+            {notifItems.map((nt) => (
+              <div key={nt.key} style={{ display: "flex", alignItems: "center", gap: 18, padding: "16px 0", borderTop: "1px solid rgba(28,17,20,0.07)", opacity: nt.soon ? 0.55 : 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 9 }}>
+                    {nt.title}{nt.soon && <span className="nu-nav-badge" style={{ color: "rgba(28,17,20,0.55)", borderColor: "rgba(28,17,20,0.2)" }}>Soon</span>}
+                  </p>
+                  <p style={{ margin: "3px 0 0", fontSize: 13, opacity: 0.5, lineHeight: 1.5 }}>{nt.desc}</p>
+                </div>
+                <Toggle on={notifs[nt.key]} onClick={() => !nt.soon && toggle(nt.key)} />
+              </div>
+            ))}
+          </section>
+
+          {/* Security */}
+          <section id="set-security" style={CARD}>
+            <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 20, letterSpacing: "-0.015em" }}>Security</h2>
+            <p style={{ margin: "4px 0 20px", fontSize: 13.5, opacity: 0.5 }}>Password, authentication and active sessions.</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 0", borderTop: "1px solid rgba(28,17,20,0.07)" }}>
+              <div style={{ flex: 1 }}><p style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>Password</p><p style={{ margin: "3px 0 0", fontSize: 13, opacity: 0.5 }}>Reset it by email any time.</p></div>
+              <button className="nu-btn nu-btn--outline" onClick={() => logout()}>Sign out</button>
             </div>
-            <div>
-              <h3 className="pd-set-section-title">Delete Account</h3>
-              <p className="pd-set-section-desc">Permanently remove your account and all associated data. This action cannot be undone.</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 0", borderTop: "1px solid rgba(28,17,20,0.07)" }}>
+              <div style={{ flex: 1 }}><p style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>Two-factor authentication</p><p style={{ margin: "3px 0 0", fontSize: 13, opacity: 0.5 }}>Add an extra layer of security.</p></div>
+              <button className="nu-btn nu-btn--fill">Enable 2FA</button>
             </div>
-          </div>
-          <button className="pd-btn pd-btn--danger">Delete Account</button>
+          </section>
+
+          {/* Danger zone */}
+          <section id="set-danger" style={{ borderRadius: 22, background: "rgba(255,64,64,0.05)", border: "1px solid rgba(255,64,64,0.2)", padding: "26px 34px", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: 17, color: "#C8321F" }}>Delete Business Profile</p>
+              <p style={{ margin: "6px 0 0", fontSize: 13.5, opacity: 0.6, lineHeight: 1.55 }}>Permanently removes your account, every venue listing, and all associated data. This cannot be undone.</p>
+            </div>
+            <button style={{ fontSize: 13.5, fontWeight: 600, cursor: "pointer", padding: "12px 24px", borderRadius: 100, border: "1px solid #FF4040", background: "transparent", color: "#C8321F" }}>Delete account</button>
+          </section>
         </div>
+
+        {/* Rail */}
+        <aside style={{ flex: "1 1 260px", maxWidth: 340, position: "sticky", top: 36, display: "flex", flexDirection: "column", gap: 22 }} className="pd-anim pd-a3">
+          <div style={{ borderRadius: 20, background: "rgba(255,255,255,0.66)", boxShadow: "0 1px 0 rgba(255,255,255,0.9) inset, 0 16px 48px rgba(28,17,20,0.05)", padding: "20px 22px" }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45, fontWeight: 600 }}>On this page</p>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {jump.map((j, i) => (
+                <a key={j.href} href={j.href} style={{ fontSize: 14, padding: "9px 0", borderBottom: i < jump.length - 1 ? "1px solid rgba(28,17,20,0.07)" : "none", opacity: 0.7, color: "#1C1114" }}>{j.label}</a>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
     </>
   );
 }
 
-/* ═══════════════════════════════════════════════════════ */
+/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */
 
 const tabSlugs = {
-  "Dashboard": "dashboard",
-  "My Listings": "listings",
+  "Overview": "dashboard",
+  "Listings": "listings",
   "Promotions": "promotions",
-  "Analytics": "analytics",
+  "Insights": "analytics",
   "Billing": "billing",
   "Settings": "settings",
 };
 const tabFromSlug = Object.fromEntries(Object.entries(tabSlugs).map(([k, v]) => [v, k]));
 
 function getTabFromHash() {
-  if (typeof window === "undefined") return "Dashboard";
+  if (typeof window === "undefined") return "Overview";
   const slug = window.location.hash.replace(/^#/, "");
-  return tabFromSlug[slug] || "Dashboard";
+  return tabFromSlug[slug] || "Overview";
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Overview (design port of Planie Partner Dashboard.dc.html) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+   Real data: greeting, listing counts + the "Your places" table, setup
+   checklist. Analytics numbers (metric deltas, the chart, demand, review) are
+   sample data until the Phase-6 data platform exists Ã¢â‚¬â€ clearly a preview. */
+const OV_HEAD = { fontFamily: "'Gabarito', sans-serif" };
+const OV_CARD = {
+  borderRadius: 20, background: "rgba(255,255,255,0.66)",
+  boxShadow: "0 1px 0 rgba(255,255,255,0.9) inset, 0 16px 48px rgba(28,17,20,0.05)",
+  padding: "22px 24px",
+};
+const OV_AREAS = [
+  { name: "Old Town", pct: 82, barColor: "#FF4040" },
+  { name: "Harbour", pct: 64, barColor: "#1C1114" },
+  { name: "Design District", pct: 48, barColor: "#1C1114" },
+  { name: "Riverside", pct: 31, barColor: "#1C1114" },
+];
+
+function OvPeriodToggle() {
+  const [i, setI] = useState(1);
+  const opts = ["7 days", "30 days", "90 days"];
+  return (
+    <div style={{ display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)" }}>
+      {opts.map((o, idx) => (
+        <button key={o} onClick={() => setI(idx)} style={{
+          fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer",
+          border: "none", padding: "8px 18px", borderRadius: 100, transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
+          background: i === idx ? "#1C1114" : "transparent", color: i === idx ? "#FAF7F1" : "#1C1114",
+        }}>{o}</button>
+      ))}
+    </div>
+  );
+}
+
+function FeedbackButton() {
+  const [open, setOpen] = useState(false);
+  const [emoji, setEmoji] = useState(null);
+  const [topic, setTopic] = useState("General");
+  const [note, setNote] = useState("");
+  const [sent, setSent] = useState(false);
+  const close = () => { setOpen(false); setTimeout(() => { setSent(false); setEmoji(null); setNote(""); setTopic("General"); }, 200); };
+  return (
+    <>
+      <button onClick={() => setOpen(true)} style={{
+        fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer",
+        padding: "9px 18px", borderRadius: 100, border: "1px solid rgba(28,17,20,0.16)", background: "transparent",
+        color: "#1C1114", display: "inline-flex", alignItems: "center", gap: 8,
+      }}>
+        <MessageSquare size={15} strokeWidth={2} /> Leave feedback
+      </button>
+      {open && (
+        <div onClick={close} style={{ position: "fixed", inset: 0, background: "rgba(28,17,20,0.45)", zIndex: 200, display: "grid", placeItems: "center", padding: 20 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "min(440px,100%)", background: "#FAF7F1", borderRadius: 18, padding: "28px 30px", boxShadow: "0 24px 64px rgba(28,17,20,0.25)" }}>
+            {sent ? (
+              <div style={{ textAlign: "center", padding: "16px 0" }}>
+                <div style={{ width: 52, height: 52, margin: "0 auto 14px", borderRadius: "50%", background: "#1C1114", color: "#FAF7F1", display: "grid", placeItems: "center" }}>
+                  <Check size={24} strokeWidth={2.4} />
+                </div>
+                <h3 style={{ ...OV_HEAD, margin: 0, fontSize: 22 }}>Thank you</h3>
+                <p style={{ margin: "10px 0 20px", opacity: 0.6, fontSize: 14.5 }}>Your feedback helps us make Planie better for partners.</p>
+                <button className="nu-btn nu-btn--outline" onClick={close}>Close</button>
+              </div>
+            ) : (
+              <>
+                <h3 style={{ ...OV_HEAD, margin: "0 0 4px", fontSize: 20 }}>How's it going?</h3>
+                <p style={{ margin: "0 0 18px", opacity: 0.55, fontSize: 13.5 }}>Tell us what's working or what's not.</p>
+                <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+                  {["Ã°Å¸ËœÅ¾", "Ã°Å¸ËœÂ", "Ã°Å¸â„¢â€š", "Ã°Å¸ËœÂ"].map((e) => (
+                    <button key={e} onClick={() => setEmoji(e)} style={{
+                      fontSize: 24, cursor: "pointer", width: 48, height: 48, borderRadius: 12,
+                      border: `1px solid ${emoji === e ? "#1C1114" : "rgba(28,17,20,0.14)"}`,
+                      background: emoji === e ? "rgba(28,17,20,0.05)" : "#fff",
+                    }}>{e}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                  {["General", "A bug", "Feature idea", "Billing"].map((t) => (
+                    <button key={t} className={`al-category-chip${topic === t ? " al-category-chip--active" : ""}`} onClick={() => setTopic(t)}>{t}</button>
+                  ))}
+                </div>
+                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything you'd like us to knowÃ¢â‚¬Â¦" style={{
+                  width: "100%", boxSizing: "border-box", minHeight: 90, resize: "vertical", fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: 14, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(28,17,20,0.14)", background: "#fff", color: "#1C1114", outline: "none",
+                }} />
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+                  <button className="nu-btn nu-btn--outline" onClick={close}>Cancel</button>
+                  <button className="nu-btn nu-btn--fill" disabled={!emoji} onClick={() => setSent(true)}>Send feedback</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* Right rail Ã¢â‚¬â€ Happening now (empty until placements exist), Demand near you
+   (sample), Latest review (sample). */
+function OverviewRail() {
+  return (
+    <aside style={{ flex: "1 1 300px", maxWidth: 420, display: "flex", flexDirection: "column", gap: 22 }} className="pd-anim pd-a3">
+      <div style={OV_CARD}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 17, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF4040", animation: "nuPulseDot 2s ease-out infinite" }} />
+            Happening now
+          </p>
+        </div>
+        <div style={{ textAlign: "center", padding: "30px 16px 10px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(28,17,20,0.05)", display: "grid", placeItems: "center", color: "rgba(28,17,20,0.4)", marginBottom: 12 }}>
+            <MapPin size={21} strokeWidth={2} />
+          </div>
+          <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 15.5 }}>No placements yet</p>
+          <p style={{ margin: "6px 0 0", fontSize: 13, opacity: 0.55, lineHeight: 1.5, maxWidth: "30ch" }}>
+            When Planie adds your venue to a live plan, it'll show up here in real time.
+          </p>
+        </div>
+      </div>
+
+      <div style={OV_CARD}>
+        <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 17 }}>Demand near you</p>
+        <p style={{ margin: "4px 0 16px", fontSize: 13, opacity: 0.5 }}>Where this week's plans are forming</p>
+        {OV_AREAS.map((a) => (
+          <div key={a.name} style={{ display: "grid", gridTemplateColumns: "92px 1fr 38px", alignItems: "center", gap: 12, padding: "7px 0" }}>
+            <span style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</span>
+            <div style={{ height: 5, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}>
+              <div style={{ width: `${a.pct}%`, height: "100%", borderRadius: 3, background: a.barColor }} />
+            </div>
+            <span style={{ fontSize: 12.5, opacity: 0.5, textAlign: "right" }}>{a.pct}%</span>
+          </div>
+        ))}
+        <p style={{ margin: "16px 0 0", fontSize: 13, opacity: 0.6, lineHeight: 1.5 }}>
+          Boost a listing to show up first for plans forming here Ã¢â‚¬â€ <Link to="/partners/campaigns" style={{ fontWeight: 600, color: "#FF4040" }}>run a campaign Ã¢â€ â€™</Link>
+        </p>
+      </div>
+
+      <div style={OV_CARD}>
+        <p style={{ ...OV_HEAD, margin: "0 0 4px", fontWeight: 700, fontSize: 17 }}>Latest review</p>
+        <div style={{ display: "flex", gap: 3, margin: "6px 0 10px", color: "#F59E0B" }}>
+          {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={14} fill="#F59E0B" stroke="#F59E0B" />)}
+        </div>
+        <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.6, fontStyle: "italic", opacity: 0.8 }}>
+          "Found this spot through Planie and it was exactly our vibe. Booked in seconds."
+        </p>
+        <p style={{ margin: "10px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample review Ã‚Â· shown until live reviews arrive</p>
+      </div>
+    </aside>
+  );
 }
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTabState] = useState(getTabFromHash);
   const [tier, setTier] = useState(() => getTier());
+  const navigate = useNavigate();
+  const { user, profile, isAdmin, logout } = usePartnerAuth();
+  const { items: myListings } = useMyListings();
   useEffect(() => subscribeTier(setTier), []);
+
+  const partnerName =
+    profile?.businessName || user?.displayName || user?.email?.split("@")[0] || "Partner";
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate("/partners/login", { replace: true });
+  };
 
   const setActiveTab = (tab) => {
     setActiveTabState(tab);
@@ -2088,32 +2176,26 @@ export default function PartnerDashboard() {
     window.addEventListener("hashchange", onHashChange);
     // Ensure hash reflects initial tab
     if (!window.location.hash) {
-      window.history.replaceState(null, "", `#${tabSlugs.Dashboard}`);
+      window.history.replaceState(null, "", `#${tabSlugs.Overview}`);
     }
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const v = useCounter(4200, 1400, 200);
-  const cl = useCounter(1340, 1400, 300);
-  const cr = useCounter(32, 1200, 400);
-  const bookings = useCounter(187, 1400, 500);
-
-  const stats = [
-    { label: "Total Views", value: v.toLocaleString(), change: "+12.5%", up: true, icon: Eye, spark: [120,180,150,260,220,310,290] },
-    { label: "Total Clicks", value: cl.toLocaleString(), change: "+8.3%", up: true, icon: MousePointerClick, spark: [40,65,55,90,75,100,95] },
-    { label: "Conv. Rate", value: `${cr}%`, change: "-2.1%", up: false, icon: TrendingUp, spark: [38,35,40,34,36,32,33] },
-    { label: "Bookings Made", value: bookings.toLocaleString(), change: "+18.7%", up: true, icon: CalendarCheck, spark: [30,45,40,55,50,65,60] },
-  ];
-
   return (
     <div className="pd-layout">
-      {/* ── Sidebar ── */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Sidebar ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       <aside className="pd-sidebar">
         <div>
           <Link to="/" className="pd-logo">
             <img src={PlanieLogo} alt="Planie" />
           </Link>
           <nav className="pd-nav">
+            {isAdmin && (
+              <Link to="/partners/admin" className="pd-nav-btn" style={{ color: "#FF4040" }}>
+                <Shield size={18} strokeWidth={1.7} />
+                <span>Staff Review</span>
+              </Link>
+            )}
             {navItems.map((n) => {
               const I = n.icon;
               const badge = n.label === "Campaigns" && !isFeatured(tier) ? "Featured" : null;
@@ -2135,19 +2217,28 @@ export default function PartnerDashboard() {
             })}
           </nav>
         </div>
-        <Link to="/partners/login" className="pd-nav-btn pd-nav-btn--out">
-          <LogOut size={18} strokeWidth={1.7} />
-          <span>Sign Out</span>
-        </Link>
+        <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid rgba(250,247,241,0.08)", display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <p style={{ margin: 0, fontFamily: "'Gabarito', sans-serif", fontWeight: 600, fontSize: 14.5, color: "#FAF7F1" }}>{partnerName}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "rgba(250,247,241,0.45)" }}>
+              {(myListings?.length ?? 0)} venue {(myListings?.length ?? 0) === 1 ? "listing" : "listings"}
+            </p>
+          </div>
+          <button onClick={handleSignOut} className="pd-nav-btn pd-nav-btn--out">
+            <LogOut size={18} strokeWidth={1.7} />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Main ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       <main className="pd-main">
-        {activeTab === "My Listings" ? (
+        <VerificationBanner />
+        {activeTab === "Listings" ? (
           <ListingsTab />
         ) : activeTab === "Promotions" ? (
           <PromotionsTab />
-        ) : activeTab === "Analytics" ? (
+        ) : activeTab === "Insights" ? (
           <AnalyticsTab />
         ) : activeTab === "Billing" ? (
           <BillingTab />
@@ -2155,135 +2246,126 @@ export default function PartnerDashboard() {
           <SettingsTab />
         ) : (
           <>
-            {/* Header */}
-            <header className="pd-head pd-anim pd-a1">
-              <div>
-                <h1 className="pd-title">Hello, Business</h1>
-                <p className="pd-subtitle">Here's how your listings are performing this week</p>
-              </div>
-              <div className="pd-actions">
-                <button className="pd-btn pd-btn--ghost" onClick={() => setActiveTab("My Listings")}>
-                  <Pencil size={15} strokeWidth={2} />
-                  Edit Listing
-                </button>
-                <Link to="/partners/add-listing" className="pd-btn pd-btn--fill">
-                  <Plus size={17} strokeWidth={2.2} />
-                  Add a Listing
-                </Link>
-              </div>
-            </header>
-
-            {/* Setup checklist */}
-            <SetupChecklistSection setActiveTab={setActiveTab} animClass="pd-a2" />
-
-            {/* Drafts */}
-            <DraftsSection animClass="pd-a2" />
-            <PromotionDraftsSection animClass="pd-a2" />
-
-            {/* Stats */}
-            <div className="pd-stats pd-anim pd-a2">
-              {stats.map((s) => {
-                const I = s.icon;
-                return (
-                  <div key={s.label} className="pd-stat">
-                    <div className="pd-stat-top">
-                      <I size={16} strokeWidth={1.8} className="pd-stat-ico" />
-                      <span className="pd-stat-lbl">{s.label}</span>
-                    </div>
-                    <div className="pd-stat-mid">
-                      <span className="pd-stat-val">{s.value}</span>
-                      <span className={`pd-stat-chg ${s.up ? "pd-stat-chg--up" : "pd-stat-chg--dn"}`}>
-                        {s.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                        {s.change}
-                      </span>
-                    </div>
-                    <Sparkline data={s.spark} />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Listing Slots */}
             {(() => {
-              const currentPlan = plans.find((p) => p.current);
-              const maxListings = currentPlan?.name === "Starter" ? 3 : currentPlan?.name === "Pro" ? 10 : Infinity;
-              const activeCount = listings.filter((l) => l.status === "active").length;
-              const inactiveCount = listings.filter((l) => l.status === "inactive").length;
-              const pendingCount = listings.filter((l) => l.status === "pending").length;
-              const usedSlots = listings.length;
-              const freeSlots = maxListings === Infinity ? "Unlimited" : maxListings - usedSlots;
+              const all = myListings ?? [];
+              const activeCount = all.filter((l) => l.status === "active").length;
+              const metrics = [
+                { label: "Listings", value: String(all.length), delta: `${activeCount} active`, deltaColor: "#15803d", divider: true },
+                { label: "Views", value: "4,200", delta: "+12.5%", deltaColor: "#15803d", divider: true },
+                { label: "Bookings", value: "187", delta: "+18.7%", deltaColor: "#15803d", divider: true },
+                { label: "Rating", value: "4.8", delta: "+0.1", deltaColor: "#15803d", divider: false },
+              ];
+              const statusChip = (s) => {
+                const map = {
+                  active: { c: "#15803d", label: "Active" },
+                  pending: { c: "#9a3412", label: "Pending" },
+                  denied: { c: "#FF4040", label: "Denied" },
+                  inactive: { c: "rgba(28,17,20,0.5)", label: "Paused" },
+                };
+                const m = map[s] || map.inactive;
+                return <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 100, color: m.c, border: `1px solid ${m.c}33` }}>{m.label}</span>;
+              };
               return (
-                <div className="pd-slots pd-anim pd-a3">
-                  <div className="pd-slots-header">
-                    <Store size={16} strokeWidth={1.8} />
-                    <h3>Listing Slots</h3>
-                    <span className="pd-slots-plan">{currentPlan?.name} Plan</span>
+                <>
+                  {/* Header */}
+                  <header className="pd-anim pd-a1" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+                    <div>
+                      <p className="nu-microlabel" style={{ marginBottom: 6 }}>Overview</p>
+                      <h1 style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Hello, {partnerName}</h1>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <FeedbackButton />
+                      <OvPeriodToggle />
+                    </div>
+                  </header>
+
+                  <div style={{ marginTop: 36, display: "flex", flexWrap: "wrap", gap: 44, alignItems: "flex-start" }}>
+                    <div style={{ flex: "10 1 560px", minWidth: 0 }}>
+                      {/* Metric band */}
+                      <section className="pd-anim pd-a2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", rowGap: 32 }}>
+                        {metrics.map((m) => (
+                          <div key={m.label} style={{ padding: "4px 20px 8px 0", marginRight: 20, borderRight: m.divider ? "1px solid rgba(28,17,20,0.08)" : "none", minWidth: 0 }}>
+                            <p style={{ margin: "0 0 10px", fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{m.label}</p>
+                            <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 42, letterSpacing: "-0.02em", lineHeight: 1 }}>{m.value}</p>
+                            <p style={{ margin: "10px 0 0", fontSize: 13.5, fontWeight: 600, color: m.deltaColor }}>{m.delta}</p>
+                          </div>
+                        ))}
+                      </section>
+
+                      {/* Performance chart (sample) */}
+                      <section className="pd-anim pd-a2" style={{ marginTop: 52 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                          <h2 style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 22, letterSpacing: "-0.015em" }}>People finding you</h2>
+                          <div style={{ display: "flex", gap: 22, fontSize: 13.5 }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 16, height: 3, borderRadius: 2, background: "#1C1114" }} />Views</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.75 }}><span style={{ width: 16, height: 3, borderRadius: 2, background: "rgba(28,17,20,0.3)" }} />Clicks</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 16, height: 3, borderRadius: 2, background: "#FF4040" }} />Bookings</span>
+                          </div>
+                        </div>
+                        <svg viewBox="0 0 860 250" style={{ width: "100%", height: "auto", display: "block", marginTop: 14 }}>
+                          <g stroke="#1C1114" strokeOpacity="0.06" strokeWidth="1">
+                            {[10, 70, 130, 190].map((y) => <line key={y} x1="0" y1={y} x2="860" y2={y} />)}
+                          </g>
+                          <polyline points="0,150 120,120 240,135 360,90 480,105 600,60 720,75 860,40" fill="none" stroke="#1C1114" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <polyline points="0,180 120,165 240,170 360,140 480,150 600,120 720,130 860,110" fill="none" stroke="rgba(28,17,20,0.3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <polyline points="0,205 120,200 240,195 360,185 480,180 600,165 720,160 860,150" fill="none" stroke="#FF4040" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <g fontFamily="Instrument Sans, sans-serif" fontSize="12" fill="#1C1114" fillOpacity="0.4">
+                            <text x="0" y="242">4 weeks ago</text>
+                            <text x="430" y="242" textAnchor="middle">2 weeks ago</text>
+                            <text x="860" y="242" textAnchor="end">This week</text>
+                          </g>
+                        </svg>
+                        <p style={{ margin: "6px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample data Ã¢â‚¬â€ live analytics arrive with the Insights platform.</p>
+                      </section>
+
+                      {/* Your places */}
+                      <section className="pd-anim pd-a3" style={{ marginTop: 56 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+                          <h2 style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 22, letterSpacing: "-0.015em" }}>Your places</h2>
+                          <Link to="/partners/add-listing" className="nu-btn nu-btn--fill" style={{ padding: "10px 20px" }}>+ New listing</Link>
+                        </div>
+                        <div style={{ marginTop: 8 }}>
+                          {myListings === null ? (
+                            <p style={{ opacity: 0.5, fontSize: 14, padding: "16px 0" }}>LoadingÃ¢â‚¬Â¦</p>
+                          ) : all.length === 0 ? (
+                            <div style={{ textAlign: "center", padding: "40px 16px", opacity: 0.6 }}>
+                              <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 16 }}>No places yet</p>
+                              <p style={{ margin: "6px 0 16px", fontSize: 13.5 }}>Add your first venue to get placed inside plans.</p>
+                              <Link to="/partners/add-listing" className="nu-btn nu-btn--outline">Add a listing</Link>
+                            </div>
+                          ) : (
+                            all.map((l) => (
+                              <div key={l.id} style={{ display: "grid", gridTemplateColumns: "2.2fr 1fr 1fr 0.9fr", alignItems: "center", gap: 16, padding: "20px 4px", borderBottom: "1px solid rgba(28,17,20,0.08)" }}>
+                                <div>
+                                  <Link to={`/partners/edit-listing/${l.id}`} style={{ ...OV_HEAD, margin: 0, fontWeight: 600, fontSize: 16.5, color: "#1C1114" }}>{l.name}</Link>
+                                  <p style={{ margin: "3px 0 0", fontSize: 13.5, opacity: 0.5 }}>{l.location || l.city || l.category}</p>
+                                </div>
+                                <div><p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{(l.views ?? 0).toLocaleString()}</p><p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.45 }}>views</p></div>
+                                <div><p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Ã¢Ëœâ€¦ {l.rating ?? "Ã¢â‚¬â€"}</p><p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.45 }}>rating</p></div>
+                                <div style={{ display: "flex", justifyContent: "flex-end" }}>{statusChip(l.status)}</div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </section>
+
+                      {/* Finish setting up (real checklist) */}
+                      <div style={{ marginTop: 44 }}>
+                        <SetupChecklistSection setActiveTab={setActiveTab} animClass="pd-a3" />
+                        <DraftsSection animClass="pd-a3" />
+                        <PromotionDraftsSection
+                          listingNames={Object.fromEntries(all.map((l) => [l.id, l.name]))}
+                          animClass="pd-a3"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right rail */}
+                    <OverviewRail />
                   </div>
-                  <div className="pd-slots-bar-wrap">
-                    <div className="pd-slots-bar">
-                      <div className="pd-slots-bar-fill" style={{ width: maxListings === Infinity ? "10%" : `${(usedSlots / maxListings) * 100}%` }} />
-                    </div>
-                    <span className="pd-slots-bar-label">{usedSlots} / {maxListings === Infinity ? "∞" : maxListings} used</span>
-                  </div>
-                  <div className="pd-slots-grid">
-                    <div className="pd-slots-item">
-                      <span className="pd-slots-item-val pd-slots--active">{activeCount}</span>
-                      <span className="pd-slots-item-lbl">Active</span>
-                    </div>
-                    <div className="pd-slots-item">
-                      <span className="pd-slots-item-val pd-slots--inactive">{inactiveCount}</span>
-                      <span className="pd-slots-item-lbl">Inactive</span>
-                    </div>
-                    <div className="pd-slots-item">
-                      <span className="pd-slots-item-val pd-slots--pending">{pendingCount}</span>
-                      <span className="pd-slots-item-lbl">Pending</span>
-                    </div>
-                    <div className="pd-slots-item">
-                      <span className="pd-slots-item-val pd-slots--free">{freeSlots}</span>
-                      <span className="pd-slots-item-lbl">Free Slots</span>
-                    </div>
-                  </div>
-                </div>
+                </>
               );
             })()}
-
-            {/* Listings */}
-            <div className="pd-card pd-anim pd-a4">
-              <div className="pd-card-top">
-                <h3>Your Listings</h3>
-                <button className="pd-link" onClick={() => setActiveTab("My Listings")}>View All <ChevronRight size={14} /></button>
-              </div>
-              <div className="pd-list">
-                {listings.map((l) => (
-                  <div key={l.name} className="pd-item">
-                    <div className="pd-item-av">
-                      <Store size={18} strokeWidth={1.6} />
-                    </div>
-                    <div className="pd-item-info">
-                      <h4>{l.name}</h4>
-                      <p>
-                        <span>{l.category}</span>
-                        <span className="pd-item-loc"><MapPin size={11} />{l.location}</span>
-                      </p>
-                    </div>
-                    <div className="pd-item-nums">
-                      <span><Star size={13} fill="#F59E0B" stroke="#F59E0B" />{l.rating}</span>
-                      <span><Eye size={13} />{l.views.toLocaleString()}</span>
-                    </div>
-                    <span className={`pd-badge pd-badge--${l.status}`}>
-                      {l.status === "active" ? "Active" : "Pending"}
-                    </span>
-                    <Link to={`/partners/edit-listing/${toSlug(l.name)}`} className="pd-item-edit">
-                      <Pencil size={14} strokeWidth={1.8} />
-                    </Link>
-                  </div>
-                ))}
-              </div>
-              <Link to="/partners/add-listing" className="pd-add-cta">
-                <Plus size={18} strokeWidth={2} />
-                <span>Add a New Listing</span>
-              </Link>
-            </div>
           </>
         )}
       </main>

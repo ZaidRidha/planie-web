@@ -1,0 +1,342 @@
+/* newUi/override.css — retheme of the portal's existing class vocabularies
+   (pd-, cmp-, al-, pl-) to the new design system, WITHOUT touching page
+   markup or logic. Loaded from src/index.js; every rule is prefixed with
+   `html body` so it outranks the legacy single-class rules regardless of
+   CSS import order. Legacy files still provide layout/spacing; this layer
+   swaps the skin: cream/ink palette, Gabarito headings, pill buttons,
+   hairlines instead of shadows. See uiMigrationPlan.md. */
+
+/* ————— Global palette + type ————— */
+html body .pd-layout,
+html body .cmp-modal,
+html body .pl-page {
+  font-family: var(--nu-font-body);
+  color: var(--nu-ink);
+  background: var(--nu-bg);
+}
+html body .pd-layout ::selection { background: var(--nu-red); color: var(--nu-cream); }
+
+html body .pd-title,
+html body .cmp-hero-title,
+html body .cmp-section-title,
+html body .cmp-modal-title,
+html body .pd-sec-title,
+html body .pd-billing-section-title,
+html body .al-title,
+html body .pl-form-title {
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nu-ink);
+}
+html body .pd-title { font-size: 40px; }
+html body .pd-subtitle,
+html body .cmp-section-sub,
+html body .cmp-hero-sub { color: var(--nu-muted); }
+
+/* ————— Sidebar: ink panel (design: aside[data-screen-label=Sidebar]) ————— */
+html body .pd-sidebar {
+  background: var(--nu-ink);
+  border-right: none;
+  color: var(--nu-cream);
+}
+/* Old logo image dies; new masked logo + wordmark rendered purely in CSS so
+   every page's sidebar copy is fixed at once (no markup edits). */
+html body .pd-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+html body .pd-logo img { display: none; }
+html body .pd-logo::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: var(--nu-cream);
+  -webkit-mask-image: var(--nu-logo-mask);
+  mask-image: var(--nu-logo-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+html body .pd-logo::after {
+  content: "Planie Partners";
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--nu-cream);
+  white-space: nowrap;
+}
+html body .pd-nav-btn {
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--nu-sidebar-muted);
+  background: transparent;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+}
+html body .pd-nav-btn:hover { color: var(--nu-cream); background: rgba(250, 247, 241, 0.07); }
+html body .pd-nav-btn--on,
+html body .pd-nav-btn--on:hover {
+  color: var(--nu-cream);
+  background: rgba(250, 247, 241, 0.07);
+  font-weight: 600;
+}
+html body .pd-nav-btn--out { color: rgba(250, 247, 241, 0.5); border-top: none; }
+html body .pd-nav-btn--out:hover { color: var(--nu-red); background: transparent; }
+html body .pd-nav-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(250, 247, 241, 0.5);
+  background: transparent;
+  border: 1px solid rgba(250, 247, 241, 0.2);
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+
+/* ————— Buttons: pills ————— */
+html body .pd-btn,
+html body .cmp-active-listings-btn,
+html body .al-booking-btn,
+html body .pl-continue-btn {
+  font-family: var(--nu-font-body);
+  border-radius: 100px;
+  font-weight: 600;
+  transition: all 0.25s var(--nu-ease);
+  box-shadow: none;
+}
+html body .pd-btn--fill,
+html body .pl-continue-btn {
+  background: var(--nu-ink);
+  color: var(--nu-cream);
+  border: 1px solid var(--nu-ink);
+}
+html body .pd-btn--fill:hover:not(:disabled),
+html body .pl-continue-btn:hover:not(:disabled) {
+  background: var(--nu-red);
+  border-color: var(--nu-red);
+  color: #fff;
+}
+html body .pd-btn--ghost,
+html body .pd-btn--outline {
+  background: transparent;
+  color: var(--nu-ink);
+  border: 1px solid var(--nu-hairline);
+}
+html body .pd-btn--ghost:hover:not(:disabled),
+html body .pd-btn--outline:hover:not(:disabled) { border-color: var(--nu-ink); background: transparent; }
+html body .pd-btn--danger { border-radius: 100px; }
+
+/* ————— Cards / sections: white panels with hairlines, softer shadows ————— */
+html body .pd-card,
+html body .pd-stat,
+html body .pd-an-stat,
+html body .cmp-section,
+html body .cmp-tile,
+html body .cmp-slot,
+html body .cmp-bundle,
+html body .cmp-active-card,
+html body .pd-billing-plan-card,
+html body .al-section,
+html body .pd-set-card {
+  background: #fff;
+  border: 1px solid var(--nu-hairline-soft);
+  border-radius: 16px;
+  box-shadow: none;
+}
+html body .pd-billing-plan-card--active { border-color: var(--nu-ink); }
+
+/* ————— Status badges/chips: outline pills, our real statuses ————— */
+html body .pd-badge,
+html body .cmp-active-status,
+html body .cmp-assign-row-status,
+html body .al-status {
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--nu-hairline);
+  color: var(--nu-ink);
+}
+html body .pd-badge--active,
+html body .cmp-active-status--active,
+html body .cmp-assign-row-status--active { border-color: rgba(21, 128, 61, 0.35); color: #15803d; background: transparent; }
+html body .pd-badge--pending,
+html body .cmp-assign-row-status--pending,
+html body .cmp-active-status--upcoming { border-color: rgba(154, 52, 18, 0.35); color: #9a3412; background: transparent; }
+html body .pd-badge--inactive,
+html body .pd-badge--paused,
+html body .cmp-active-status--expired,
+html body .cmp-assign-row-status--inactive { color: var(--nu-muted); background: transparent; }
+html body .pd-badge--denied { border-color: rgba(255, 64, 64, 0.45); color: var(--nu-red); background: transparent; }
+html body .cmp-active-status--processing { border-color: rgba(29, 78, 216, 0.35); color: #1d4ed8; background: transparent; }
+html body .pd-badge--paid { border-color: rgba(21, 128, 61, 0.35); color: #15803d; background: transparent; }
+
+/* ————— Inputs ————— */
+html body .al-input,
+html body .al-select,
+html body .al-textarea,
+html body .pd-set-input,
+html body .pl-email-input,
+html body .cmp-city-search-input {
+  font-family: var(--nu-font-body);
+  border: 1px solid var(--nu-hairline);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--nu-ink);
+  box-shadow: none;
+}
+html body .al-input:focus,
+html body .al-select:focus,
+html body .al-textarea:focus,
+html body .pd-set-input:focus,
+html body .pl-email-input:focus,
+html body .cmp-city-search-input:focus {
+  border-color: var(--nu-ink);
+  box-shadow: none;
+  outline: none;
+}
+html body .al-label,
+html body .pd-set-label,
+html body .pl-email-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nu-muted);
+  font-weight: 600;
+}
+
+/* ————— Selection chips (categories, days, occasions, window tabs) ————— */
+html body .al-category-chip,
+html body .al-day-chip,
+html body .cmp-bundle-occasion,
+html body .cmp-window-tab,
+html body .pd-an-range-btn {
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  background: transparent;
+  color: var(--nu-ink);
+  font-family: var(--nu-font-body);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+html body .al-category-chip--active,
+html body .al-day-chip--active,
+html body .cmp-bundle-occasion--on,
+html body .cmp-window-tab--on,
+html body .pd-an-range-btn--on {
+  background: var(--nu-ink);
+  border-color: var(--nu-ink);
+  color: var(--nu-cream);
+}
+
+/* ————— Overview stats: metric-band feel inside existing cards ————— */
+html body .pd-stat-lbl,
+html body .pd-an-stat-lbl {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nu-muted);
+}
+html body .pd-stat-val,
+html body .pd-an-stat-val {
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ————— Banners / toasts / modals ————— */
+html body .cmp-toast,
+html body .pd-billing-banner {
+  border-radius: 12px;
+  border: 1px solid var(--nu-hairline);
+  background: #fff;
+  color: var(--nu-ink);
+  box-shadow: none;
+}
+html body .cmp-callout--accent,
+html body .cmp-callout--info {
+  border-radius: 12px;
+  background: rgba(28, 17, 20, 0.04);
+  border: 1px solid var(--nu-hairline-soft);
+  color: var(--nu-ink);
+}
+html body .cmp-modal,
+html body .al-modal {
+  border-radius: 16px;
+  border: 1px solid var(--nu-hairline-soft);
+  background: var(--nu-bg);
+  box-shadow: 0 24px 64px rgba(28, 17, 20, 0.18);
+}
+html body .cmp-modal-backdrop { background: rgba(28, 17, 20, 0.45); }
+
+/* ————— Tables (analytics, invoices) ————— */
+html body .pd-an-table-header,
+html body .pd-billing-invoice-header {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nu-muted);
+}
+html body .pd-an-table-row,
+html body .pd-billing-invoice-row { border-color: var(--nu-hairline-soft); }
+
+/* ————— Login page: cream split panel ————— */
+html body .pl-page { background: var(--nu-bg); }
+html body .pl-left { background: var(--nu-ink); }
+html body .pl-left-heading { font-family: var(--nu-font-head); color: var(--nu-cream); }
+html body .pl-social-btn {
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  background: #fff;
+  font-family: var(--nu-font-body);
+  font-weight: 600;
+}
+html body .pl-social-btn:hover { border-color: var(--nu-ink); }
+
+/* ————— Progress bars keep the red ————— */
+html body .pd-billing-usage-fill,
+html body .cmp-slot-progress-bar { background: var(--nu-red); }
+
+/* ————— Nav: the design has no icons in the sidebar ————— */
+html body .pd-nav-btn > svg { display: none; }
+
+/* ————— Dark mode (design's invert-filter approach) —————
+   A whole-page invert + hue-rotate turns cream→ink; images/video/badges
+   marked [data-noinvert] get a second invert so they look normal again. */
+html.plie-dark {
+  filter: invert(0.9) hue-rotate(180deg) brightness(1.06) contrast(1.04);
+  background: #12100f !important;
+}
+html.plie-dark img,
+html.plie-dark video,
+html.plie-dark [data-noinvert] {
+  filter: invert(0.9) hue-rotate(180deg) brightness(0.95) contrast(1.04);
+}
+#plie-theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: #1c1114;
+  color: #faf7f1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+#plie-theme-toggle:hover { transform: scale(1.08); }

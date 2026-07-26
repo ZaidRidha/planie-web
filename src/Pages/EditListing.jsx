@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,6 +24,8 @@ import {
 import ListingPreview from "../Components/ListingPreview";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import { getTier, isFeatured } from "../utils/subscription";
+import { fetchListing, updateListing } from "../utils/listings";
+import { uploadListingImages } from "../utils/listingImages";
 import "./PartnerDashboard.css";
 import "./AddListing.css";
 
@@ -53,7 +55,7 @@ const occasions = [
   "Group Celebration",
 ];
 
-const priceRanges = ["Free", "£", "££", "£££", "££££"];
+const priceRanges = ["Free", "Â£", "Â£Â£", "Â£Â£Â£", "Â£Â£Â£Â£"];
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -82,7 +84,7 @@ const bookingPlatformCategories = [
   { value: "events", label: "Live Events" },
 ];
 
-/* Map listing category → booking category code */
+/* Map listing category â†’ booking category code */
 const listingCategoryToBookingCat = {
   "Restaurant & Bar": "food",
   "Activity & Tour": "experiences",
@@ -97,188 +99,130 @@ const listingCategoryToBookingCat = {
 const bookingPlatforms = [
   { id: "opentable", name: "OpenTable", desc: "Restaurant reservations", regions: ["uk","europe","us","global"], cats: ["food","bars"], confirm: "/confirmation", booking: "https://www.opentable.com/...", idLabel: "OpenTable restaurant ID", idHint: "Found in your OpenTable dashboard", affiliate: true },
   { id: "thefork", name: "TheFork / LaFourchette", desc: "Restaurant bookings across Europe", regions: ["uk","europe","global"], cats: ["food","bars"], confirm: "/booking-confirmation", booking: "https://www.thefork.com/...", idLabel: "TheFork restaurant ID", idHint: "Found in your TheFork manager dashboard", affiliate: true },
-  { id: "quandoo", name: "Quandoo", desc: "Restaurant reservations — UK & Europe", regions: ["uk","europe"], cats: ["food"], confirm: "/booking/confirmed", booking: "https://www.quandoo.co.uk/...", idLabel: "Quandoo merchant ID", idHint: "Found in your Quandoo partner dashboard", affiliate: true },
+  { id: "quandoo", name: "Quandoo", desc: "Restaurant reservations â€” UK & Europe", regions: ["uk","europe"], cats: ["food"], confirm: "/booking/confirmed", booking: "https://www.quandoo.co.uk/...", idLabel: "Quandoo merchant ID", idHint: "Found in your Quandoo partner dashboard", affiliate: true },
   { id: "resy", name: "Resy", desc: "Premium restaurant reservations", regions: ["uk","us","global"], cats: ["food","bars"], confirm: "/confirmation", booking: "https://resy.com/...", affiliate: false },
   { id: "sevenrooms", name: "SevenRooms", desc: "Hospitality CRM & reservations", regions: ["uk","us","europe","global"], cats: ["food","bars"], confirm: "/reservation/confirmed", booking: "https://sevenrooms.com/...", affiliate: false },
   { id: "tock", name: "Tock", desc: "Fine dining & ticketed experiences", regions: ["uk","us","global"], cats: ["food","bars","experiences"], confirm: "/confirmation", booking: "https://exploretock.com/...", affiliate: false },
-  { id: "yelp", name: "Yelp Reservations", desc: "Restaurant bookings — US focused", regions: ["us"], cats: ["food"], confirm: "/reservation/confirmed", booking: "https://www.yelp.com/...", affiliate: false },
-  { id: "chope", name: "Chope", desc: "Restaurant reservations — Southeast Asia", regions: ["asia"], cats: ["food"], confirm: "/confirmation", booking: "https://www.chope.co/...", affiliate: true },
-  { id: "eatapp", name: "EatApp", desc: "Restaurant reservations — Middle East", regions: ["middleeast"], cats: ["food"], confirm: "/reservation/confirmed", booking: "https://eatapp.co/...", affiliate: false },
-  { id: "dimmi", name: "Dimmi / OpenTable AU", desc: "Restaurant bookings — Australia", regions: ["australia"], cats: ["food"], confirm: "/confirmation", booking: "https://www.opentable.com.au/...", idLabel: "OpenTable restaurant ID", idHint: "Australian OpenTable dashboard", affiliate: true },
-  { id: "quandoo-au", name: "Quandoo AU", desc: "Restaurant reservations — Australia", regions: ["australia"], cats: ["food"], confirm: "/booking/confirmed", booking: "https://www.quandoo.com.au/...", affiliate: false },
-  { id: "designmynight", name: "DesignMyNight", desc: "Bars, clubs & nightlife — UK", regions: ["uk"], cats: ["bars","events"], confirm: "/booking/confirmed", booking: "https://www.designmynight.com/...", affiliate: false },
+  { id: "yelp", name: "Yelp Reservations", desc: "Restaurant bookings â€” US focused", regions: ["us"], cats: ["food"], confirm: "/reservation/confirmed", booking: "https://www.yelp.com/...", affiliate: false },
+  { id: "chope", name: "Chope", desc: "Restaurant reservations â€” Southeast Asia", regions: ["asia"], cats: ["food"], confirm: "/confirmation", booking: "https://www.chope.co/...", affiliate: true },
+  { id: "eatapp", name: "EatApp", desc: "Restaurant reservations â€” Middle East", regions: ["middleeast"], cats: ["food"], confirm: "/reservation/confirmed", booking: "https://eatapp.co/...", affiliate: false },
+  { id: "dimmi", name: "Dimmi / OpenTable AU", desc: "Restaurant bookings â€” Australia", regions: ["australia"], cats: ["food"], confirm: "/confirmation", booking: "https://www.opentable.com.au/...", idLabel: "OpenTable restaurant ID", idHint: "Australian OpenTable dashboard", affiliate: true },
+  { id: "quandoo-au", name: "Quandoo AU", desc: "Restaurant reservations â€” Australia", regions: ["australia"], cats: ["food"], confirm: "/booking/confirmed", booking: "https://www.quandoo.com.au/...", affiliate: false },
+  { id: "designmynight", name: "DesignMyNight", desc: "Bars, clubs & nightlife â€” UK", regions: ["uk"], cats: ["bars","events"], confirm: "/booking/confirmed", booking: "https://www.designmynight.com/...", affiliate: false },
   { id: "fever", name: "Fever", desc: "Nightlife & immersive events", regions: ["uk","europe","us","global"], cats: ["bars","events","culture","experiences"], confirm: "/confirmation", booking: "https://feverup.com/...", affiliate: false },
   { id: "skiddle", name: "Skiddle", desc: "UK club nights & events", regions: ["uk"], cats: ["bars","events"], confirm: "/confirmation", booking: "https://www.skiddle.com/...", affiliate: false },
-  { id: "treatwell", name: "Treatwell", desc: "Spa & beauty — UK & Europe", regions: ["uk","europe"], cats: ["wellness"], confirm: "/booking/confirmation", booking: "https://www.treatwell.co.uk/...", affiliate: true },
-  { id: "fresha", name: "Fresha", desc: "Salons, spas & beauty — global", regions: ["uk","europe","us","australia","global"], cats: ["wellness"], confirm: "/booking/confirmed", booking: "https://www.fresha.com/...", affiliate: false },
-  { id: "booksy", name: "Booksy", desc: "Beauty & wellness appointments — global", regions: ["uk","europe","us","global"], cats: ["wellness"], confirm: "/receipt", booking: "https://booksy.com/...", affiliate: false },
-  { id: "mindbody", name: "Mindbody", desc: "Spas, yoga & wellness — global", regions: ["uk","europe","us","australia","global"], cats: ["wellness","fitness"], confirm: "/checkout/confirmation", booking: "https://clients.mindbodyonline.com/...", affiliate: false },
-  { id: "simplybook", name: "SimplyBook", desc: "Flexible booking — global", regions: ["uk","europe","us","australia","middleeast","asia","global"], cats: ["wellness","fitness","experiences","nature"], confirm: "/booking/confirmed", booking: "https://yourname.simplybook.me/...", affiliate: false },
-  { id: "vagaro", name: "Vagaro", desc: "Salons & spas — US & Canada", regions: ["us"], cats: ["wellness"], confirm: "/confirmation", booking: "https://www.vagaro.com/...", affiliate: false },
+  { id: "treatwell", name: "Treatwell", desc: "Spa & beauty â€” UK & Europe", regions: ["uk","europe"], cats: ["wellness"], confirm: "/booking/confirmation", booking: "https://www.treatwell.co.uk/...", affiliate: true },
+  { id: "fresha", name: "Fresha", desc: "Salons, spas & beauty â€” global", regions: ["uk","europe","us","australia","global"], cats: ["wellness"], confirm: "/booking/confirmed", booking: "https://www.fresha.com/...", affiliate: false },
+  { id: "booksy", name: "Booksy", desc: "Beauty & wellness appointments â€” global", regions: ["uk","europe","us","global"], cats: ["wellness"], confirm: "/receipt", booking: "https://booksy.com/...", affiliate: false },
+  { id: "mindbody", name: "Mindbody", desc: "Spas, yoga & wellness â€” global", regions: ["uk","europe","us","australia","global"], cats: ["wellness","fitness"], confirm: "/checkout/confirmation", booking: "https://clients.mindbodyonline.com/...", affiliate: false },
+  { id: "simplybook", name: "SimplyBook", desc: "Flexible booking â€” global", regions: ["uk","europe","us","australia","middleeast","asia","global"], cats: ["wellness","fitness","experiences","nature"], confirm: "/booking/confirmed", booking: "https://yourname.simplybook.me/...", affiliate: false },
+  { id: "vagaro", name: "Vagaro", desc: "Salons & spas â€” US & Canada", regions: ["us"], cats: ["wellness"], confirm: "/confirmation", booking: "https://www.vagaro.com/...", affiliate: false },
   { id: "zenoti", name: "Zenoti", desc: "Spa & wellness enterprise software", regions: ["us","uk","australia","global"], cats: ["wellness"], confirm: "/booking/confirmed", booking: "https://yourname.zenoti.com/...", affiliate: false },
-  { id: "classpass", name: "Classpass", desc: "Fitness & wellness marketplace — global", regions: ["uk","europe","us","australia","asia","global"], cats: ["fitness","wellness"], confirm: "/reservation/confirmed", booking: "https://classpass.com/...", affiliate: true },
-  { id: "glofox", name: "Glofox", desc: "Gym & studio booking — global", regions: ["uk","europe","us","global"], cats: ["fitness"], confirm: "/booking-confirmed", booking: "https://app.glofox.com/...", affiliate: false },
-  { id: "teamup", name: "TeamUp", desc: "Fitness class scheduling — global", regions: ["uk","europe","us","global"], cats: ["fitness"], confirm: "/confirmation", booking: "https://app.teamup.com/...", affiliate: false },
-  { id: "virtuagym", name: "VirtuaGym", desc: "Gym management & booking — Europe", regions: ["europe","uk"], cats: ["fitness"], confirm: "/booking/confirmed", booking: "https://yourname.virtuagym.com/...", affiliate: false },
-  { id: "fareharbor", name: "FareHarbor", desc: "Tours & activities — global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","nature"], confirm: "/confirmation", booking: "https://fareharbor.com/embeds/book/...", affiliate: false },
-  { id: "viator", name: "Viator", desc: "Experience marketplace — global", regions: ["uk","europe","us","australia","asia","middleeast","global"], cats: ["experiences","nature","culture"], confirm: "/booking/confirmation", booking: "https://www.viator.com/...", affiliate: true },
-  { id: "getyourguide", name: "GetYourGuide", desc: "Activities & tours — global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","nature","culture"], confirm: "/confirmation", booking: "https://www.getyourguide.co.uk/...", affiliate: true },
-  { id: "checkfront", name: "Checkfront", desc: "Tours & rentals — global", regions: ["uk","us","australia","global"], cats: ["experiences","nature"], confirm: "/reservation/confirmed", booking: "https://yourname.checkfront.com/...", affiliate: false },
-  { id: "rezdy", name: "Rezdy", desc: "Tour operators — global", regions: ["uk","us","australia","asia","global"], cats: ["experiences","nature"], confirm: "/booking/confirmed", booking: "https://yourname.rezdy.com/...", affiliate: false },
-  { id: "peek", name: "Peek Pro", desc: "Activities & rentals — US & global", regions: ["us","global"], cats: ["experiences","nature"], confirm: "/confirmation", booking: "https://www.peekpro.com/...", affiliate: false },
-  { id: "klook", name: "Klook", desc: "Activities & experiences — Asia & global", regions: ["asia","global"], cats: ["experiences","nature","culture"], confirm: "/confirmation", booking: "https://www.klook.com/...", affiliate: true },
-  { id: "kkday", name: "KKday", desc: "Experiences — Asia focused", regions: ["asia"], cats: ["experiences","nature"], confirm: "/order/confirmed", booking: "https://www.kkday.com/...", affiliate: true },
-  { id: "airbnbexp", name: "Airbnb Experiences", desc: "Hosted experiences — global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","culture","nature"], confirm: "/trips/confirmed", booking: "https://www.airbnb.co.uk/experiences/...", affiliate: false },
-  { id: "eventbrite", name: "Eventbrite", desc: "Events & exhibitions — global", regions: ["uk","europe","us","australia","asia","global"], cats: ["culture","events","experiences","shopping"], confirm: "/order/confirmation", booking: "https://www.eventbrite.co.uk/...", affiliate: false },
-  { id: "ticketmaster", name: "Ticketmaster", desc: "Shows & concerts — global", regions: ["uk","europe","us","australia","global"], cats: ["events","culture"], confirm: "/order-confirmation", booking: "https://www.ticketmaster.co.uk/...", affiliate: false },
-  { id: "dice", name: "Dice", desc: "Live music & comedy — global", regions: ["uk","europe","us","global"], cats: ["events","bars"], confirm: "/order/confirmed", booking: "https://dice.fm/...", affiliate: false },
+  { id: "classpass", name: "Classpass", desc: "Fitness & wellness marketplace â€” global", regions: ["uk","europe","us","australia","asia","global"], cats: ["fitness","wellness"], confirm: "/reservation/confirmed", booking: "https://classpass.com/...", affiliate: true },
+  { id: "glofox", name: "Glofox", desc: "Gym & studio booking â€” global", regions: ["uk","europe","us","global"], cats: ["fitness"], confirm: "/booking-confirmed", booking: "https://app.glofox.com/...", affiliate: false },
+  { id: "teamup", name: "TeamUp", desc: "Fitness class scheduling â€” global", regions: ["uk","europe","us","global"], cats: ["fitness"], confirm: "/confirmation", booking: "https://app.teamup.com/...", affiliate: false },
+  { id: "virtuagym", name: "VirtuaGym", desc: "Gym management & booking â€” Europe", regions: ["europe","uk"], cats: ["fitness"], confirm: "/booking/confirmed", booking: "https://yourname.virtuagym.com/...", affiliate: false },
+  { id: "fareharbor", name: "FareHarbor", desc: "Tours & activities â€” global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","nature"], confirm: "/confirmation", booking: "https://fareharbor.com/embeds/book/...", affiliate: false },
+  { id: "viator", name: "Viator", desc: "Experience marketplace â€” global", regions: ["uk","europe","us","australia","asia","middleeast","global"], cats: ["experiences","nature","culture"], confirm: "/booking/confirmation", booking: "https://www.viator.com/...", affiliate: true },
+  { id: "getyourguide", name: "GetYourGuide", desc: "Activities & tours â€” global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","nature","culture"], confirm: "/confirmation", booking: "https://www.getyourguide.co.uk/...", affiliate: true },
+  { id: "checkfront", name: "Checkfront", desc: "Tours & rentals â€” global", regions: ["uk","us","australia","global"], cats: ["experiences","nature"], confirm: "/reservation/confirmed", booking: "https://yourname.checkfront.com/...", affiliate: false },
+  { id: "rezdy", name: "Rezdy", desc: "Tour operators â€” global", regions: ["uk","us","australia","asia","global"], cats: ["experiences","nature"], confirm: "/booking/confirmed", booking: "https://yourname.rezdy.com/...", affiliate: false },
+  { id: "peek", name: "Peek Pro", desc: "Activities & rentals â€” US & global", regions: ["us","global"], cats: ["experiences","nature"], confirm: "/confirmation", booking: "https://www.peekpro.com/...", affiliate: false },
+  { id: "klook", name: "Klook", desc: "Activities & experiences â€” Asia & global", regions: ["asia","global"], cats: ["experiences","nature","culture"], confirm: "/confirmation", booking: "https://www.klook.com/...", affiliate: true },
+  { id: "kkday", name: "KKday", desc: "Experiences â€” Asia focused", regions: ["asia"], cats: ["experiences","nature"], confirm: "/order/confirmed", booking: "https://www.kkday.com/...", affiliate: true },
+  { id: "airbnbexp", name: "Airbnb Experiences", desc: "Hosted experiences â€” global", regions: ["uk","europe","us","australia","asia","global"], cats: ["experiences","culture","nature"], confirm: "/trips/confirmed", booking: "https://www.airbnb.co.uk/experiences/...", affiliate: false },
+  { id: "eventbrite", name: "Eventbrite", desc: "Events & exhibitions â€” global", regions: ["uk","europe","us","australia","asia","global"], cats: ["culture","events","experiences","shopping"], confirm: "/order/confirmation", booking: "https://www.eventbrite.co.uk/...", affiliate: false },
+  { id: "ticketmaster", name: "Ticketmaster", desc: "Shows & concerts â€” global", regions: ["uk","europe","us","australia","global"], cats: ["events","culture"], confirm: "/order-confirmation", booking: "https://www.ticketmaster.co.uk/...", affiliate: false },
+  { id: "dice", name: "Dice", desc: "Live music & comedy â€” global", regions: ["uk","europe","us","global"], cats: ["events","bars"], confirm: "/order/confirmed", booking: "https://dice.fm/...", affiliate: false },
   { id: "seetickets", name: "See Tickets", desc: "UK & Europe events", regions: ["uk","europe"], cats: ["events","culture"], confirm: "/order/confirmation", booking: "https://www.seetickets.com/...", affiliate: false },
-  { id: "moshtix", name: "Moshtix", desc: "Events & live music — Australia", regions: ["australia"], cats: ["events"], confirm: "/confirmation", booking: "https://www.moshtix.com.au/...", affiliate: false },
-  { id: "humanitix", name: "Humanitix", desc: "Events — Australia & NZ", regions: ["australia"], cats: ["events","culture","experiences"], confirm: "/order/confirmed", booking: "https://events.humanitix.com/...", affiliate: false },
-  { id: "platinumlist", name: "Platinum List", desc: "Events — Middle East", regions: ["middleeast"], cats: ["events","bars"], confirm: "/confirmation", booking: "https://www.platinumlist.net/...", affiliate: false },
+  { id: "moshtix", name: "Moshtix", desc: "Events & live music â€” Australia", regions: ["australia"], cats: ["events"], confirm: "/confirmation", booking: "https://www.moshtix.com.au/...", affiliate: false },
+  { id: "humanitix", name: "Humanitix", desc: "Events â€” Australia & NZ", regions: ["australia"], cats: ["events","culture","experiences"], confirm: "/order/confirmed", booking: "https://events.humanitix.com/...", affiliate: false },
+  { id: "platinumlist", name: "Platinum List", desc: "Events â€” Middle East", regions: ["middleeast"], cats: ["events","bars"], confirm: "/confirmation", booking: "https://www.platinumlist.net/...", affiliate: false },
 ];
 
 const buildSidebarItems = (tier) => [
-  { icon: LayoutDashboard, label: "Dashboard",   path: "/partners/dashboard#dashboard" },
-  { icon: Store,           label: "My Listings", path: "/partners/dashboard#listings" },
+  { icon: LayoutDashboard, label: "Overview",    path: "/partners/dashboard#dashboard" },
+  { icon: Store,           label: "Listings",    path: "/partners/dashboard#listings" },
   { icon: Megaphone,       label: "Promotions",  path: "/partners/dashboard#promotions" },
   { icon: Crown,           label: "Campaigns",   path: "/partners/campaigns", badge: !isFeatured(tier) ? "Featured" : null },
-  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
+  { icon: TrendingUp,      label: "Insights",    path: "/partners/dashboard#analytics" },
   { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
   { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },
 ];
 
 /* Mock listing data matching the dashboard */
-const mockListings = {
-  "sunset-rooftop-bar": {
-    name: "Sunset Rooftop Bar",
-    category: "Restaurant & Bar",
-    description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music.",
-    address: "42 Rue de la Kasbah",
-    city: "Marrakech",
-    country: "Morocco",
-    priceRange: "£££",
-    phone: "+212 524 123 456",
-    email: "hello@sunsetrooftop.com",
-    website: "https://sunsetrooftop.com",
-    hours: daysOfWeek.map((day) => ({
-      day,
-      open: day === "Sunday" ? "12:00" : "16:00",
-      close: "01:00",
-      closed: false,
-    })),
-  },
-  "desert-safari-tours": {
-    name: "Desert Safari Tours",
-    category: "Activity & Tour",
-    description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners.",
-    address: "Sheikh Zayed Road, Tower 3",
-    city: "Dubai",
-    country: "UAE",
-    priceRange: "££££",
-    phone: "+971 4 555 7890",
-    email: "book@desertsafari.ae",
-    website: "https://desertsafari.ae",
-    hours: daysOfWeek.map((day) => ({
-      day,
-      open: "06:00",
-      close: "22:00",
-      closed: false,
-    })),
-  },
-  "coastal-yoga-retreat": {
-    name: "Coastal Yoga Retreat",
-    category: "Wellness & Spa",
-    description: "A beachfront wellness retreat offering daily yoga, meditation sessions, and organic cuisine.",
-    address: "Jl. Pantai Berawa No. 88",
-    city: "Bali",
-    country: "Indonesia",
-    priceRange: "£££",
-    phone: "+62 361 847 5200",
-    email: "namaste@coastalyoga.com",
-    website: "https://coastalyoga.com",
-    hours: daysOfWeek.map((day) => ({
-      day,
-      open: "06:00",
-      close: "20:00",
-      closed: day === "Monday",
-    })),
-  },
-  "old-town-walking-tour": {
-    name: "Old Town Walking Tour",
-    category: "Activity & Tour",
-    description: "Discover hidden gems and centuries of history on this expertly guided walking tour.",
-    address: "Old Town Square 1",
-    city: "Prague",
-    country: "Czech Republic",
-    priceRange: "££",
-    phone: "+420 234 567 890",
-    email: "info@praguewalks.cz",
-    website: "https://praguewalks.cz",
-    hours: daysOfWeek.map((day) => ({
-      day,
-      open: "09:00",
-      close: "18:00",
-      closed: day === "Sunday",
-    })),
-  },
-  "neon-night-market": {
-    name: "Neon Night Market",
-    category: "Shopping & Market",
-    description: "Bangkok's most vibrant night market with street food, local crafts, and live entertainment.",
-    address: "Ratchadaphisek Road, Soi 4",
-    city: "Bangkok",
-    country: "Thailand",
-    priceRange: "£",
-    phone: "+66 2 123 4567",
-    email: "info@neonnightmarket.th",
-    website: "https://neonnightmarket.th",
-    hours: daysOfWeek.map((day) => ({
-      day,
-      open: "17:00",
-      close: "00:00",
-      closed: day === "Monday" || day === "Tuesday",
-    })),
-  },
-};
+const emptyEditForm = () => ({
+  name: "",
+  occasions: [],
+  category: "",
+  description: "",
+  address: "",
+  city: "",
+  country: "",
+  postcode: "",
+  bookingPlatform: "",
+  bookingUrl: "",
+  bookingConfirmUrl: "",
+  bookingPlatformId: "",
+  priceRange: "",
+  avgBookingValue: "",
+  phone: "",
+  email: "",
+  website: "",
+  hours: daysOfWeek.map((day) => ({
+    day,
+    open: "09:00",
+    close: "17:00",
+    closed: false,
+  })),
+});
 
 export default function EditListing() {
   const navigate = useNavigate();
-  const { slug } = useParams();
-  const listingData = mockListings[slug];
+  const { slug: listingId } = useParams(); // route param carries the listing id
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [imagePreview, setImagePreview] = useState([]);
-  const [form, setForm] = useState(() => {
-    const base = {
-      name: "",
-      occasions: [],
-      category: "",
-      description: "",
-      address: "",
-      city: "",
-      country: "",
-      postcode: "",
-      bookingPlatform: "",
-      bookingUrl: "",
-      bookingConfirmUrl: "",
-      bookingPlatformId: "",
-      priceRange: "",
-      avgBookingValue: "",
-      phone: "",
-      email: "",
-      website: "",
-      hours: daysOfWeek.map((day) => ({
-        day,
-        open: "09:00",
-        close: "17:00",
-        closed: false,
-      })),
-    };
-    return listingData ? { ...base, ...listingData } : base;
-  });
+  const [form, setForm] = useState(emptyEditForm);
 
   const [bookingRegionFilter, setBookingRegionFilter] = useState("");
-  const [bookingCategoryFilter, setBookingCategoryFilter] = useState(() => listingCategoryToBookingCat[listingData?.category] || "");
+  const [bookingCategoryFilter, setBookingCategoryFilter] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { listing } = await fetchListing(listingId);
+        if (cancelled) return;
+        const base = emptyEditForm();
+        setForm({
+          ...base,
+          ...Object.fromEntries(
+            Object.keys(base).map((k) => [k, listing[k] ?? base[k]])
+          ),
+        });
+        setBookingCategoryFilter(listingCategoryToBookingCat[listing.category] || "");
+        // Existing uploads come back as Storage URLs; keep them (no File â€”
+        // they're already uploaded) unless the partner removes them.
+        setImagePreview(
+          (Array.isArray(listing.images) ? listing.images : []).map((url, i) => ({
+            url,
+            name: listing.imageNames?.[i] || `photo-${i + 1}`,
+            uploadedUrl: url,
+          }))
+        );
+        setLoadError(null);
+      } catch (err) {
+        if (!cancelled) setLoadError(err.message || "Could not load this listing.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [listingId]);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -305,6 +249,7 @@ export default function EditListing() {
     const newPreviews = files.map((file) => ({
       url: URL.createObjectURL(file),
       name: file.name,
+      file,
     }));
     setImagePreview((prev) => [...prev, ...newPreviews].slice(0, 6));
   };
@@ -313,10 +258,54 @@ export default function EditListing() {
     setImagePreview((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaved(true);
+    setSaveError(null);
+    setSaving(true);
+    try {
+      // Upload only the newly added files; kept images already have URLs.
+      const newUrls = await uploadListingImages(
+        imagePreview.filter((img) => img.file).map((img) => img.file)
+      );
+      let nextNew = 0;
+      const images = imagePreview.map((img) =>
+        img.file ? newUrls[nextNew++] : img.uploadedUrl
+      );
+      await updateListing(listingId, {
+        ...form,
+        images,
+        imageNames: imagePreview.map((img) => img.name),
+      });
+      setSaved(true);
+    } catch (err) {
+      setSaveError(err.message || "Could not save the changes. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading || loadError) {
+    return (
+      <div className="pd-layout">
+        <Sidebar />
+        <main className="pd-main">
+          <div className="al-success pd-animate pd-d1">
+            {loading ? (
+              <p style={{ color: "#687076" }}>Loading listingâ€¦</p>
+            ) : (
+              <>
+                <h2>Listing not found</h2>
+                <p>{loadError}</p>
+                <Link to="/partners/dashboard#listings" className="pd-btn pd-btn--primary">
+                  Back to My Listings
+                </Link>
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (saved) {
     return (
@@ -346,28 +335,6 @@ export default function EditListing() {
     );
   }
 
-  if (!listingData) {
-    return (
-      <div className="pd-layout">
-        <Sidebar />
-        <main className="pd-main">
-          <div className="al-success pd-animate pd-d1">
-            <div className="al-success-icon" style={{ background: "#FEF2F2", color: "#EF4444" }}>
-              <X size={48} strokeWidth={1.5} />
-            </div>
-            <h2>Listing Not Found</h2>
-            <p>The listing you're trying to edit doesn't exist or has been removed.</p>
-            <div className="al-success-actions">
-              <Link to="/partners/dashboard" className="pd-btn pd-btn--primary">
-                Back to Dashboard
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="pd-layout">
       <Sidebar />
@@ -379,8 +346,9 @@ export default function EditListing() {
             <ArrowLeft size={20} strokeWidth={2} />
           </button>
           <div>
-            <h1 className="pd-greeting">Edit Listing</h1>
-            <p className="pd-greeting-sub">Update the details for {form.name}</p>
+            <p className="nu-microlabel" style={{ marginBottom: 6 }}>Edit listing</p>
+            <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 34, letterSpacing: "-0.02em" }}>{form.name || "Edit listing"}</h1>
+            <p style={{ margin: "8px 0 0", fontSize: 15, opacity: 0.6 }}>Edits go back to review before they're live again.</p>
           </div>
         </header>
 
@@ -421,7 +389,7 @@ export default function EditListing() {
             <div className="al-field">
               <label className="al-label">Occasion Types *</label>
               <span className="al-help">
-                Select the occasions your venue is best suited for. These influence when Planie recommends you to users. Choose accurately rather than broadly — quality of match matters more than quantity.
+                Select the occasions your venue is best suited for. These influence when Planie recommends you to users. Choose accurately rather than broadly â€” quality of match matters more than quantity.
               </span>
               <div className="al-category-grid">
                 {occasions.map((occ) => {
@@ -447,7 +415,7 @@ export default function EditListing() {
             <div className="al-field">
               <label className="al-label">Category *</label>
               <span className="al-help">
-                Pick the category that best describes your venue's primary identity. This determines where you appear across browse and search. Choose the closest match rather than the broadest one — accuracy here drives more relevant traffic to your listing.
+                Pick the category that best describes your venue's primary identity. This determines where you appear across browse and search. Choose the closest match rather than the broadest one â€” accuracy here drives more relevant traffic to your listing.
               </span>
               <div className="al-category-grid">
                 {categories.map((cat) => (
@@ -560,7 +528,7 @@ export default function EditListing() {
             <div className="al-field">
               <label className="al-label">Price Range</label>
               <span className="al-help">
-                A quick visual tier travelers see at a glance — from budget-friendly to high-end.
+                A quick visual tier travelers see at a glance â€” from budget-friendly to high-end.
               </span>
               <div className="al-price-row">
                 {priceRanges.map((p) => (
@@ -582,7 +550,7 @@ export default function EditListing() {
                 Enter your estimated average booking value (per person) so we can show you the total revenue Planie is driving to your venue each month.
               </span>
               <div className="al-currency">
-                <span className="al-currency-prefix">£</span>
+                <span className="al-currency-prefix">Â£</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -702,10 +670,15 @@ export default function EditListing() {
             <Link to="/partners/dashboard" className="pd-btn pd-btn--outline">
               Cancel
             </Link>
-            <button type="submit" className="pd-btn pd-btn--primary al-submit-btn">
-              Save Changes
+            <button type="submit" className="pd-btn pd-btn--primary al-submit-btn" disabled={saving}>
+              {saving ? "Savingâ€¦" : "Save Changes"}
             </button>
           </div>
+          {saveError && (
+            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", borderRadius: 12, padding: "10px 14px", fontSize: 14, marginTop: 12 }} role="alert">
+              {saveError}
+            </div>
+          )}
         </form>
       </main>
     </div>
@@ -735,7 +708,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
       <h3 className="al-section-title">
         <Ticket size={18} strokeWidth={2} /> Booking Platform
       </h3>
-      <p className="al-section-sub">Pick the platform that powers your bookings — we'll link the listing's "Book Now" button here.</p>
+      <p className="al-section-sub">Pick the platform that powers your bookings â€” we'll link the listing's "Book Now" button here.</p>
 
       <div className="al-row" style={{ marginTop: 8 }}>
         <div className="al-field al-field--half">
@@ -765,7 +738,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
       </div>
 
       <div className="al-booking-count">
-        {filtered.length > 0 ? `${filtered.length} platform${filtered.length !== 1 ? "s" : ""} available` : "No matching platforms — use your own site below."}
+        {filtered.length > 0 ? `${filtered.length} platform${filtered.length !== 1 ? "s" : ""} available` : "No matching platforms â€” use your own site below."}
       </div>
 
       {filtered.length > 0 && (
@@ -793,7 +766,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
         onClick={() => selectPlatform("own")}
       >
         <div className="al-booking-own-name">Website OR Custom Booking System</div>
-        <div className="al-booking-own-desc">You handle bookings directly — we link to your page</div>
+        <div className="al-booking-own-desc">You handle bookings directly â€” we link to your page</div>
       </button>
 
       {showConfirmFields && (
@@ -819,7 +792,7 @@ function BookingPlatformSection({ form, updateField, regionFilter, setRegionFilt
               value={form.bookingConfirmUrl}
               onChange={(e) => updateField("bookingConfirmUrl", e.target.value)}
             />
-            <span className="al-booking-hint">The URL shown after a booking completes — used for in-app tracking.</span>
+            <span className="al-booking-hint">The URL shown after a booking completes â€” used for in-app tracking.</span>
           </div>
 
           {selected?.idLabel && (

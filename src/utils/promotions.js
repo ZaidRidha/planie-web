@@ -1,31 +1,18 @@
-const STORAGE_KEY = "planie:promotions";
+/* Promotions API — real backend calls for the partner portal.
 
-const safeParse = (raw) => {
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
+   Same review model as listings (owner decision 2026-07-11): a promotion is
+   drafted, then submitted into the staff review queue before going live.
+   Status flow: draft → pending → active | denied (+ inactive toggle).
 
-const read = () => {
-  if (typeof window === "undefined") return [];
-  return safeParse(window.localStorage.getItem(STORAGE_KEY));
-};
+   Rule: at most ONE active promotion per listing. The backend enforces it and
+   answers 409 with code "PROMO_CONFLICT" and `data.conflict = { id, title }`
+   so the UI can offer "deactivate the old one & submit". */
 
-const write = (promos) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(promos));
-  window.dispatchEvent(new Event("planie:promotions-changed"));
-};
-
-const newId = () =>
-  `pm_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+import { callFunction } from "./api";
 
 export const emptyPromotion = () => ({
   id: "",
-  listingSlug: "",
+  listingId: "",
   offerType: "",
   discountValue: "",
   discountCode: "",
@@ -40,77 +27,26 @@ export const emptyPromotion = () => ({
   title: "",
   internalNote: "",
   status: "draft",
-  createdAt: 0,
-  updatedAt: 0,
 });
 
-export const listPromotions = () =>
-  read().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+export const fetchMyPromotions = () =>
+  callFunction("partnerListPromotions", null, { method: "GET" });
 
-export const listPromotionsForListing = (slug) =>
-  listPromotions().filter((p) => p.listingSlug === slug);
+export const fetchPromotion = (id) =>
+  callFunction(`partnerGetPromotion?id=${encodeURIComponent(id)}`, null, { method: "GET" });
 
-export const getPromotion = (id) => read().find((p) => p.id === id) || null;
+/* submit: false → saved as draft; true → straight into the review queue. */
+export const createPromotion = (form, { submit = false } = {}) =>
+  callFunction("partnerCreatePromotion", { ...form, submit });
 
-export const getActivePromotionForListing = (slug) =>
-  read().find((p) => p.listingSlug === slug && p.status === "active") || null;
+/* Content edits land in "draft" (submit: false) or "pending" (submit: true). */
+export const updatePromotion = (id, form, { submit = false } = {}) =>
+  callFunction("partnerUpdatePromotion", { id, ...form, submit });
 
-export const savePromotion = (promo) => {
-  const all = read();
-  const now = Date.now();
-  const existing = promo.id ? all.find((p) => p.id === promo.id) : null;
-  const next = {
-    ...promo,
-    id: promo.id || newId(),
-    createdAt: existing?.createdAt || now,
-    updatedAt: now,
-  };
-  const idx = all.findIndex((p) => p.id === next.id);
-  if (idx >= 0) all[idx] = next;
-  else all.push(next);
-  write(all);
-  return next;
-};
+/* Pause/resume an approved promotion without re-review. */
+export const deactivatePromotion = (id) =>
+  callFunction("partnerUpdatePromotion", { id, action: "deactivate" });
+export const reactivatePromotion = (id) =>
+  callFunction("partnerUpdatePromotion", { id, action: "reactivate" });
 
-export const publishPromotion = (id) => {
-  const all = read();
-  const target = all.find((p) => p.id === id);
-  if (!target) return { ok: false, reason: "not_found" };
-
-  const conflict = all.find(
-    (p) => p.id !== id && p.listingSlug === target.listingSlug && p.status === "active"
-  );
-  if (conflict) return { ok: false, reason: "conflict", conflict };
-
-  const now = Date.now();
-  const updated = all.map((p) =>
-    p.id === id ? { ...p, status: "active", updatedAt: now } : p
-  );
-  write(updated);
-  return { ok: true, promotion: updated.find((p) => p.id === id) };
-};
-
-export const deactivatePromotion = (id) => {
-  const all = read();
-  const now = Date.now();
-  const updated = all.map((p) =>
-    p.id === id ? { ...p, status: "draft", updatedAt: now } : p
-  );
-  write(updated);
-};
-
-export const deletePromotion = (id) => {
-  write(read().filter((p) => p.id !== id));
-};
-
-export const subscribePromotions = (callback) => {
-  if (typeof window === "undefined") return () => {};
-  const handler = () => callback(listPromotions());
-  window.addEventListener("planie:promotions-changed", handler);
-  window.addEventListener("storage", handler);
-  return () => {
-    window.removeEventListener("planie:promotions-changed", handler);
-    window.removeEventListener("storage", handler);
-  };
-};
-
+export const deletePromotion = (id) => callFunction("partnerDeletePromotion", { id });

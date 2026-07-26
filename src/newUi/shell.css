@@ -1,0 +1,142 @@
+/* newUi/shell.css — portal frame: dark sidebar + main grid (design:
+   every "Planie Partner *.dc.html" page shares this shell). */
+
+.nu-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--nu-bg);
+}
+
+.nu-sidebar {
+  background: var(--nu-ink);
+  color: var(--nu-cream);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
+}
+.nu-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 28px;
+}
+.nu-sidebar-logo {
+  width: 26px;
+  height: 26px;
+  background: var(--nu-cream);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.nu-sidebar-wordmark {
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--nu-cream);
+}
+.nu-sidebar-wordmark span { color: var(--nu-sidebar-muted); font-weight: 500; }
+
+.nu-nav { display: flex; flex-direction: column; gap: 2px; }
+.nu-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--nu-sidebar-muted);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.nu-nav-link:hover { color: var(--nu-cream); background: rgba(250, 247, 241, 0.07); }
+.nu-nav-link--on {
+  color: var(--nu-cream);
+  background: rgba(250, 247, 241, 0.07);
+  font-weight: 600;
+}
+.nu-nav-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--nu-red);
+  animation: nuPulseDot 2s ease-out infinite;
+}
+.nu-nav-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(250, 247, 241, 0.5);
+  border: 1px solid rgba(250, 247, 241, 0.2);
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+
+.nu-sidebar-foot {
+  margin-top: auto;
+  padding: 16px 12px 0;
+  border-top: 1px solid rgba(250, 247, 241, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nu-sidebar-foot-name {
+  margin: 0;
+  font-family: var(--nu-font-head);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--nu-cream);
+}
+.nu-sidebar-foot-sub {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--nu-sidebar-muted);
+}
+.nu-signout {
+  font-size: 13px;
+  color: rgba(250, 247, 241, 0.5);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--nu-font-body);
+  transition: color 0.2s;
+}
+.nu-signout:hover { color: var(--nu-red); }
+
+.nu-main {
+  padding: 36px 48px 72px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+/* <900px: sidebar becomes a horizontal top bar (design's media query) */
+@media (max-width: 900px) {
+  .nu-shell { grid-template-columns: 1fr; }
+  .nu-sidebar {
+    position: static;
+    height: auto;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .nu-sidebar-brand { padding: 0; flex-shrink: 0; }
+  .nu-nav { flex-direction: row; gap: 4px; flex: 1 1 auto; overflow-x: auto; }
+  .nu-nav-link { white-space: nowrap; padding: 8px 12px; }
+  .nu-sidebar-foot { display: none; }
+  .nu-main { padding: 22px 16px 56px; }
+}

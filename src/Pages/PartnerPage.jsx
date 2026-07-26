@@ -22,7 +22,7 @@ const benefits = [
     icon: Eye,
     title: "Discovery Page Visibility",
     description:
-      "Your business appears directly on our Discovery page — seen by travelers actively exploring destinations.",
+      "Your business appears directly on our Discovery page â€” seen by travelers actively exploring destinations.",
   },
   {
     icon: MapPin,
@@ -34,7 +34,7 @@ const benefits = [
     icon: Crosshair,
     title: "Geo-Targeted Reach",
     description:
-      "We show your brand to travelers heading to your area — no wasted impressions.",
+      "We show your brand to travelers heading to your area â€” no wasted impressions.",
   },
   {
     icon: BarChart3,
@@ -52,7 +52,7 @@ const benefits = [
     icon: Megaphone,
     title: "Full-App Advertising",
     description:
-      "Go beyond one page — your brand surfaces across the entire Planie experience.",
+      "Go beyond one page â€” your brand surfaces across the entire Planie experience.",
   },
 ];
 
@@ -61,7 +61,7 @@ const differentiators = [
     id: "matrix",
     title: "Matrix Affinity",
     description:
-      "Matrix Affinity connects your business with travelers who are actively looking for what you offer — boosting visibility, engagement, and conversions effortlessly.",
+      "Matrix Affinity connects your business with travelers who are actively looking for what you offer â€” boosting visibility, engagement, and conversions effortlessly.",
   },
   {
     id: "intent",
@@ -77,9 +77,9 @@ const differentiators = [
   },
 ];
 
-/* ═══════════════════════════════════════════════════════
-   Orbital Ring — floating icons around pulsing rings
-   ═══════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Orbital Ring â€” floating icons around pulsing rings
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const orbitIcons = [
   { Icon: Store, angle: 0, delay: 0 },
   { Icon: TrendingUp, angle: 60, delay: 0.8 },
@@ -143,9 +143,9 @@ export default function PartnerPage() {
 
   return (
     <section className="w-full overflow-x-hidden">
-      {/* ─── Hero ─── */}
+      {/* â”€â”€â”€ Hero â”€â”€â”€ */}
       <div className="relative min-h-[82vh] flex flex-col items-center justify-center pt-24 pb-8 overflow-hidden">
-        {/* Radial gradient background — distinct from homepage linear */}
+        {/* Radial gradient background â€” distinct from homepage linear */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -160,7 +160,7 @@ export default function PartnerPage() {
         {/* Hero content */}
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <h1 className="partner-animate partner-delay-1">
-            <span className="block text-[clamp(2.5rem,5.5vw,4.25rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#11181C]">
+            <span className="block text-[clamp(2.5rem,5.5vw,4.25rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#1C1114]">
               Become a{" "}
               <span className="text-[#FF4040]">Partner</span>
             </span>
@@ -180,7 +180,7 @@ export default function PartnerPage() {
               to="/partners/login"
               className="group relative inline-flex items-center gap-2 px-8 py-4 bg-[#FF4040] text-white text-base font-semibold rounded-full
                 transition-all duration-300
-                hover:bg-[#e63636] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
+                hover:bg-[#1C1114] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
                 active:translate-y-0"
             >
               Go to Partner Portal
@@ -191,10 +191,10 @@ export default function PartnerPage() {
             </Link>
             <a
               href="#why-partner"
-              className="inline-flex items-center gap-2 px-7 py-4 text-[#11181C]/60 text-base font-medium rounded-full
+              className="inline-flex items-center gap-2 px-7 py-4 text-[#1C1114]/60 text-base font-medium rounded-full
                 border border-gray-200
                 transition-all duration-300
-                hover:border-gray-300 hover:text-[#11181C] hover:bg-gray-50/80"
+                hover:border-gray-300 hover:text-[#1C1114] hover:bg-gray-50/80"
             >
               Learn More
             </a>
@@ -202,18 +202,18 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* ─── Divider ─── */}
+      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* ─── Benefits Grid ─── */}
+      {/* â”€â”€â”€ Benefits Grid â”€â”€â”€ */}
       <div className="w-full py-20 px-6" id="why-partner">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="partner-animate partner-delay-1 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-[#11181C]">
+            <h2 className="partner-animate partner-delay-1 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-[#1C1114]">
               Why Partner with Planie?
             </h2>
             <p className="partner-animate partner-delay-2 mt-4 text-lg text-[#687076] max-w-2xl mx-auto">
-              Planie isn't just another app — it's the moment users decide what
+              Planie isn't just another app â€” it's the moment users decide what
               to do. That's when your business shows up.
             </p>
           </div>
@@ -234,7 +234,7 @@ export default function PartnerPage() {
                   >
                     <Icon size={26} strokeWidth={1.8} />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#11181C] mb-2">
+                  <h3 className="text-lg font-semibold text-[#1C1114] mb-2">
                     {benefit.title}
                   </h3>
                   <p className="text-[#687076] leading-relaxed text-[0.95rem]">
@@ -247,12 +247,12 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* ─── Divider ─── */}
+      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* ─── How We're Different ─── */}
+      {/* â”€â”€â”€ How We're Different â”€â”€â”€ */}
       <div className="w-full max-w-5xl mx-auto px-6 py-20">
-        <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold mb-14 text-center text-[#11181C]">
+        <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold mb-14 text-center text-[#1C1114]">
           How We're{" "}
           <span className="text-[#FF4040]">Different</span>
         </h2>
@@ -267,7 +267,7 @@ export default function PartnerPage() {
                 className={`w-full py-5 px-6 rounded-xl text-lg font-semibold text-left transition-all duration-300 ${
                   d.id === activeId
                     ? "bg-[#FF4040] text-white shadow-[0_4px_24px_rgba(255,64,64,0.25)]"
-                    : "bg-gray-50 text-[#687076] hover:bg-gray-100 hover:text-[#11181C]"
+                    : "bg-gray-50 text-[#687076] hover:bg-gray-100 hover:text-[#1C1114]"
                 }`}
               >
                 {d.title}
@@ -278,7 +278,7 @@ export default function PartnerPage() {
           {/* Description */}
           <div className="w-full md:w-1/2 flex items-center">
             <div className="w-full bg-white border border-gray-100 p-8 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-              <p className="text-lg text-[#11181C] leading-relaxed font-medium">
+              <p className="text-lg text-[#1C1114] leading-relaxed font-medium">
                 {active.description}
               </p>
             </div>
@@ -286,13 +286,13 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* ─── Divider ─── */}
+      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* ─── Bottom CTA ─── */}
+      {/* â”€â”€â”€ Bottom CTA â”€â”€â”€ */}
       <div className="w-full py-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[#11181C] mb-3">
+          <h2 className="text-3xl font-bold text-[#1C1114] mb-3">
             Ready to grow your business?
           </h2>
           <p className="text-lg text-[#687076] mb-8">
@@ -302,7 +302,7 @@ export default function PartnerPage() {
             to="/partners/login"
             className="group inline-flex items-center gap-2 px-8 py-4 bg-[#FF4040] text-white text-base font-semibold rounded-full
               transition-all duration-300
-              hover:bg-[#e63636] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
+              hover:bg-[#1C1114] hover:shadow-[0_8px_40px_rgba(255,64,64,0.35)] hover:-translate-y-[2px]
               active:translate-y-0"
           >
             Go to Partner Portal

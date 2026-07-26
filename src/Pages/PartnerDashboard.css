@@ -2623,6 +2623,21 @@
   color: #B45309;
 }
 
+.pd-promo-status--pending {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.pd-promo-status--inactive {
+  background: #E5E7EB;
+  color: #4B5563;
+}
+
+.pd-promo-status--denied {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
 .pd-promo-card-tags {
   display: flex;
   flex-wrap: wrap;

@@ -4,4 +4,11 @@
 
 body {
   @apply font-sans;
+  background-color: #faf7f1; /* new design: cream everywhere */
+  color: #1c1114;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Gabarito", sans-serif;
+  letter-spacing: -0.02em;
 }

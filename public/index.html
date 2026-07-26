@@ -33,6 +33,10 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      /* Apply saved theme before paint to avoid a light-mode flash. */
+      try { if (localStorage.getItem("plie-theme") === "dark") document.documentElement.classList.add("plie-dark"); } catch (e) {}
+    </script>
     <div id="root"></div>
     <!--
       This HTML file is a template.

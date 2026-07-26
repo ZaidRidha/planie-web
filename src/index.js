@@ -1,8 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './newUi/tokens.css';
+import './newUi/override.css';
+import logoMask from './Assets/Images/PlanieLogoMark.svg';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+
+// The sidebar logo is drawn via CSS mask (override.css); the asset URL is
+// only known to the bundler, so expose it as a CSS variable here.
+document.documentElement.style.setProperty('--nu-logo-mask', `url(${logoMask})`);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

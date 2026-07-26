@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Store,
@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Search,
   Pencil,
+  Globe2,
 } from "lucide-react";
 import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
 import {
@@ -43,22 +44,19 @@ import {
   getWindow,
   windowPricing,
   assignListingsToPurchase,
+  refreshInventory,
+  refreshOwned,
+  releaseCancelledCheckout,
 } from "../utils/campaigns";
-import { listPartnerListings, getPartnerListing } from "../utils/listings";
-import {
-  TIERS,
-  getTier,
-  setTier,
-  isFeatured,
-  subscribeTier,
-} from "../utils/subscription";
+import { fetchMyListings } from "../utils/listings";
+import { getTier, isFeatured, subscribeTier } from "../utils/subscription";
 import "./PartnerDashboard.css";
 import "./Campaigns.css";
 
 /* Sidebar items — Campaigns is highlighted; non-Featured tiers see the badge */
 const buildSidebarItems = (tier) => [
-  { icon: LayoutDashboard, label: "Dashboard",   path: "/partners/dashboard#dashboard" },
-  { icon: Store,           label: "My Listings", path: "/partners/dashboard#listings" },
+  { icon: LayoutDashboard, label: "Overview",    path: "/partners/dashboard#dashboard" },
+  { icon: Store,           label: "Listings",    path: "/partners/dashboard#listings" },
   { icon: Megaphone,       label: "Promotions",  path: "/partners/dashboard#promotions" },
   {
     icon: Crown,
@@ -67,7 +65,8 @@ const buildSidebarItems = (tier) => [
     active: true,
     badge: !isFeatured(tier) ? "Featured" : null,
   },
-  { icon: TrendingUp,      label: "Analytics",   path: "/partners/dashboard#analytics" },
+  { icon: TrendingUp,      label: "Insights",    path: "/partners/dashboard#analytics" },
+  { icon: Globe2,          label: "GEO",         path: "/partners/geo" },
   { icon: CreditCard,      label: "Billing",     path: "/partners/dashboard#billing" },
   { icon: Settings,        label: "Settings",    path: "/partners/dashboard#settings" },
 ];
@@ -85,7 +84,6 @@ export default function Campaigns() {
     <div className="pd-layout">
       <Sidebar items={sidebarItems} />
       <main className="pd-main">
-        <DemoTierSwitcher tier={tier} />
         {featured ? <ActiveState /> : <UpsellState />}
       </main>
     </div>
@@ -119,27 +117,6 @@ function Sidebar({ items }) {
         <span>Sign Out</span>
       </Link>
     </aside>
-  );
-}
-
-/* ─────────────────  Demo tier switcher (mock infra)  ───────────────── */
-function DemoTierSwitcher({ tier }) {
-  return (
-    <div className="cmp-demo-tier" role="group" aria-label="Demo tier switcher">
-      <span className="cmp-demo-tier-label">Demo tier</span>
-      <div className="cmp-demo-tier-options">
-        {TIERS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            className={`cmp-demo-tier-pill${tier === t ? " cmp-demo-tier-pill--on" : ""}`}
-            onClick={() => setTier(t)}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -201,7 +178,7 @@ function UpsellState() {
             Upgrade to Featured
             <ArrowRight size={15} strokeWidth={2} />
           </Link>
-          <Link to="/partners#pricing" className="cmp-cta-link">
+          <Link to="/placements" className="cmp-cta-link">
             See what's included in Featured
           </Link>
         </div>
@@ -235,24 +212,71 @@ function ActiveState() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [purchaseTarget, setPurchaseTarget] = useState(null);
   const [purchaseError, setPurchaseError] = useState(null);
-  const [justPurchasedId, setJustPurchasedId] = useState(null);
   const [bundleOpen, setBundleOpen] = useState(false);
   const [bundleError, setBundleError] = useState(null);
-  const [justBundled, setJustBundled] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [assignTargetId, setAssignTargetId] = useState(null);
+  const [checkoutNotice, setCheckoutNotice] = useState(null); // "success" | "cancelled"
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  /* Inventory subscription — bump a tick so memos recompute after purchase */
+  /* Inventory subscription — bump a tick so memos recompute after refresh */
   const [inventoryTick, setInventoryTick] = useState(0);
   useEffect(() => subscribeInventory(() => setInventoryTick((t) => t + 1)), []);
 
-  /* Owned subscription */
+  /* Load inventory for the selected window from the backend */
+  useEffect(() => {
+    refreshInventory(activeWindow).catch(() => {});
+  }, [activeWindow]);
+
+  /* Owned subscription + initial load */
   const [owned, setOwned] = useState(() => listOwned());
   useEffect(() => subscribeOwned(setOwned), []);
+  useEffect(() => {
+    refreshOwned().catch(() => {});
+  }, []);
+
+  /* The partner's real listings — for assignment + the campaign cards.
+     Campaigns are bought FOR a Featured-tier listing (per-listing billing). */
+  const [myListings, setMyListings] = useState([]);
+  const [campaignListingId, setCampaignListingId] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchMyListings()
+      .then(({ items }) => {
+        if (cancelled) return;
+        const list = items || [];
+        setMyListings(list);
+        const featured = list.filter((l) => l.tier === "Featured" && l.status === "active");
+        setCampaignListingId((prev) => prev || featured[0]?.id || null);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  const featuredListings = myListings.filter((l) => l.tier === "Featured" && l.status === "active");
+
+  /* Stripe Checkout return: ?campaign=success | cancelled(&session_id=…) */
+  useEffect(() => {
+    const outcome = searchParams.get("campaign");
+    if (!outcome) return;
+    if (outcome === "cancelled") {
+      releaseCancelledCheckout(searchParams.get("session_id")).then(() => {
+        refreshInventory(activeWindow).catch(() => {});
+      });
+    }
+    if (outcome === "success") {
+      /* The webhook may land a moment after the redirect — refresh twice. */
+      refreshOwned().catch(() => {});
+      setTimeout(() => refreshOwned().catch(() => {}), 4000);
+    }
+    setCheckoutNotice(outcome);
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const inventory = useMemo(
     () => listInventoryForWindow(activeWindow).filter((s) => s.city === city),
     // inventoryTick is a sentinel that forces this memo to re-run after a
-    // purchase mutates the in-memory inventory store.
+    // refresh replaces the cached inventory.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeWindow, city, inventoryTick]
   );
@@ -267,34 +291,52 @@ function ActiveState() {
     return map;
   }, [inventory]);
 
-  const confirmPurchase = () => {
-    if (!purchaseTarget) return;
-    const result = purchaseSlot(purchaseTarget.id);
+  const purchaseFailureMessage = (result) => {
+    if (result.reason === "sold_out") {
+      const surface = result.soldOutSurfaceId ? getSurface(result.soldOutSurfaceId) : null;
+      return surface
+        ? `${surface.label} is sold out for this combination — try another occasion.`
+        : "This slot just sold out — try another.";
+    }
+    if (result.reason === "payments_not_configured") {
+      return "Payments aren't set up yet (Stripe configuration pending) — the slot was not charged or reserved.";
+    }
+    if (result.reason === "featured_required") {
+      return "Campaigns are for Featured-tier listings — set this venue to Featured in Billing first.";
+    }
+    if (result.reason === "listing_required") {
+      return "Select which Featured venue this campaign is for.";
+    }
+    return "Could not complete purchase.";
+  };
+
+  /* Both purchase paths end in a redirect to Stripe Checkout; the slot is
+     held for 30 minutes while the partner pays. */
+  const confirmPurchase = async () => {
+    if (!purchaseTarget || purchasing) return;
+    if (!campaignListingId) { setPurchaseError("Select which Featured venue this campaign is for."); return; }
+    setPurchasing(true);
+    const result = await purchaseSlot(purchaseTarget, campaignListingId);
+    setPurchasing(false);
     if (result.ok) {
-      setJustPurchasedId(result.purchase.id);
-      setPurchaseTarget(null);
-      setPurchaseError(null);
-      setTimeout(() => setJustPurchasedId(null), 4000);
-      setAssignTargetId(result.purchase.id);
+      window.location.assign(result.url);
     } else {
-      setPurchaseError(result.reason === "sold_out" ? "This slot just sold out — try another." : "Could not complete purchase.");
+      setPurchaseError(purchaseFailureMessage(result));
+      refreshInventory(activeWindow).catch(() => {});
     }
   };
 
-  const confirmBundle = (occasion) => {
-    const result = purchaseBundle({ windowId: activeWindow, city, occasion });
+  const confirmBundle = async (occasion) => {
+    if (purchasing) return;
+    if (!campaignListingId) { setBundleError("Select which Featured venue this campaign is for."); return; }
+    setPurchasing(true);
+    const result = await purchaseBundle({ windowId: activeWindow, city, occasion, listingId: campaignListingId });
+    setPurchasing(false);
     if (result.ok) {
-      setBundleOpen(false);
-      setBundleError(null);
-      setJustBundled(true);
-      setTimeout(() => setJustBundled(false), 4000);
-      /* Any leg id works — assignListingsToPurchase propagates across the bundle. */
-      setAssignTargetId(result.purchases[0].id);
-    } else if (result.reason === "sold_out") {
-      const surface = getSurface(result.soldOutSurfaceId);
-      setBundleError(`${surface?.label || "One surface"} is sold out for this combination — try another occasion.`);
+      window.location.assign(result.url);
     } else {
-      setBundleError("Could not complete bundle purchase.");
+      setBundleError(purchaseFailureMessage(result));
+      refreshInventory(activeWindow).catch(() => {});
     }
   };
 
@@ -305,31 +347,36 @@ function ActiveState() {
 
   return (
     <>
-      <header className="pd-head pd-anim pd-a1">
-        <div>
-          <h1 className="pd-title">Campaigns</h1>
-          <p className="pd-subtitle">
-            Purchase seasonal campaign slots to feature your venue across Planie's key surfaces.
-            Featured venues only — limited inventory per city per window.
-          </p>
-        </div>
+      <header className="pd-anim pd-a1">
+        <p className="nu-microlabel" style={{ marginBottom: 6 }}>Campaigns</p>
+        <h1 style={{ fontFamily: "'Gabarito', sans-serif", margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Own the moment.</h1>
+        <p style={{ margin: "12px 0 0", fontSize: 15, opacity: 0.6, maxWidth: "62ch" }}>
+          Seasonal campaign slots put a Featured venue in front of a whole city — limited inventory per city per window.
+        </p>
       </header>
 
-      {justPurchasedId && (
+      {checkoutNotice === "success" && (
         <div className="cmp-toast pd-anim pd-a1">
           <CheckCircle size={16} strokeWidth={1.8} />
-          <span>Slot reserved — see it under Active campaigns below.</span>
+          <span>
+            Payment received — your campaign is under Active campaigns below.
+            Assign a listing to it when you're ready.
+          </span>
         </div>
       )}
 
-      {justBundled && (
-        <div className="cmp-toast pd-anim pd-a1">
-          <CheckCircle size={16} strokeWidth={1.8} />
-          <span>Bundle reserved — all 3 surfaces are now under Active campaigns.</span>
+      {checkoutNotice === "cancelled" && (
+        <div className="cmp-callout cmp-callout--info pd-anim pd-a1">
+          <Info size={15} strokeWidth={1.8} />
+          <span>Checkout cancelled — nothing was charged and the slot was released.</span>
         </div>
       )}
 
-      <ActiveCampaignsSection owned={owned} onEditListings={(id) => setAssignTargetId(id)} />
+      <ActiveCampaignsSection
+        owned={owned}
+        myListings={myListings}
+        onEditListings={(id) => setAssignTargetId(id)}
+      />
 
       {/* ── Available inventory ── */}
       <section className="cmp-section pd-anim pd-a2">
@@ -349,6 +396,31 @@ function ActiveState() {
             </p>
           </div>
           <CitySearch value={city} onChange={setCity} />
+        </div>
+
+        {/* Which Featured venue this campaign is for (per-listing billing) */}
+        <div className="cmp-callout cmp-callout--info" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontWeight: 600 }}>Campaign for</span>
+          {featuredListings.length === 0 ? (
+            <span style={{ opacity: 0.7 }}>
+              — no Featured venue yet. Set a listing to Featured in Billing to run campaigns.
+            </span>
+          ) : (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {featuredListings.map((l) => {
+                const on = l.id === campaignListingId;
+                return (
+                  <button
+                    key={l.id}
+                    className={`al-category-chip${on ? " al-category-chip--active" : ""}`}
+                    onClick={() => setCampaignListingId(l.id)}
+                  >
+                    {l.name}{on ? " ✓" : ""}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <WindowTabs active={activeWindow} onChange={setActiveWindow} />
@@ -430,6 +502,7 @@ function ActiveState() {
           surface={getSurface(purchaseTarget.surfaceId)}
           price={windowPricing(purchaseTarget.windowId).surfacePrices[purchaseTarget.surfaceId]}
           error={purchaseError}
+          busy={purchasing}
           onClose={() => { setPurchaseTarget(null); setPurchaseError(null); }}
           onConfirm={confirmPurchase}
         />
@@ -441,6 +514,7 @@ function ActiveState() {
           pricing={pricing}
           city={city}
           error={bundleError}
+          busy={purchasing}
           onClose={() => { setBundleOpen(false); setBundleError(null); }}
           onConfirm={confirmBundle}
         />
@@ -449,9 +523,10 @@ function ActiveState() {
       {assignTarget && (
         <AssignListingsModal
           purchase={assignTarget}
+          myListings={myListings}
           onClose={() => setAssignTargetId(null)}
-          onSave={(slugs) => {
-            assignListingsToPurchase(assignTarget.id, slugs);
+          onSave={async (listingIds) => {
+            await assignListingsToPurchase(assignTarget.id, listingIds);
             setAssignTargetId(null);
           }}
         />
@@ -461,7 +536,7 @@ function ActiveState() {
 }
 
 /* ──────────────────────  Active campaigns  ────────────────────── */
-function ActiveCampaignsSection({ owned, onEditListings }) {
+function ActiveCampaignsSection({ owned, myListings, onEditListings }) {
   if (!owned.length) {
     return (
       <section className="cmp-section pd-anim pd-a1">
@@ -485,9 +560,11 @@ function ActiveCampaignsSection({ owned, onEditListings }) {
           const surface = getSurface(p.surfaceId);
           const windowMeta = getWindow(p.windowId);
           const SurfIcon = surfaceIcon(p.surfaceId);
-          const slugs = p.listingSlugs || [];
-          const listings = slugs.map(getPartnerListing).filter(Boolean);
+          const listings = (p.listingIds || [])
+            .map((id) => myListings.find((l) => l.id === id))
+            .filter(Boolean);
           const expired = p.status === "Expired";
+          const processing = p.status === "Processing";
           return (
             <article key={p.id} className={`cmp-active-card cmp-active-card--${p.status.toLowerCase()}`}>
               <div className="cmp-active-card-top">
@@ -499,7 +576,10 @@ function ActiveCampaignsSection({ owned, onEditListings }) {
               </h3>
               <div className="cmp-active-card-meta">
                 <div><MapPin size={13} strokeWidth={1.7} /> {p.city}</div>
-                <div><Calendar size={13} strokeWidth={1.7} /> {windowMeta?.label} · {windowMeta?.start} → {windowMeta?.end}</div>
+                <div>
+                  <Calendar size={13} strokeWidth={1.7} />{" "}
+                  {p.windowLabel || windowMeta?.label} · {p.windowStart} → {p.windowEnd}
+                </div>
               </div>
 
               <div className="cmp-active-card-listings">
@@ -508,7 +588,7 @@ function ActiveCampaignsSection({ owned, onEditListings }) {
                     <div className="cmp-active-listings-label">Featuring</div>
                     <div className="cmp-active-listings-tags">
                       {listings.map((l) => (
-                        <span key={l.slug} className="cmp-active-listing-tag">{l.name}</span>
+                        <span key={l.id} className="cmp-active-listing-tag">{l.name}</span>
                       ))}
                     </div>
                   </>
@@ -517,7 +597,7 @@ function ActiveCampaignsSection({ owned, onEditListings }) {
                     No listing assigned yet
                   </div>
                 )}
-                {!expired && (
+                {!expired && !processing && (
                   <button
                     type="button"
                     className="cmp-active-listings-btn"
@@ -763,7 +843,7 @@ function PricingRow({ label, detail, price, highlight }) {
 }
 
 /* ───────────────────────  Purchase modal  ─────────────────────── */
-function PurchaseModal({ slot, surface, windowMeta, price, error, onClose, onConfirm }) {
+function PurchaseModal({ slot, surface, windowMeta, price, error, busy, onClose, onConfirm }) {
   return (
     <div className="cmp-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="cmp-modal" onClick={(e) => e.stopPropagation()}>
@@ -772,7 +852,8 @@ function PurchaseModal({ slot, surface, windowMeta, price, error, onClose, onCon
         </button>
         <h2 className="cmp-modal-title">Confirm purchase</h2>
         <p className="cmp-modal-sub">
-          Payment will continue through your existing billing flow.
+          You'll be redirected to Stripe to pay. The slot is held for you for
+          30 minutes; cancelling releases it.
         </p>
 
         <div className="cmp-modal-summary">
@@ -788,8 +869,8 @@ function PurchaseModal({ slot, surface, windowMeta, price, error, onClose, onCon
 
         <div className="cmp-modal-actions">
           <button className="pd-btn pd-btn--ghost" onClick={onClose}>Cancel</button>
-          <button className="pd-btn pd-btn--fill" onClick={onConfirm}>
-            Confirm &amp; continue to billing
+          <button className="pd-btn pd-btn--fill" disabled={busy} onClick={onConfirm}>
+            {busy ? "Opening checkout…" : "Continue to payment"}
           </button>
         </div>
       </div>
@@ -807,13 +888,16 @@ function SummaryRow({ label, value, highlight }) {
 }
 
 /* ───────────────────  Assign listing modal  ─────────────────── */
-function AssignListingsModal({ purchase, onClose, onSave }) {
-  const allListings = listPartnerListings();
+function AssignListingsModal({ purchase, myListings, onClose, onSave }) {
+  /* Only approved (active) listings can front a paid placement. */
+  /* Only Featured, active venues can front a paid campaign placement. */
+  const allListings = myListings.filter((l) => l.status === "active" && l.tier === "Featured");
   const surface = getSurface(purchase.surfaceId);
   const windowMeta = getWindow(purchase.windowId);
   const isBundle = Boolean(purchase.bundleId);
 
-  const [selected, setSelected] = useState(() => (purchase.listingSlugs || [])[0] || null);
+  const [selected, setSelected] = useState(() => (purchase.listingIds || [])[0] || null);
+  const [saving, setSaving] = useState(false);
 
   return (
     <div className="cmp-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
@@ -830,23 +914,29 @@ function AssignListingsModal({ purchase, onClose, onSave }) {
         </p>
 
         <div className="cmp-assign-list" role="radiogroup">
+          {allListings.length === 0 && (
+            <div className="cmp-active-listings-empty">
+              You need an approved (active) listing before you can assign one —
+              submit a listing from the dashboard first.
+            </div>
+          )}
           {allListings.map((l) => {
-            const checked = selected === l.slug;
+            const checked = selected === l.id;
             return (
               <button
                 type="button"
-                key={l.slug}
+                key={l.id}
                 role="radio"
                 aria-checked={checked}
                 className={`cmp-assign-row${checked ? " cmp-assign-row--on" : ""}`}
-                onClick={() => setSelected(l.slug)}
+                onClick={() => setSelected(l.id)}
               >
                 <span className={`cmp-assign-radio${checked ? " cmp-assign-radio--on" : ""}`}>
                   {checked && <span className="cmp-assign-radio-dot" />}
                 </span>
                 <span className="cmp-assign-row-main">
                   <span className="cmp-assign-row-name">{l.name}</span>
-                  <span className="cmp-assign-row-meta">{l.category} · {l.location}</span>
+                  <span className="cmp-assign-row-meta">{l.category} · {l.city}</span>
                 </span>
                 <span className={`cmp-assign-row-status cmp-assign-row-status--${l.status}`}>
                   {l.status}
@@ -862,10 +952,14 @@ function AssignListingsModal({ purchase, onClose, onSave }) {
           </button>
           <button
             className="pd-btn pd-btn--fill"
-            disabled={!selected}
-            onClick={() => onSave(selected ? [selected] : [])}
+            disabled={!selected || saving}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(selected ? [selected] : []);
+              setSaving(false);
+            }}
           >
-            Save listing
+            {saving ? "Saving…" : "Save listing"}
           </button>
         </div>
       </div>
@@ -874,7 +968,7 @@ function AssignListingsModal({ purchase, onClose, onSave }) {
 }
 
 /* ───────────────────────  Bundle modal  ─────────────────────── */
-function BundleModal({ windowMeta, pricing, city, error, onClose, onConfirm }) {
+function BundleModal({ windowMeta, pricing, city, error, busy, onClose, onConfirm }) {
   const [occasion, setOccasion] = useState(OCCASIONS[0]);
   const [tick, setTick] = useState(0);
 
@@ -900,7 +994,8 @@ function BundleModal({ windowMeta, pricing, city, error, onClose, onConfirm }) {
           <div>
             <h2 className="cmp-modal-title">Confirm bundle purchase</h2>
             <p className="cmp-modal-sub">
-              All 3 surfaces for the same slot in {city}. Payment continues through your billing flow.
+              All 3 surfaces for the same slot in {city}. You'll be redirected
+              to Stripe to pay; the slots are held for 30 minutes.
             </p>
           </div>
         </div>
@@ -970,10 +1065,10 @@ function BundleModal({ windowMeta, pricing, city, error, onClose, onConfirm }) {
           <button className="pd-btn pd-btn--ghost" onClick={onClose}>Cancel</button>
           <button
             className="pd-btn pd-btn--fill"
-            disabled={anySoldOut}
+            disabled={anySoldOut || busy}
             onClick={() => onConfirm(occasion)}
           >
-            {anySoldOut ? "Pick another occasion" : "Confirm bundle & continue"}
+            {anySoldOut ? "Pick another occasion" : busy ? "Opening checkout…" : "Confirm bundle & pay"}
           </button>
         </div>
       </div>

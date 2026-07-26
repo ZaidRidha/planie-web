@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import PlanieLogo from "../Assets/Images/PlanieLogo2.png";
+import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 import FacebookIcon from "../Assets/Images/FacebookIcon.png";
 import XIcon from "../Assets/Images/XIcon.png";
 import InstagramIcon from "../Assets/Images/InstagramIcon.png";
@@ -26,12 +26,12 @@ export default function Footer() {
       {/* Subtle gradient top edge */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
-      {/* ─── Main Footer ─── */}
-      <div className="bg-gradient-to-b from-[#FFF8F6] to-[#FFF3EF]">
+      {/* â”€â”€â”€ Main Footer â”€â”€â”€ */}
+      <div className="bg-gradient-to-b from-[#FAF7F1] to-[#F3EEE4]">
         <div className="max-w-6xl mx-auto px-6 lg:px-10 pt-16 pb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
 
-            {/* ── Column 1: Brand ── */}
+            {/* â”€â”€ Column 1: Brand â”€â”€ */}
             <div className="sm:col-span-2 lg:col-span-1">
               <Link to="/" className="inline-block mb-4">
                 <img src={PlanieLogo} alt="Planie" className="h-8 w-auto" />
@@ -59,9 +59,9 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* ── Column 2: Navigation ── */}
+            {/* â”€â”€ Column 2: Navigation â”€â”€ */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#11181C]/40 mb-5">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 Navigation
               </h3>
               <ul className="space-y-3">
@@ -78,9 +78,9 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* ── Column 3: Partner ── */}
+            {/* â”€â”€ Column 3: Partner â”€â”€ */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#11181C]/40 mb-5">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 For Business
               </h3>
               <ul className="space-y-3">
@@ -103,19 +103,19 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="mailto:hello@planie.app"
+                  <Link
+                    to="/contact"
                     className="text-sm text-[#687076] hover:text-[#FF4040] transition-colors duration-200"
                   >
                     Contact Us
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
 
-            {/* ── Column 4: Download the App ── */}
+            {/* â”€â”€ Column 4: Download the App â”€â”€ */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#11181C]/40 mb-5">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 Get the App
               </h3>
               <div className="flex flex-col gap-3">
@@ -147,19 +147,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ─── Bottom Bar ─── */}
+        {/* â”€â”€â”€ Bottom Bar â”€â”€â”€ */}
         <div className="border-t border-[#FF4040]/[0.06]">
           <div className="max-w-6xl mx-auto px-6 lg:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-[#687076]/70">
               &copy; {new Date().getFullYear()} Planie. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <button type="button" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+              <Link to="/privacy" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
                 Privacy Policy
-              </button>
-              <button type="button" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+              </Link>
+              <Link to="/terms" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
                 Terms of Service
-              </button>
+              </Link>
+              <Link to="/contact" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+                Contact
+              </Link>
             </div>
           </div>
         </div>
