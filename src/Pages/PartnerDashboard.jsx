@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars -- analytics chart scaffolding (Donut,
+   AnalyticsLineChart, HBarChart, useCounter and their sample datasets) is
+   built but not yet wired into the render. */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
