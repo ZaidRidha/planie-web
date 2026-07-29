@@ -34,7 +34,7 @@ export default function Header() {
             <img
               src={PlanieLogo}
               alt="Planie"
-              className="h-9 w-auto transition-transform duration-300 group-hover:scale-[1.03]"
+              className="h-12 md:h-14 w-auto transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </Link>
 

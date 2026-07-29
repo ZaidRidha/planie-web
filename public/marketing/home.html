@@ -86,7 +86,7 @@
 
   <!-- Nav: porcelain glass, one link, one quiet action -->
   <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; background: rgba(250, 247, 241, 0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(28, 17, 20, 0.05);">
-    <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 30px; display: block; mix-blend-mode: multiply;">
+    <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
     <div style="display: flex; align-items: center; gap: 32px;">
       <a href="#business" style="font-size: 15px; font-weight: 500; opacity: 0.75;">For business</a>
       <a href="#keep" style="font-size: 15px; font-weight: 600; color: #FAF7F1; background: #1C1114; padding: 10px 22px; border-radius: 100px;" style-hover="background: #FF4040; color: #FAF7F1;">Get the app</a>
@@ -131,7 +131,7 @@
       <div style="position: relative; width: min(900px, 90vw); text-align: center;">
         <p data-intertitle="0" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">47 open tabs.</p>
         <p data-intertitle="1" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">A group chat that decided nothing.</p>
-        <p data-intertitle="2" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease; font-style: italic;">â€œI donâ€™t mind, you pick.â€</p>
+        <p data-intertitle="2" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease; font-style: italic;">“I don’t mind, you pick.”</p>
         <p data-intertitle="3" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">Another Saturday spent planning<br>instead of living.</p>
         <p style="visibility: hidden; margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); line-height: 1.1;">Another Saturday spent planning<br>instead of living.</p>
       </div>
@@ -525,9 +525,9 @@
               <p style="margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; color: #1C1114; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ mapCardName }}</p>
               <p style="margin: 3px 0 0; font-size: 12.5px; color: rgba(28,17,20,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ mapCardAddr }}</p>
               <div style="margin-top: 7px; display: flex; align-items: center; gap: 12px; font-size: 13px;">
-                <span style="font-weight: 600; color: #1C1114;">â˜… {{ mapCardRating }}</span>
-                <span style="color: rgba(28,17,20,0.4);">Â£Â£</span>
-                <span style="color: #FF4040; font-weight: 600; font-size: 12px;">Planieâ€™s pick</span>
+                <span style="font-weight: 600; color: #1C1114;">★ {{ mapCardRating }}</span>
+                <span style="color: rgba(28,17,20,0.4);">££</span>
+                <span style="color: #FF4040; font-weight: 600; font-size: 12px;">Planie’s pick</span>
               </div>
             </div>
             <div style="width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(135deg, #E28C8C, #B23A3A); flex-shrink: 0;"></div>
@@ -553,10 +553,10 @@
               </div>
               <p style="margin: 10px 0 0; font-size: 16px; line-height: 1.55; opacity: 0.62; max-width: 46ch;">{{ st.note }}</p>
               <div style="margin-top: 14px; display: flex; align-items: center; gap: 18px; font-size: 14px; opacity: 0.55;">
-                <span>â˜… {{ st.rating }}</span>
+                <span>★ {{ st.rating }}</span>
                 <span>{{ st.hours }}</span>
                 <sc-if value="{{ st.verdict }}" hint-placeholder-val="{{ false }}">
-                  <span style="color: #FF4040; opacity: 1; font-weight: 600;">Planieâ€™s pick</span>
+                  <span style="color: #FF4040; opacity: 1; font-weight: 600;">Planie’s pick</span>
                 </sc-if>
               </div>
             </div>
@@ -577,7 +577,7 @@
       </div>
       <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.55; opacity: 0.62;">{{ trustNote }}</p>
       <div style="margin-top: 12px; display: flex; gap: 18px; font-size: 14px; opacity: 0.55;">
-        <span>â˜… {{ trustRating }}</span>
+        <span>★ {{ trustRating }}</span>
         <span>{{ trustHours }}</span>
       </div>
       <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(28, 17, 20, 0.08); display: flex; gap: 12px; flex-wrap: wrap;">
@@ -633,7 +633,7 @@
         <a href="/contact" target="_top">Contact</a>
       </div>
     </div>
-    <p style="margin: 40px 0 0; font-size: 13px; opacity: 0.35;">Â© 2026 Planie. Made for the time of your life.</p>
+    <p style="margin: 40px 0 0; font-size: 13px; opacity: 0.35;">© 2026 Planie. Made for the time of your life.</p>
   </footer>
 
 </div>
@@ -644,51 +644,51 @@ class Component extends DCLogic {
 
   PLANS = {
     date: {
-      label: 'Date night, Â£60',
-      ask: 'A date night, around Â£60â€¦',
+      label: 'Date night, £60',
+      ask: 'A date night, around £60…',
       title: 'One evening, considered.',
       caption: 'Southbank, London - 1.9 km on foot, timed for sunset.',
       stops: [
         { time: '18:30', name: 'Bar Beatrice', whisper: 'Starting soft - a corner table, low light.', note: 'A tucked-away aperitivo bar. Two negronis and the good olives before the main event.', rating: '4.7', hours: 'Open until 23:00' },
-        { time: '20:00', name: 'Casa FofÃ³', whisper: 'This is the one. Locals book it twice.', note: 'Seasonal tasting plates, candle-lit, quietly brilliant. The table is held under your name.', rating: '4.8', hours: 'Table held Â· 20:00', verdict: true },
+        { time: '20:00', name: 'Casa Fofó', whisper: 'This is the one. Locals book it twice.', note: 'Seasonal tasting plates, candle-lit, quietly brilliant. The table is held under your name.', rating: '4.8', hours: 'Table held · 20:00', verdict: true },
         { time: '22:15', name: 'The River Walk', whisper: 'Then no plan at all - on purpose.', note: 'Eleven minutes along the water back to the bridge. The city does the rest.', rating: '-', hours: 'Always open' }
       ],
       swaps: [
-        { name: 'Casa FofÃ³', note: 'Seasonal tasting plates, candle-lit, quietly brilliant. The table is held under your name.', rating: '4.8', hours: 'Table held Â· 20:00' },
-        { name: 'Levan', note: 'Modern European, natural wine list that regulars whisper about. Corner two-top by the window.', rating: '4.7', hours: 'Table held Â· 20:00' },
-        { name: 'Perilla', note: 'Neighbourhood dining that outcooks the centre of town. Set menu, zero decisions.', rating: '4.8', hours: 'Table held Â· 20:00' }
+        { name: 'Casa Fofó', note: 'Seasonal tasting plates, candle-lit, quietly brilliant. The table is held under your name.', rating: '4.8', hours: 'Table held · 20:00' },
+        { name: 'Levan', note: 'Modern European, natural wine list that regulars whisper about. Corner two-top by the window.', rating: '4.7', hours: 'Table held · 20:00' },
+        { name: 'Perilla', note: 'Neighbourhood dining that outcooks the centre of town. Set menu, zero decisions.', rating: '4.8', hours: 'Table held · 20:00' }
       ]
     },
     kids: {
       label: 'Rainy Sunday with kids',
-      ask: 'Rainy Sunday, two kids under sixâ€¦',
+      ask: 'Rainy Sunday, two kids under six…',
       title: 'Rain, handled.',
       caption: 'Within 15 minutes of home - all indoors, all pram-friendly.',
       stops: [
-        { time: '10:00', name: 'Busy Bees Softplay', whisper: 'Energy first. Trust the order.', note: 'Two hours of climbing means a calm lunch. Quietest slot of the week - booked.', rating: '4.6', hours: 'Session held Â· 10:00' },
+        { time: '10:00', name: 'Busy Bees Softplay', whisper: 'Energy first. Trust the order.', note: 'Two hours of climbing means a calm lunch. Quietest slot of the week - booked.', rating: '4.6', hours: 'Session held · 10:00' },
         { time: '12:30', name: 'Franca Pizzeria', whisper: 'High chairs, fast kitchen, real pizza.', note: 'Kids eat free on Sundays. The margherita arrives in nine minutes flat.', rating: '4.7', hours: 'Open until 22:00', verdict: true },
         { time: '14:00', name: 'The Little Museum', whisper: 'Ending gentle - naps in the pram welcome.', note: 'The interactive floor is made for small hands. Free entry, quiet by two.', rating: '4.8', hours: 'Open until 17:00' }
       ],
       swaps: [
         { name: 'Franca Pizzeria', note: 'Kids eat free on Sundays. The margherita arrives in nine minutes flat.', rating: '4.7', hours: 'Open until 22:00' },
         { name: 'Noodle House', note: 'Slurp-friendly, splash-proof, beloved by toddlers and their tired parents.', rating: '4.6', hours: 'Open until 21:30' },
-        { name: 'The Corner CafÃ©', note: 'Crayons on every table and the best babyccino within five miles.', rating: '4.7', hours: 'Open until 17:00' }
+        { name: 'The Corner Café', note: 'Crayons on every table and the best babyccino within five miles.', rating: '4.7', hours: 'Open until 17:00' }
       ]
     },
     lisbon: {
       label: '48 hours in Lisbon',
-      ask: '48 hours in Lisbon, first timeâ€¦',
+      ask: '48 hours in Lisbon, first time…',
       title: 'Lisbon, distilled.',
-      caption: 'Alfama to BelÃ©m - day one of two, walking pace.',
+      caption: 'Alfama to Belém - day one of two, walking pace.',
       stops: [
-        { time: '09:00', name: 'Manteigaria', whisper: 'Skip the famous queue. This oneâ€™s better.', note: 'PastÃ©is de nata straight from the oven, cinnamon on top, counter seats facing the kitchen.', rating: '4.8', hours: 'Open from 08:00' },
-        { time: '11:00', name: 'Alfama on foot', whisper: 'Get lost here - itâ€™s the point.', note: 'A route through the old town that finds the miradouros without the crowds.', rating: '-', hours: 'Golden by 18:00' },
-        { time: '20:00', name: 'Taberna do Fado', whisper: 'The night decides itself after this.', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held Â· 20:00', verdict: true }
+        { time: '09:00', name: 'Manteigaria', whisper: 'Skip the famous queue. This one’s better.', note: 'Pastéis de nata straight from the oven, cinnamon on top, counter seats facing the kitchen.', rating: '4.8', hours: 'Open from 08:00' },
+        { time: '11:00', name: 'Alfama on foot', whisper: 'Get lost here - it’s the point.', note: 'A route through the old town that finds the miradouros without the crowds.', rating: '-', hours: 'Golden by 18:00' },
+        { time: '20:00', name: 'Taberna do Fado', whisper: 'The night decides itself after this.', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held · 20:00', verdict: true }
       ],
       swaps: [
-        { name: 'Taberna do Fado', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held Â· 20:00' },
-        { name: 'Cervejaria Ramiro', note: 'Garlic prawns, cold beer, paper tablecloths. Chaos, in the best way.', rating: '4.7', hours: 'Table held Â· 20:15' },
-        { name: 'A Cevicheria', note: 'Peruvian-Portuguese under the giant octopus. Counter seats are the ones.', rating: '4.8', hours: 'Table held Â· 20:00' }
+        { name: 'Taberna do Fado', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held · 20:00' },
+        { name: 'Cervejaria Ramiro', note: 'Garlic prawns, cold beer, paper tablecloths. Chaos, in the best way.', rating: '4.7', hours: 'Table held · 20:15' },
+        { name: 'A Cevicheria', note: 'Peruvian-Portuguese under the giant octopus. Counter seats are the ones.', rating: '4.8', hours: 'Table held · 20:00' }
       ]
     }
   };
@@ -720,7 +720,7 @@ class Component extends DCLogic {
       }, 75);
     }, 4200);
 
-    // Scroll reveals â€” viewport-based, resilient to re-renders, with cascade
+    // Scroll reveals — viewport-based, resilient to re-renders, with cascade
     this.revealed = new Set();
     this.revealInView = () => {
       const vh = window.innerHeight;
@@ -823,9 +823,9 @@ class Component extends DCLogic {
   renderVals() {
     const plan = this.PLANS[this.state.plan];
     const heroStops = [
-      { time: '18:30', name: 'Bar Beatrice', meta: 'aperitivo Â· 4 min walk', dotColor: '#1C1114', dotFill: 'transparent', notLast: true },
-      { time: '20:00', name: 'Casa FofÃ³', meta: 'table held â˜… 4.8', dotColor: '#FF4040', dotFill: '#FF4040', notLast: true },
-      { time: '22:15', name: 'The River Walk', meta: 'sunset Â· 11 min', dotColor: '#1C1114', dotFill: 'transparent', notLast: false }
+      { time: '18:30', name: 'Bar Beatrice', meta: 'aperitivo · 4 min walk', dotColor: '#1C1114', dotFill: 'transparent', notLast: true },
+      { time: '20:00', name: 'Casa Fofó', meta: 'table held ★ 4.8', dotColor: '#FF4040', dotFill: '#FF4040', notLast: true },
+      { time: '22:15', name: 'The River Walk', meta: 'sunset · 11 min', dotColor: '#1C1114', dotFill: 'transparent', notLast: false }
     ];
     const stops = plan.stops.map((s, i) => ({
       ...s,
