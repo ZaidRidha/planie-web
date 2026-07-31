@@ -36,6 +36,10 @@
   [data-m="stack"] { grid-template-columns: 1fr !important; }
   [data-m="unstick"] { position: static !important; top: auto !important; }
 }
+@media (max-width: 640px) {
+  /* Act 1 closing line: keep the two authored lines, shrink so neither wraps */
+  .act1-close { font-size: clamp(17px, 5.4vw, 30px) !important; }
+}
 </style>
 <style>
   html.plie-dark { filter: invert(0.9) hue-rotate(180deg) brightness(1.06) contrast(1.04); background: #12100f !important; }
@@ -132,8 +136,8 @@
         <p data-intertitle="0" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">47 open tabs.</p>
         <p data-intertitle="1" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">A group chat that decided nothing.</p>
         <p data-intertitle="2" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease; font-style: italic;">“I don’t mind, you pick.”</p>
-        <p data-intertitle="3" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;">Another Saturday spent planning<br>instead of living.</p>
-        <p style="visibility: hidden; margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); line-height: 1.1;">Another Saturday spent planning<br>instead of living.</p>
+        <p data-intertitle="3" class="act1-close" style="position: absolute; inset: 0; margin: 0; display: grid; place-items: center; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1; color: #FAF7F1; opacity: 0; transition: opacity 0.7s ease;"><span style="display: block; text-wrap: balance;">Another Saturday spent <em>planning</em> instead of <strong>living</strong>.</span></p>
+        <p class="act1-close" style="visibility: hidden; margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 64px); letter-spacing: -0.02em; line-height: 1.1;"><span style="display: block; text-wrap: balance;">Another Saturday spent <em>planning</em> instead of <strong>living</strong>.</span></p>
       </div>
     </div>
   </section>
@@ -625,8 +629,8 @@
 
   <!-- CODA B - whisper footer -->
   <footer style="border-top: 1px solid rgba(28, 17, 20, 0.08); padding: 72px 40px 48px; max-width: 1240px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 32px; flex-wrap: wrap;">
-      <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 26px; display: block; mix-blend-mode: multiply;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap;">
+      <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
       <div style="display: flex; gap: 28px; font-size: 14px; opacity: 0.55;">
         <a href="/privacy" target="_top">Privacy</a>
         <a href="/terms" target="_top">Terms</a>
