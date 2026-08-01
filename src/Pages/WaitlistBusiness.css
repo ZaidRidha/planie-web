@@ -1,0 +1,293 @@
+/* WaitlistBusiness.css - page-scoped rules for WaitlistBusinessPage.jsx.
+   The page itself is styled with inline style objects + --nu-* tokens (the
+   house dialect, see ContactPage.jsx). This file carries only what inline
+   styles cannot express. Every class is wlb- prefixed so it cannot collide
+   with the consumer waitlist page.
+
+   Why the input / pill / chip / shell BASE styles live here rather than inline:
+   an inline style wins the cascade over any non-!important rule, so a base
+   declared inline could not then be overridden by its own :hover, :focus,
+   :checked, [aria-invalid] or @media variant. Any property that needs one of
+   those states is therefore declared here in full; everything else (layout,
+   type, spacing, colour) is inline in the JSX.
+
+   Dark mode needs nothing here - override.css inverts the whole page.
+
+   MOTION POLICY (read before adding anything):
+   1. Entrance is PURE CSS, never JS. Every entrance animation uses fill mode
+      `both`, so the element ends in its final visible state no matter what.
+      There is deliberately no IntersectionObserver: the house pattern in
+      PlacementWorks.jsx starts at inline opacity:0 and sets opacity:1 from JS,
+      and a stylesheet cannot override an inline style - so a reduced-motion
+      user, or anyone whose observer never fires, is left staring at nothing.
+      Nothing on this page can strand at opacity 0.
+   2. Transform and opacity only - no animating width/height/top/left.
+   3. tokens.css has NO global prefers-reduced-motion guard, so .nu-rise and
+      friends animate unconditionally site-wide. The reduce block at the bottom
+      of this file is the only thing protecting this page, and it matches by
+      descendant so it covers the nu-* animations too. It is load-bearing -
+      do not delete it as redundant. Every keyframe added above must be
+      neutralised by it. */
+
+/* ---------- Entrance ----------
+   One shared rise, staggered by delay class. `both` fill is what makes this
+   safe: the element holds the from-state before it starts and the to-state
+   forever after. */
+@keyframes wlbRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+.wlb-in { animation: wlbRise 0.7s var(--nu-ease) both; }
+
+/* Stagger, ~70ms apart. Applied to the element that should land next. */
+.wlb-d1 { animation-delay: 0.07s; }
+.wlb-d2 { animation-delay: 0.14s; }
+.wlb-d3 { animation-delay: 0.21s; }
+.wlb-d4 { animation-delay: 0.28s; }
+.wlb-d5 { animation-delay: 0.35s; }
+
+/* ---------- The hero moment ----------
+   Each headline line is a mask: the inner span rises out from under a clipped
+   edge. Transform only - the clip does the hiding, so there is no opacity
+   state to get stuck in. */
+@keyframes wlbMask {
+  from { transform: translateY(105%); }
+  to { transform: none; }
+}
+.wlb-line { display: block; overflow: hidden; }
+.wlb-line > span {
+  display: block;
+  animation: wlbMask 0.85s var(--nu-ease) both;
+}
+/* The red full stop is the page's accent - it lands last, after both lines. */
+@keyframes wlbPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.wlb-stop {
+  display: inline-block;
+  color: var(--nu-red);
+  animation: wlbPop 0.5s var(--nu-ease) 0.62s both;
+}
+
+/* ---------- Layout ----------
+   Only the shell lives here, because its padding has @media overrides below.
+   The grids and the chip row are plain inline styles in the JSX (auto-fit +
+   minmax reflows with no media query, as ContactPage does). */
+.wlb-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 84px 40px 104px;
+}
+
+/* ---------- Value-prop chips ----------
+   Deliberately not tokens.css .nu-chip - that is the partner dashboard's
+   status badge, and borrowing it would let a dashboard restyle silently
+   change marketing copy. These are the site's own pill metrics (ContactPage's
+   unselected topic pill), in CSS rather than inline because of the hover. */
+.wlb-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 9px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  color: var(--nu-ink);
+  background: transparent;
+  transition: transform 0.25s var(--nu-ease), border-color 0.25s var(--nu-ease);
+}
+.wlb-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--nu-ink);
+}
+
+/* ---------- "What happens next" ----------
+   Numbered because it genuinely is a sequence; hairlines rather than cards,
+   matching the rest of the site. */
+.wlb-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 13px 0;
+  border-top: 1px solid var(--nu-hairline-soft);
+}
+.wlb-step:last-child { border-bottom: 1px solid var(--nu-hairline-soft); }
+.wlb-stepnum {
+  flex: none;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  border: 1px solid var(--nu-hairline);
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  transition: background 0.3s var(--nu-ease), color 0.3s var(--nu-ease), border-color 0.3s var(--nu-ease);
+}
+.wlb-step:hover .wlb-stepnum {
+  background: var(--nu-ink);
+  border-color: var(--nu-ink);
+  color: var(--nu-cream);
+}
+
+/* ---------- Inputs ---------- */
+.wlb-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--nu-font-body);
+  font-size: 15px;
+  color: var(--nu-ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--nu-hairline);
+  border-radius: 13px;
+  padding: 13px 16px;
+  outline: none;
+  transition: border-color 0.2s var(--nu-ease), box-shadow 0.2s var(--nu-ease), transform 0.2s var(--nu-ease);
+}
+.wlb-input::placeholder { color: var(--nu-muted); }
+.wlb-input:hover { border-color: rgba(28, 17, 20, 0.28); }
+.wlb-input:focus {
+  border-color: var(--nu-ink);
+  box-shadow: 0 6px 18px rgba(28, 17, 20, 0.06);
+  transform: translateY(-1px);
+}
+.wlb-input[aria-invalid="true"] { border-color: var(--nu-red); }
+
+/* ---------- Venue-type pills (native radios, styled) ---------- */
+.wlb-pill { position: relative; display: inline-flex; }
+/* The radio stays in the a11y tree and keeps native arrow-key behaviour;
+   it is only visually replaced by its label. */
+.wlb-pill input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.wlb-pill span {
+  position: relative;
+  isolation: isolate; /* keeps the ::before fill inside this pill's stack */
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  color: var(--nu-ink);
+  background: transparent;
+  transition: color 0.25s var(--nu-ease), border-color 0.25s var(--nu-ease), transform 0.2s var(--nu-ease);
+  user-select: none;
+}
+/* The ink wipes in from the left rather than snapping on - the same gesture
+   as a line being drawn, so selection reads as one motion idea. */
+.wlb-pill span::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 100px;
+  background: var(--nu-ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.32s var(--nu-ease);
+}
+.wlb-pill input:hover + span { border-color: var(--nu-ink); transform: translateY(-1px); }
+.wlb-pill input:active + span { transform: scale(0.97); }
+.wlb-pill input:checked + span { color: var(--nu-cream); border-color: var(--nu-ink); }
+.wlb-pill input:checked + span::before { transform: scale(1); opacity: 1; }
+
+/* ---------- Consent ----------
+   Layout is inline in the JSX; the class remains as the hook for the states
+   below, which inline styles cannot express. */
+.wlb-consent label { cursor: pointer; }
+.wlb-consent input {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin: 1px 0 0;
+  accent-color: var(--nu-ink);
+  cursor: pointer;
+}
+
+/* ---------- Buttons: the arrow leans forward on hover ---------- */
+.wlb-submit svg,
+.wlb-arrowlink svg { transition: transform 0.25s var(--nu-ease); }
+.wlb-submit:hover:not(:disabled) svg,
+.wlb-arrowlink:hover svg { transform: translateX(4px); }
+
+/* ---------- Sending ---------- */
+@keyframes wlbSpin { to { transform: rotate(360deg); } }
+.wlb-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(250, 247, 241, 0.35);
+  border-top-color: var(--nu-cream);
+  animation: wlbSpin 0.7s linear infinite;
+}
+
+/* ---------- Done: the badge pops, then the tick draws itself ---------- */
+@keyframes wlbDraw { to { stroke-dashoffset: 0; } }
+.wlb-successicon { animation: wlbPop 0.5s var(--nu-ease) both; }
+.wlb-check {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: wlbDraw 0.45s var(--nu-ease) 0.28s both;
+}
+
+/* ---------- Focus rings (tokens.css only shifts border colour) ---------- */
+.wlb-page a:focus-visible,
+.wlb-page button:focus-visible,
+.wlb-input:focus-visible,
+.wlb-pill input:focus-visible + span,
+.wlb-consent input:focus-visible {
+  outline: 2px solid var(--nu-red);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+.wlb-pill input:focus-visible + span { border-radius: 100px; }
+
+/* ---------- Narrow screens (down to 360px) ---------- */
+@media (max-width: 860px) {
+  .wlb-shell { padding: 60px 24px 80px; }
+}
+@media (max-width: 420px) {
+  .wlb-shell { padding: 48px 16px 72px; }
+  .wlb-pill span,
+  .wlb-chip { padding: 9px 13px; font-size: 13px; }
+  .wlb-input { font-size: 16px; } /* 16px stops iOS zooming the field on focus */
+}
+
+/* ---------- Reduced motion ----------
+   Neutralises every keyframe and transition above (including the nu-*
+   animations inherited from tokens.css) and cancels the decorative transforms,
+   while leaving the pill's checked fill and the success tick in their finished
+   state so the UI still reads correctly. */
+@media (prefers-reduced-motion: reduce) {
+  .wlb-page *,
+  .wlb-page *::before,
+  .wlb-page *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+  .wlb-input:focus,
+  .wlb-chip:hover,
+  .wlb-pill input:hover + span,
+  .wlb-pill input:active + span,
+  .wlb-submit:hover:not(:disabled) svg,
+  .wlb-arrowlink:hover svg { transform: none !important; }
+  /* Belt and braces: .wlb-check is the one element whose hidden state lives on
+     its base rule rather than only in a keyframe, so if this block is ever
+     changed to `animation: none` the tick would vanish instead of snapping to
+     drawn. Pin the finished state explicitly. */
+  .wlb-check { stroke-dashoffset: 0 !important; }
+}

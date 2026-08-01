@@ -16,6 +16,7 @@ const socialLinks = [
 
 const footerNav = [
   { label: "Home", to: "/" },
+  { label: "Waitlist", to: "/waitlist" },
   { label: "Partners", to: "/partners" },
   { label: "Blog", to: "/blog" },
 ];
@@ -86,6 +87,14 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link
+                    to="/waitlist/business"
+                    className="text-sm text-[#687076] hover:text-[#FF4040] transition-colors duration-200"
+                  >
+                    Early Access
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/partners"
                     className="text-sm text-[#687076] hover:text-[#FF4040] transition-colors duration-200"
                   >
@@ -119,9 +128,10 @@ export default function Footer() {
                 Get the App
               </h3>
               <div className="flex flex-col gap-3">
-                {/* App Store Badge */}
-                <button
-                  type="button"
+                {/* Store badges point at the waitlist until the app ships */}
+                <Link
+                  to="/waitlist"
+                  aria-label="Join the waitlist for the iOS app"
                   className="inline-block transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90"
                 >
                   <img
@@ -129,11 +139,11 @@ export default function Footer() {
                     alt="Download on the App Store"
                     className="h-[40px] w-auto"
                   />
-                </button>
+                </Link>
 
-                {/* Google Play Badge */}
-                <button
-                  type="button"
+                <Link
+                  to="/waitlist"
+                  aria-label="Join the waitlist for the Android app"
                   className="inline-block transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 -ml-3"
                 >
                   <img
@@ -141,7 +151,18 @@ export default function Footer() {
                     alt="Get it on Google Play"
                     className="h-[60px] w-auto"
                   />
-                </button>
+                </Link>
+
+                <p className="text-xs text-[#687076]/70 leading-relaxed">
+                  Not out yet —{" "}
+                  <Link
+                    to="/waitlist"
+                    className="text-[#687076] underline underline-offset-2 hover:text-[#FF4040] transition-colors duration-200"
+                  >
+                    join the waitlist
+                  </Link>
+                  .
+                </p>
               </div>
             </div>
           </div>

@@ -7,6 +7,8 @@ import PlacementWorks from "./Pages/PlacementWorks";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import TermsOfService from "./Pages/TermsOfService";
 import ContactPage from "./Pages/ContactPage";
+import WaitlistPage from "./Pages/WaitlistPage";
+import WaitlistBusinessPage from "./Pages/WaitlistBusinessPage";
 import PartnerLoginPage from "./Pages/PartnerLoginPage";
 import PartnerDashboard from "./Pages/PartnerDashboard";
 import AddListing from "./Pages/AddListing";
@@ -76,6 +78,8 @@ function App() {
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/waitlist" element={<WaitlistPage />} />
+                  <Route path="/waitlist/business" element={<WaitlistBusinessPage />} />
                 </Routes>
               </main>
               <Footer />

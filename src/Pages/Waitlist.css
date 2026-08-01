@@ -1,0 +1,237 @@
+/* Waitlist.css - consumer waitlist page (/waitlist).
+   The page itself is styled with inline style objects + --nu-* tokens, the
+   same dialect as ContactPage/PlacementWorks. This file carries what inline
+   styles cannot express: keyframes, interactive states (:hover, :checked,
+   :focus-visible), the small-screen adjustments, and the reduced-motion
+   opt-out. Every class is `wl-` prefixed.
+
+   Motion budget: one page-load stagger, one selection wipe, one submit
+   choreography, one success draw. Nothing loops - an infinitely animating
+   flourish next to a form is noise, not craft. Transform/opacity only.
+
+   ASCII-only on purpose - this repo has documented CP1252/UTF-8 damage. */
+
+/* ------------------------------- Keyframes ------------------------------ */
+@keyframes wlFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes wlPhraseIn {
+  from { opacity: 0; transform: translateY(0.5em); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes wlPopIn {
+  0% { opacity: 0; transform: scale(0.5); }
+  62% { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes wlDrawCheck {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes wlDot {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Page-load stagger. The delay comes from an inline --wl-d custom property so
+   the running order lives with the markup instead of a pile of nth-child
+   rules. `both` fill means the element is never stranded invisible. */
+.wl-reveal {
+  animation: wlFadeUp 0.62s var(--nu-ease) both;
+  animation-delay: var(--wl-d, 0s);
+}
+
+/* ----------------------------- Rotating line ---------------------------- */
+/* The signature element: the occasions Planie is for, in the app's own words.
+   Re-keyed per phrase in JSX so the animation retriggers. */
+.wl-rotator {
+  display: inline-block;
+  color: var(--nu-red);
+  animation: wlPhraseIn 0.42s var(--nu-ease) both;
+}
+
+/* Visually hidden but announced - the rotator itself is aria-hidden. */
+.wl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------ Focus rings ----------------------------- */
+.wl-page a:focus-visible,
+.wl-input:focus-visible,
+.wl-check:focus-visible,
+.wl-btn:focus-visible,
+.wl-pill-input:focus-visible + .wl-pill {
+  outline: 2px solid var(--nu-red);
+  outline-offset: 2px;
+}
+
+/* ------------------------------ Text inputs ----------------------------- */
+.wl-input {
+  transition: border-color 0.2s var(--nu-ease), background 0.2s var(--nu-ease),
+    box-shadow 0.2s var(--nu-ease);
+}
+.wl-input:hover { border-color: rgba(28, 17, 20, 0.28); }
+.wl-input:focus {
+  border-color: var(--nu-ink);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 18px rgba(28, 17, 20, 0.07);
+}
+.wl-input::placeholder { color: var(--nu-muted); }
+
+/* ---------------------------- Platform pills ---------------------------- */
+/* Native radios: arrow-key roving, grouping and checked state come free. */
+.wl-pill-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.wl-pill-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.wl-pill {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--nu-font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  background: transparent;
+  color: var(--nu-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  transition: color 0.22s var(--nu-ease), border-color 0.22s var(--nu-ease),
+    transform 0.22s var(--nu-ease);
+}
+/* The ink fill wipes in from the left rather than snapping on. */
+.wl-pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--nu-ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s var(--nu-ease);
+}
+.wl-pill-wrap:hover .wl-pill { border-color: var(--nu-ink); }
+.wl-pill-wrap:active .wl-pill { transform: scale(0.97); }
+.wl-pill-input:checked + .wl-pill {
+  border-color: var(--nu-ink);
+  color: var(--nu-cream);
+}
+.wl-pill-input:checked + .wl-pill::before { transform: scaleX(1); }
+/* The tick's box is always reserved and only scales, so selecting a pill
+   never reflows the row (no animated width). */
+.wl-pill-tick {
+  width: 13px;
+  margin-right: 7px;
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.22s var(--nu-ease), opacity 0.22s var(--nu-ease);
+}
+.wl-pill-input:checked + .wl-pill .wl-pill-tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* --------------------------- Consent checkbox --------------------------- */
+.wl-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  accent-color: var(--nu-ink);
+  cursor: pointer;
+  transition: transform 0.18s var(--nu-ease);
+}
+.wl-check:active { transform: scale(0.9); }
+
+/* ---------------------------- Buttons / links --------------------------- */
+.wl-btn { transition: all 0.25s var(--nu-ease); }
+.wl-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.wl-btn:active:not(:disabled) { transform: translateY(0); }
+.wl-arrow { transition: transform 0.25s var(--nu-ease); }
+.wl-btn:hover:not(:disabled) .wl-arrow { transform: translateX(3px); }
+
+.wl-link { transition: color 0.2s var(--nu-ease), opacity 0.2s var(--nu-ease); }
+.wl-link:hover { color: var(--nu-red); }
+
+/* Sending affordance. The label keeps the button's width steady so the
+   idle -> sending -> done transition doesn't jump. */
+.wl-dots { display: inline-flex; align-items: center; gap: 3px; }
+.wl-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: wlDot 1.15s var(--nu-ease) infinite;
+}
+.wl-dots i:nth-child(2) { animation-delay: 0.14s; }
+.wl-dots i:nth-child(3) { animation-delay: 0.28s; }
+
+/* ----------------------------- Success state ---------------------------- */
+/* The emotional beat of the page: badge pops, tick draws, lines rise. */
+.wl-badge { animation: wlPopIn 0.45s var(--nu-ease) both; }
+.wl-check-path {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: wlDrawCheck 0.5s var(--nu-ease) 0.24s forwards;
+}
+.wl-done-line {
+  animation: wlFadeUp 0.5s var(--nu-ease) both;
+  animation-delay: var(--wl-d, 0s);
+}
+
+/* ------------------ Small screens (readable down to 360px) -------------- */
+@media (max-width: 560px) {
+  .wl-submit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .wl-submit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* -------------------------- Respect reduced motion ---------------------- */
+/* Blanket-kills motion for the whole page. Rules that hide content via
+   animation state are then restored explicitly, so nothing can end up
+   invisible or half-drawn when the animation never runs. */
+@media (prefers-reduced-motion: reduce) {
+  .wl-page,
+  .wl-page *,
+  .wl-page *::before,
+  .wl-page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .wl-page .wl-check-path { stroke-dashoffset: 0 !important; }
+  .wl-page .wl-pill-input:checked + .wl-pill::before {
+    transform: scaleX(1) !important;
+  }
+  .wl-page .wl-pill-input:checked + .wl-pill .wl-pill-tick {
+    transform: scale(1) !important;
+  }
+  .wl-page .wl-btn:hover:not(:disabled),
+  .wl-page .wl-btn:hover:not(:disabled) .wl-arrow,
+  .wl-page .wl-pill-wrap:active .wl-pill { transform: none !important; }
+}

@@ -28,6 +28,17 @@
   @keyframes marqueeL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   @keyframes marqueeR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
   @keyframes introFade { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+  /* Hero scroll cue: chevrons falling in sequence, whole cue breathing */
+  @keyframes scrollChev { 0% { opacity: 0; transform: translateY(-7px); } 22% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0; transform: translateY(9px); } }
+  @keyframes scrollBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+  #scrollCue { animation: scrollBob 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  #scrollCue .chev { position: absolute; left: 0; top: 0; opacity: 0; animation: scrollChev 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  #scrollCue .chev:nth-child(2) { animation-delay: 0.42s; }
+  @media (prefers-reduced-motion: reduce) {
+    #scrollCue, #scrollCue .chev { animation: none; }
+    #scrollCue .chev { opacity: 1; }
+    #scrollCue .chev:nth-child(2) { display: none; }
+  }
 </style>
 <script src="./refine.js"></script>
 <style>
@@ -125,7 +136,10 @@
 
     <div style="position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.4;">
       <span style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;">Scroll</span>
-      <div style="width: 1px; height: 44px; background: #1C1114;"></div>
+      <div id="scrollCue" style="position: relative; width: 22px; height: 26px;" aria-hidden="true">
+        <svg class="chev" width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2 L11 11 L20 2" stroke="#1C1114" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="chev" width="22" height="14" viewBox="0 0 22 14" fill="none" style="top: 10px;"><path d="M2 2 L11 11 L20 2" stroke="#1C1114" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
     </div>
   </header>
 
@@ -610,8 +624,7 @@
     <h2 data-reveal style="margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: clamp(52px, 8vw, 120px); letter-spacing: -0.025em; line-height: 1; opacity: 0; transform: translateY(26px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);">Your Saturday is ready.</h2>
     <h2 data-reveal style="margin: 8px 0 0; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: clamp(52px, 8vw, 120px); letter-spacing: -0.025em; line-height: 1; color: #FF4040; opacity: 0; transform: translateY(26px); transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;">Keep it.</h2>
     <div data-reveal style="margin-top: 64px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; opacity: 0; transform: translateY(26px); transition: opacity 0.8s ease 0.3s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;">
-      <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 16px 30px; border-radius: 100px; background: #1C1114; color: #FAF7F1; font-size: 16px; font-weight: 600; transition: background 0.25s;" style-hover="background: #FF4040; color: #FAF7F1;">Download on the App Store</a>
-      <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 16px 30px; border-radius: 100px; border: 1px solid rgba(28, 17, 20, 0.2); color: #1C1114; font-size: 16px; font-weight: 600; transition: border-color 0.25s;" style-hover="border-color: #1C1114;">Get it on Google Play</a>
+      <a href="/waitlist" target="_top" style="display: flex; align-items: center; gap: 10px; padding: 16px 30px; border-radius: 100px; background: #1C1114; color: #FAF7F1; font-size: 16px; font-weight: 600; transition: background 0.25s;" style-hover="background: #FF4040; color: #FAF7F1;">Join the waitlist</a>
     </div>
     <p data-reveal style="margin-top: 26px; font-size: 15px; opacity: 0; transform: translateY(26px); transition: opacity 0.8s ease 0.4s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;"><span style="opacity: 0.55;">Free to plan. </span><span style="opacity: 0.55;">Planie+ when your weekends get ambitious.</span></p>
   </section>
