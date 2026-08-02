@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "r
 import { useEffect } from "react";
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
+import MarketingHeader from "./Components/MarketingHeader";
+import MarketingFooter from "./Components/MarketingFooter";
 import HomePage from "./Pages/HomePage";
 import PlacementWorks from "./Pages/PlacementWorks";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
@@ -29,6 +31,16 @@ const guarded = (element) => (
   <RequirePartnerAuth>
     <RequireVerifiedEmail>{element}</RequireVerifiedEmail>
   </RequirePartnerAuth>
+);
+
+// The homepage's chrome. Same flex column as the main layout so the footer is
+// pushed to the bottom on a short page.
+const marketingLayout = (element) => (
+  <div className="flex flex-col min-h-screen">
+    <MarketingHeader />
+    <main className="flex-grow">{element}</main>
+    <MarketingFooter />
+  </div>
 );
 
 function ScrollToTop() {
@@ -62,6 +74,12 @@ function App() {
             so it sits outside the app Header/Footer. */}
         <Route path="/" element={<HomePage />} />
 
+        {/* Waitlist pages wear the homepage's own nav + whisper footer rather
+            than the app Header/Footer: they are the homepage's call to action,
+            so arriving on one should feel like the same page continuing. */}
+        <Route path="/waitlist" element={marketingLayout(<WaitlistPage />)} />
+        <Route path="/waitlist/business" element={marketingLayout(<WaitlistBusinessPage />)} />
+
         {/* Main layout (secondary public pages get the app Header/Footer) */}
         <Route
           path="*"
@@ -78,8 +96,6 @@ function App() {
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/waitlist" element={<WaitlistPage />} />
-                  <Route path="/waitlist/business" element={<WaitlistBusinessPage />} />
                 </Routes>
               </main>
               <Footer />

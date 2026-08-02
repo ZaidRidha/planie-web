@@ -15,6 +15,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
 import "./WaitlistBusiness.css";
 
 const VENUE_TYPES = ["Restaurant", "Bar", "Cafe", "Attraction", "Hotel", "Experience", "Other"];
@@ -117,6 +118,7 @@ export default function WaitlistBusinessPage() {
        match the neighbouring "Add ..." prompts in this same form - keep that
        shape if it is ever reworded. */
     if (!validEmail(email)) found.email = "Add an email we can reach you on.";
+    if (city.trim().length < 2) found.city = "Add the city your place is in.";
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
@@ -159,7 +161,7 @@ export default function WaitlistBusinessPage() {
         background: "var(--nu-bg)",
         color: "var(--nu-ink)",
         fontFamily: "var(--nu-font-body)",
-        paddingTop: 72,
+        paddingTop: MARKETING_NAV_HEIGHT,
         minHeight: "100vh",
       }}
     >
@@ -347,8 +349,14 @@ export default function WaitlistBusinessPage() {
                       value={city}
                       autoComplete="address-level2"
                       placeholder="City or town"
-                      onChange={(e) => setCity(e.target.value)}
+                      aria-invalid={errors.city ? "true" : undefined}
+                      aria-describedby={errors.city ? "wlb-city-error" : undefined}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        if (e.target.value.trim().length >= 2) clearError("city");
+                      }}
                     />
+                    {errors.city && <p id="wlb-city-error" style={errorStyle}>{errors.city}</p>}
                   </div>
                 </div>
 

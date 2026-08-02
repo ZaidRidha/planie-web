@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
 import "./Waitlist.css";
 
 const PLATFORMS = ["iOS", "Android", "Either"];
@@ -51,6 +52,7 @@ export default function WaitlistPage() {
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | loading | done
   const [emailTouched, setEmailTouched] = useState(false);
+  const [cityTouched, setCityTouched] = useState(false);
   const [occasion, setOccasion] = useState(0);
   const doneHeadingRef = useRef(null);
 
@@ -72,13 +74,16 @@ export default function WaitlistPage() {
   }, []);
 
   const emailOk = validEmail(email);
-  const ready = emailOk && consent;
+  const cityOk = city.trim().length >= 2;
+  const ready = emailOk && cityOk && consent;
   const loading = status === "loading";
   const showEmailError = emailTouched && !emailOk;
+  const showCityError = cityTouched && !cityOk;
 
   const submit = async (e) => {
     e.preventDefault();
     setEmailTouched(true);
+    setCityTouched(true);
     if (!ready || loading) return;
     setStatus("loading");
     // TODO(backend): POST to waitlist endpoint. UI-only for now.
@@ -89,6 +94,7 @@ export default function WaitlistPage() {
   const startOver = () => {
     setStatus("idle");
     setEmailTouched(false);
+    setCityTouched(false);
     setEmail("");
     setPlatform("Either");
     setCity("");
@@ -96,7 +102,7 @@ export default function WaitlistPage() {
   };
 
   return (
-    <div className="wl-page" style={{ background: "var(--nu-bg)", color: "var(--nu-ink)", fontFamily: "var(--nu-font-body)", paddingTop: 72, minHeight: "100vh" }}>
+    <div className="wl-page" style={{ background: "var(--nu-bg)", color: "var(--nu-ink)", fontFamily: "var(--nu-font-body)", paddingTop: MARKETING_NAV_HEIGHT, minHeight: "100vh" }}>
       {/* A plain div, not <main>: App.js already wraps this route in one, and
           two main landmarks would confuse screen-reader navigation. */}
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "clamp(48px, 8vw, 80px) clamp(20px, 5vw, 40px) clamp(72px, 10vw, 100px)" }}>
@@ -144,12 +150,12 @@ export default function WaitlistPage() {
                       <path className="wl-check-path" d="M20 6L9 17l-5-5" />
                     </svg>
                   </div>
-                  {/* scrollMarginTop clears the fixed 72px Header AND the badge
+                  {/* scrollMarginTop clears the fixed 100px marketing nav AND the badge
                       above this heading (54px + margin): focusing scrolls the
                       heading to the top of the viewport, which would otherwise
                       hide both the header-lapped title and the tick animation
                       that is the point of the moment. Found by rendering. */}
-                  <h2 ref={doneHeadingRef} tabIndex={-1} className="wl-done-line" style={{ ...head, "--wl-d": "0.12s", margin: 0, fontSize: 26, outline: "none", scrollMarginTop: 170 }}>
+                  <h2 ref={doneHeadingRef} tabIndex={-1} className="wl-done-line" style={{ ...head, "--wl-d": "0.12s", margin: 0, fontSize: 26, outline: "none", scrollMarginTop: 198 }}>
                     You're in.
                   </h2>
                   <p className="wl-done-line" style={{ "--wl-d": "0.2s", margin: "12px auto 0", fontSize: 15, lineHeight: 1.6, opacity: 0.6, maxWidth: "36ch" }}>
@@ -221,23 +227,30 @@ export default function WaitlistPage() {
                   </fieldset>
 
                   <div style={{ marginTop: 20 }}>
-                    <label htmlFor="wl-city" style={fieldLabel}>
-                      City <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span>
-                    </label>
+                    <label htmlFor="wl-city" style={fieldLabel}>City</label>
                     <input
                       id="wl-city"
                       className="wl-input"
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
+                      onBlur={() => setCityTouched(true)}
                       placeholder="London"
                       autoComplete="address-level2"
-                      aria-describedby="wl-city-hint"
-                      style={inputStyle}
+                      required
+                      aria-invalid={showCityError ? "true" : "false"}
+                      aria-describedby={showCityError ? "wl-city-error" : "wl-city-hint"}
+                      style={{ ...inputStyle, borderColor: showCityError ? "var(--nu-red)" : "rgba(28,17,20,0.14)" }}
                     />
-                    <p id="wl-city-hint" style={{ margin: "8px 0 0", fontSize: 12.5, opacity: 0.45 }}>
-                      So we know which cities to cover first.
-                    </p>
+                    {showCityError ? (
+                      <p id="wl-city-error" style={{ margin: "8px 0 0", fontSize: 13, color: "var(--nu-red)" }}>
+                        Add the city you're in.
+                      </p>
+                    ) : (
+                      <p id="wl-city-hint" style={{ margin: "8px 0 0", fontSize: 12.5, opacity: 0.45 }}>
+                        So we know which cities to cover first.
+                      </p>
+                    )}
                   </div>
 
                   <label htmlFor="wl-consent" style={{ display: "flex", alignItems: "flex-start", gap: 11, marginTop: 22, fontSize: 13.5, lineHeight: 1.5, cursor: "pointer" }}>
@@ -260,7 +273,7 @@ export default function WaitlistPage() {
                         ? "Adding you to the list."
                         : ready
                           ? "We'll only email you about the launch."
-                          : "Add your email and tick the box."}
+                          : "Add your email and city, then tick the box."}
                     </p>
                     <button type="submit" className="nu-btn nu-btn--fill wl-btn wl-submit" disabled={!ready || loading} aria-describedby="wl-submit-hint" style={{ fontSize: 15, padding: "14px 30px" }}>
                       {loading ? (
