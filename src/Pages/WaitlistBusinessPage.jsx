@@ -175,16 +175,16 @@ export default function WaitlistBusinessPage() {
             fixed by the .wlb-line spans, so no width constraint is needed at
             all. If one is ever wanted, put it on the h1, where ch resolves
             against the clamped size, and check 1280 AND 520 before settling. */}
-        <header style={{ marginBottom: 52 }}>
-          <p className="nu-microlabel wlb-in" style={{ marginBottom: 20, letterSpacing: "0.16em" }}>
-            For the places
-          </p>
+        {/* Centered to match the consumer waitlist hero. The .wlb-line spans are
+            block+overflow:hidden, so the mask reveal is unaffected - only the
+            text inside them shifts. */}
+        <header style={{ marginBottom: 52, textAlign: "center" }}>
           {/* maxWidth belongs HERE, not on the header: this element sets its own
               font-size, so ch resolves against the clamped headline size. It is a
               ceiling for very wide viewports only - the break itself is fixed by
               the .wlb-line spans, and at 84px this holds ~540px against a rendered
               line of ~437px, so it does not alter the intended two lines. */}
-          <h1 style={{ ...head, margin: 0, fontSize: "clamp(38px, 7vw, 84px)", lineHeight: 1.02, letterSpacing: "-0.025em", maxWidth: "12ch" }}>
+          <h1 style={{ ...head, margin: "0 auto", fontSize: "clamp(38px, 7vw, 84px)", lineHeight: 1.02, letterSpacing: "-0.025em", maxWidth: "12ch" }}>
             <span className="wlb-line"><span className="wlb-d1">Be the place</span></span>
             <span className="wlb-line">
               <span className="wlb-d2">it picks<span className="wlb-stop">.</span></span>

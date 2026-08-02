@@ -3,7 +3,7 @@
    socials), one quiet legal line. Nothing is added to it - the whole point of
    that footer is how little it says. Styling lives in MarketingChrome.css.
 
-   The two social marks are the source's own inline SVGs, kept as SVG rather
+   The three social marks are the source's own inline SVGs, kept as SVG rather
    than swapped for Assets/Images PNGs so they inherit currentColor and match
    the homepage exactly.
 
@@ -27,7 +27,7 @@ export default function MarketingFooter() {
           <span className="mk-footer-rule" aria-hidden="true" />
           <a
             className="mk-footer-social"
-            href="https://www.instagram.com/use_planie/"
+            href="https://www.instagram.com/useplanie/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Planie on Instagram"
@@ -40,13 +40,24 @@ export default function MarketingFooter() {
           </a>
           <a
             className="mk-footer-social"
-            href="https://www.tiktok.com/@use_planie"
+            href="https://www.tiktok.com/@useplanie"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Planie on TikTok"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M20.1 8.2a5.9 5.9 0 0 1-4.2-1.75 5.9 5.9 0 0 1-1.55-2.85h-3.02v10.9a2.55 2.55 0 1 1-1.82-2.44V8.9a5.6 5.6 0 1 0 4.86 5.55V9.63a8.9 8.9 0 0 0 4.15 1.28h.03V8.2h-.45Z" />
+            </svg>
+          </a>
+          <a
+            className="mk-footer-social"
+            href="https://x.com/useplanie"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Planie on X"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.53 3h3.02l-6.6 7.54L21.7 21h-6.07l-4.76-6.22L5.42 21H2.4l7.06-8.07L2.6 3h6.23l4.3 5.69L17.53 3Zm-1.06 16.2h1.67L7.6 4.71H5.81L16.47 19.2Z" />
             </svg>
           </a>
         </div>

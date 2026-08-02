@@ -106,16 +106,16 @@ export default function WaitlistPage() {
       {/* A plain div, not <main>: App.js already wraps this route in one, and
           two main landmarks would confuse screen-reader navigation. */}
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "clamp(48px, 8vw, 80px) clamp(20px, 5vw, 40px) clamp(72px, 10vw, 100px)" }}>
-        <header style={{ marginBottom: 44 }}>
+        {/* Centered hero: every child that carries a ch-based maxWidth also needs
+            `margin: 0 auto`, or textAlign alone leaves the box hugging the left. */}
+        <header style={{ marginBottom: 44, textAlign: "center" }}>
           <p className="nu-microlabel wl-reveal" style={{ marginBottom: 16 }}>The waitlist</p>
           {/* Two deliberate lines rather than one reflowing sentence: the second
               clause is the actual ask, so it gets its own line and the accent.
               display:block on the spans keeps the break at every width. */}
-          <h1 className="wl-reveal" style={{ ...head, "--wl-d": "0.07s", margin: 0, fontSize: "clamp(38px, 6vw, 68px)", letterSpacing: "-0.025em", lineHeight: 1.04, maxWidth: "16ch" }}>
+          <h1 className="wl-reveal" style={{ ...head, "--wl-d": "0.07s", margin: "0 auto", fontSize: "clamp(38px, 6vw, 68px)", letterSpacing: "-0.025em", lineHeight: 1.04, maxWidth: "16ch" }}>
             <span style={{ display: "block" }}>Planie isn't out yet.</span>
-            {/* color, not opacity: opacity would create a stacking context and
-                dim the red "first" along with the rest of the line. */}
-            <span style={{ display: "block", color: "var(--nu-muted)" }}>
+            <span style={{ display: "block" }}>
               Be <span style={{ color: "var(--nu-red)" }}>first</span> when it is.
             </span>
           </h1>
@@ -133,7 +133,7 @@ export default function WaitlistPage() {
             <span className="wl-sr">Built for {OCCASIONS.join(", ")}.</span>
           </p>
 
-          <p className="wl-reveal" style={{ "--wl-d": "0.22s", margin: "16px 0 0", fontSize: 17, lineHeight: 1.6, opacity: 0.6, maxWidth: "50ch" }}>
+          <p className="wl-reveal" style={{ "--wl-d": "0.22s", margin: "16px auto 0", fontSize: 17, lineHeight: 1.6, opacity: 0.6, maxWidth: "50ch" }}>
             Tell Planie the day you've got and it builds the whole thing: where to eat, what to do,
             in the order that actually works.
           </p>

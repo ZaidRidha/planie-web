@@ -74,11 +74,13 @@ function App() {
             so it sits outside the app Header/Footer. */}
         <Route path="/" element={<HomePage />} />
 
-        {/* Waitlist pages wear the homepage's own nav + whisper footer rather
-            than the app Header/Footer: they are the homepage's call to action,
-            so arriving on one should feel like the same page continuing. */}
+        {/* Waitlist + placements pages wear the homepage's own nav + whisper
+            footer rather than the app Header/Footer: they are the homepage's
+            call to action, so arriving on one should feel like the same page
+            continuing. */}
         <Route path="/waitlist" element={marketingLayout(<WaitlistPage />)} />
         <Route path="/waitlist/business" element={marketingLayout(<WaitlistBusinessPage />)} />
+        <Route path="/placements" element={marketingLayout(<PlacementWorks />)} />
 
         {/* Main layout (secondary public pages get the app Header/Footer) */}
         <Route
@@ -92,7 +94,6 @@ function App() {
                       business marketing lives on the Homepage + /placements, and
                       "Partners" is the sign-in/up door. */}
                   <Route path="/partners" element={<Navigate to="/partners/login" replace />} />
-                  <Route path="/placements" element={<PlacementWorks />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/contact" element={<ContactPage />} />

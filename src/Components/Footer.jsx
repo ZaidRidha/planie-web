@@ -9,9 +9,9 @@ import GooglePlayBadge from "../Assets/Images/GooglePlayBadge.png";
 
 const socialLinks = [
   { href: "https://www.facebook.com/profile.php?id=61579370284503&ref=PROFILE_EDIT_xav_ig_profile_page_web#", label: "Facebook", icon: FacebookIcon },
-  { href: "#", label: "X / Twitter", icon: XIcon },
-  { href: "https://www.instagram.com/use_planie/", label: "Instagram", icon: InstagramIcon },
-  { href: "https://www.tiktok.com/@use_planie", label: "TikTok", icon: TikTokIcon },
+  { href: "https://x.com/useplanie", label: "X / Twitter", icon: XIcon },
+  { href: "https://www.instagram.com/useplanie/", label: "Instagram", icon: InstagramIcon },
+  { href: "https://www.tiktok.com/@useplanie", label: "TikTok", icon: TikTokIcon },
 ];
 
 const footerNav = [
