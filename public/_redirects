@@ -1,0 +1,5 @@
+# Single-page app fallback. React Router owns /waitlist, /privacy, /contact and
+# friends client-side, but Netlify only has index.html on disk — without this,
+# a direct hit or refresh on any of those paths returns Netlify's 404 page.
+# Real files (assets, /marketing/*) still win over this rule.
+/*  /index.html  200
