@@ -1,0 +1,468 @@
+/* Guides.css - shared styling for the /guides index and article pages.
+
+   A stylesheet rather than PlacementWorks.jsx's inline-styles-plus-<style>
+   approach, because two pages share this and long-form prose needs real
+   descendant selectors (.gd-prose a, .gd-prose li) that inline styles cannot
+   express. Colours and type come from newUi/tokens.css - nothing new is
+   invented here.
+
+   Values track the marketing chrome deliberately: 1180 max width and 40px
+   gutters as on /placements, cream card surfaces at 0.62-0.66 alpha, 22px
+   card radius, hairlines at rgba(28,17,20,0.08). */
+
+/* ---------- Page frame ---------- */
+
+.gd-page {
+  background: var(--nu-bg);
+  color: var(--nu-ink);
+  font-family: var(--nu-font-body);
+  overflow-x: clip;
+}
+
+.gd-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 40px);
+}
+
+.gd-head {
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Index hero ---------- */
+
+.gd-hero {
+  padding: clamp(60px, 9vw, 110px) 0 clamp(36px, 5vw, 56px);
+  max-width: 900px;
+}
+
+.gd-hero h1 {
+  margin: 14px 0 0;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: clamp(42px, 6.5vw, 84px);
+  line-height: 1.0;
+  letter-spacing: -0.025em;
+  max-width: 15ch;
+}
+
+.gd-hero p {
+  margin: 26px 0 0;
+  max-width: 54ch;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.6;
+  opacity: 0.6;
+}
+
+/* ---------- Category filter ---------- */
+
+.gd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 0 clamp(28px, 4vw, 40px);
+}
+
+.gd-filter {
+  font-family: var(--nu-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--nu-hairline);
+  background: transparent;
+  color: var(--nu-ink);
+  cursor: pointer;
+  transition: all 0.25s var(--nu-ease);
+}
+.gd-filter:hover { border-color: var(--nu-ink); }
+.gd-filter[aria-pressed="true"] {
+  background: var(--nu-ink);
+  border-color: var(--nu-ink);
+  color: var(--nu-cream);
+}
+.gd-filter:focus-visible {
+  outline: 2px solid var(--nu-red);
+  outline-offset: 2px;
+}
+
+/* ---------- Cards ---------- */
+
+.gd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 22px;
+  padding-bottom: clamp(80px, 10vw, 130px);
+}
+
+.gd-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 16px 50px rgba(28, 17, 20, 0.05);
+  padding: 30px 32px 32px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.35s var(--nu-ease), box-shadow 0.35s var(--nu-ease);
+}
+.gd-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 26px 64px rgba(28, 17, 20, 0.09);
+}
+.gd-card:focus-visible {
+  outline: 2px solid var(--nu-red);
+  outline-offset: 3px;
+}
+
+/* The featured card spans the full row on wide screens and reads as a lead
+   story rather than a bigger tile. */
+.gd-card--featured {
+  grid-column: 1 / -1;
+  padding: clamp(34px, 4vw, 52px);
+}
+.gd-card--featured .gd-card-title { font-size: clamp(28px, 3.4vw, 44px); max-width: 20ch; }
+.gd-card--featured .gd-card-excerpt { font-size: 17px; max-width: 60ch; }
+
+.gd-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin: 0 0 14px;
+}
+
+.gd-card-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.gd-card-title {
+  margin: 0;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  transition: color 0.25s var(--nu-ease);
+}
+.gd-card:hover .gd-card-title { color: var(--nu-red); }
+
+.gd-card-excerpt {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  opacity: 0.65;
+}
+
+.gd-card-more {
+  margin: 22px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nu-red);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.gd-card-arrow { transition: transform 0.25s var(--nu-ease); }
+.gd-card:hover .gd-card-arrow { transform: translateX(4px); }
+
+.gd-empty {
+  grid-column: 1 / -1;
+  padding: 60px 0;
+  font-size: 16px;
+  opacity: 0.55;
+}
+
+/* ---------- Article ---------- */
+
+.gd-article {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 96px) clamp(20px, 5vw, 40px) clamp(60px, 8vw, 90px);
+}
+
+.gd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+}
+.gd-back:hover { opacity: 1; }
+
+.gd-article h1 {
+  margin: 22px 0 0;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.gd-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 0;
+  font-size: 13.5px;
+  opacity: 0.5;
+}
+
+.gd-article-excerpt {
+  margin: 28px 0 0;
+  font-size: 19px;
+  line-height: 1.6;
+  opacity: 0.72;
+  padding-bottom: 34px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.09);
+}
+
+/* ---------- Prose ---------- */
+
+.gd-prose { padding-top: 8px; }
+
+.gd-prose h2 {
+  margin: 46px 0 18px;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: clamp(24px, 2.6vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  scroll-margin-top: 120px;
+}
+
+.gd-prose p {
+  margin: 0 0 20px;
+  font-size: 17px;
+  line-height: 1.72;
+  opacity: 0.78;
+}
+
+.gd-prose a {
+  color: var(--nu-red);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 64, 64, 0.3);
+  transition: border-color 0.25s ease;
+}
+.gd-prose a:hover { border-bottom-color: var(--nu-red); }
+
+.gd-list {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gd-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  opacity: 0.78;
+}
+.gd-list li::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nu-red);
+  flex-shrink: 0;
+  transform: translateY(-2px);
+}
+
+.gd-steps {
+  list-style: none;
+  margin: 0 0 26px;
+  padding: 0;
+  counter-reset: gd-step;
+}
+.gd-steps li {
+  counter-increment: gd-step;
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid rgba(28, 17, 20, 0.08);
+}
+.gd-steps li::before {
+  content: counter(gd-step);
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--nu-cream);
+  background: var(--nu-ink);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.gd-step-title {
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 17px;
+  margin: 3px 0 5px;
+}
+.gd-step-body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.62;
+  opacity: 0.7;
+}
+
+.gd-quote {
+  margin: 0 0 26px;
+  padding: 26px 30px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 12px 40px rgba(28, 17, 20, 0.05);
+  border-left: 3px solid var(--nu-red);
+}
+.gd-quote p {
+  margin: 0;
+  font-family: var(--nu-font-head);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  opacity: 1;
+}
+
+/* ---------- FAQ ---------- */
+
+.gd-faq { margin-top: 56px; }
+.gd-faq h2 {
+  margin: 0 0 8px;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: clamp(24px, 2.6vw, 30px);
+  letter-spacing: -0.015em;
+}
+
+.gd-faq-item {
+  border-top: 1px solid rgba(28, 17, 20, 0.09);
+  padding: 22px 0;
+}
+.gd-faq-q {
+  margin: 0 0 10px;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.35;
+}
+.gd-faq-a {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.68;
+  opacity: 0.72;
+}
+
+/* ---------- Article CTA + related ---------- */
+
+.gd-cta {
+  margin-top: 64px;
+  border-radius: 24px;
+  background: var(--nu-ink);
+  color: var(--nu-cream);
+  padding: clamp(34px, 5vw, 48px);
+  position: relative;
+  overflow: hidden;
+}
+.gd-cta-glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle at 70% 30%, rgba(255, 64, 64, 0.26), transparent 70%);
+  pointer-events: none;
+}
+.gd-cta h2 {
+  position: relative;
+  margin: 0 0 14px;
+  font-family: var(--nu-font-head);
+  font-weight: 700;
+  font-size: clamp(26px, 3.2vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+.gd-cta p {
+  position: relative;
+  margin: 0 0 26px;
+  max-width: 46ch;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: rgba(250, 247, 241, 0.68);
+}
+.gd-cta-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+/* tokens.css .nu-btn--outline is written for a cream background; on ink it
+   would render near-invisible ink-on-ink, so the dark-surface variant lives
+   here rather than being bolted onto the token. */
+.gd-cta .gd-btn-ghost {
+  background: transparent;
+  color: var(--nu-cream);
+  border-color: rgba(250, 247, 241, 0.28);
+}
+.gd-cta .gd-btn-ghost:hover { border-color: var(--nu-cream); color: var(--nu-cream); }
+
+.gd-related { margin-top: 64px; }
+.gd-related h2 {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-family: var(--nu-font-body);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+.gd-related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 18px;
+}
+.gd-related .gd-card { padding: 24px 26px 26px; }
+.gd-related .gd-card-title { font-size: 18px; }
+
+/* ---------- Reveal ---------- */
+
+@keyframes gdRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.gd-rise { animation: gdRise 0.65s var(--nu-ease) both; }
+
+/* tokens.css has no global reduced-motion guard (see the note in
+   WaitlistBusiness.css), so each animating page carries its own. */
+@media (prefers-reduced-motion: reduce) {
+  .gd-rise { animation: none; }
+  .gd-card:hover { transform: none; }
+  .gd-card-arrow, .gd-card:hover .gd-card-arrow { transition: none; transform: none; }
+}
+
+@media (max-width: 640px) {
+  .gd-card { padding: 26px 24px 28px; }
+  .gd-prose p, .gd-list li { font-size: 16px; }
+}

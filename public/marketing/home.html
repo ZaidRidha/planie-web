@@ -51,8 +51,6 @@
   [data-m="unstick"] { position: static !important; top: auto !important; }
 }
 @media (max-width: 640px) {
-  /* Act 1 closing line: keep the two authored lines, shrink so neither wraps */
-  .act1-close { font-size: clamp(17px, 5.4vw, 30px) !important; }
   /* Hook: on phones the nav-clearing top padding outweighs the bottom, so the
      centred block sits low. Lighten the top and add it back at the bottom -
      the section keeps its 100vh height, the headline just rides higher. */
@@ -120,6 +118,9 @@
   <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; background: rgba(250, 247, 241, 0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(28, 17, 20, 0.05);">
     <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
     <div style="display: flex; align-items: center; gap: 32px;">
+      <!-- Guides is a real route (React owns it), so unlike its siblings here
+           it needs target="_top" to escape the iframe this page is served in. -->
+      <a href="/guides" target="_top" style="font-size: 15px; font-weight: 500; opacity: 0.75;">Guides</a>
       <a href="#business" style="font-size: 15px; font-weight: 500; opacity: 0.75;">For business</a>
       <a href="#keep" style="font-size: 15px; font-weight: 600; color: #FAF7F1; background: #1C1114; padding: 10px 22px; border-radius: 100px;" style-hover="background: #FF4040; color: #FAF7F1;">Get the app</a>
     </div>
@@ -376,6 +377,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap;">
       <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
       <div style="display: flex; align-items: center; gap: 28px; font-size: 14px;">
+        <a href="/guides" target="_top" style="opacity: 0.55;">Guides</a>
         <a href="/privacy" target="_top" style="opacity: 0.55;">Privacy</a>
         <a href="/terms" target="_top" style="opacity: 0.55;">Terms</a>
         <a href="/contact" target="_top" style="opacity: 0.55;">Contact</a>

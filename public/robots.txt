@@ -1,3 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+# The partner portal is all sign-in-gated application screens - nothing there
+# is worth indexing, and the Netlify SPA fallback means every one of those
+# paths returns a 200 with the app shell rather than a 404.
+Disallow: /partners/
+Disallow: /share/
+Allow: /
+
+Sitemap: https://planie.app/sitemap.xml

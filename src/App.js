@@ -6,6 +6,8 @@ import MarketingHeader from "./Components/MarketingHeader";
 import MarketingFooter from "./Components/MarketingFooter";
 import HomePage from "./Pages/HomePage";
 import PlacementWorks from "./Pages/PlacementWorks";
+import Guides from "./Pages/Guides";
+import GuideArticle from "./Pages/GuideArticle";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import TermsOfService from "./Pages/TermsOfService";
 import ContactPage from "./Pages/ContactPage";
@@ -81,6 +83,17 @@ function App() {
         <Route path="/waitlist" element={marketingLayout(<WaitlistPage />)} />
         <Route path="/waitlist/business" element={marketingLayout(<WaitlistBusinessPage />)} />
         <Route path="/placements" element={marketingLayout(<PlacementWorks />)} />
+
+        {/* Guides — the editorial/SEO section. Same chrome as the rest of the
+            marketing site: a reader arriving from search should land on the
+            homepage's nav, not the app Header. */}
+        <Route path="/guides" element={marketingLayout(<Guides />)} />
+        <Route path="/guides/:slug" element={marketingLayout(<GuideArticle />)} />
+        {/* Kept because Footer.jsx has shipped a /blog link; the section is
+            called Guides, and this stops that link 404ing while passing the
+            equity of any /blog inbound to the real URL. */}
+        <Route path="/blog" element={<Navigate to="/guides" replace />} />
+        <Route path="/blog/:slug" element={<Navigate to="/guides" replace />} />
 
         {/* Main layout (secondary public pages get the app Header/Footer) */}
         <Route

@@ -1,7 +1,11 @@
 /* MarketingFooter - the homepage's "whisper" footer, as a React component.
    Tracks public/marketing/home.html lines 648-671: one row (logo | links |
-   socials), one quiet legal line. Nothing is added to it - the whole point of
-   that footer is how little it says. Styling lives in MarketingChrome.css.
+   socials), one quiet legal line. Styling lives in MarketingChrome.css.
+
+   One addition to the source: a Guides link. That footer's whole character is
+   how little it says, so this is not a precedent for stuffing it - but a
+   sitewide footer link is the standard way an editorial section gets crawled,
+   and one more word is a fair price for it.
 
    The three social marks are the source's own inline SVGs, kept as SVG rather
    than swapped for Assets/Images PNGs so they inherit currentColor and match
@@ -21,6 +25,7 @@ export default function MarketingFooter() {
           <img className="mk-logo" src={MARKETING_LOGO} alt="Planie" />
         </Link>
         <div className="mk-footer-links">
+          <Link className="mk-footer-link" to="/guides">Guides</Link>
           <Link className="mk-footer-link" to="/privacy">Privacy</Link>
           <Link className="mk-footer-link" to="/terms">Terms</Link>
           <Link className="mk-footer-link" to="/contact">Contact</Link>

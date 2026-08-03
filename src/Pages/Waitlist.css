@@ -103,10 +103,12 @@
   cursor: pointer;
 }
 .wl-pill {
+  --wl-tick-slot: 20px; /* tick width + its gap; mirrored by ::after below */
   position: relative;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   font-family: var(--nu-font-body);
   font-size: 13.5px;
   font-weight: 600;
@@ -139,10 +141,18 @@
 }
 .wl-pill-input:checked + .wl-pill::before { transform: scaleX(1); }
 /* The tick's box is always reserved and only scales, so selecting a pill
-   never reflows the row (no animated width). */
+   never reflows the row (no animated width). Reserving it on the left alone
+   would push the label off-centre, so ::after mirrors the same slot on the
+   right and the text stays centred whether or not the pill is selected. */
+.wl-pill::after {
+  content: "";
+  flex: none;
+  width: var(--wl-tick-slot);
+}
 .wl-pill-tick {
+  flex: none;
   width: 13px;
-  margin-right: 7px;
+  margin-right: calc(var(--wl-tick-slot) - 13px);
   opacity: 0;
   transform: scale(0);
   transition: transform 0.22s var(--nu-ease), opacity 0.22s var(--nu-ease);

@@ -281,7 +281,7 @@ export default function PlacementWorks() {
 
       {/* Proof */}
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "130px 40px" }}>
-        <h2 data-reveal style={{ ...reveal, ...head, margin: "0 0 60px", maxWidth: "20ch", fontSize: "clamp(32px, 4vw, 56px)", lineHeight: 1.05 }}>
+        <h2 data-reveal style={{ ...reveal, ...head, margin: "0 auto 60px", maxWidth: "100%", textAlign: "center", fontSize: "clamp(28px, 4vw, 56px)", lineHeight: 1.05, whiteSpace: "nowrap" }}>
           And you see every step of it.
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: 28 }}>

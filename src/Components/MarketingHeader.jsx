@@ -33,6 +33,11 @@ export default function MarketingHeader() {
         <img className="mk-logo" src={MARKETING_LOGO} alt="Planie" />
       </Link>
       <div className="mk-nav-links">
+        {/* Guides is an addition to the source nav, not a departure from it:
+            an editorial section that nothing links to is an editorial section
+            search engines discover slowly. It sits before "For business" so
+            the paid-facing link keeps its position next to the CTA. */}
+        <Link className="mk-nav-link" to="/guides">Guides</Link>
         <Link className="mk-nav-link" to="/waitlist/business">For business</Link>
         <Link className="mk-nav-cta" to="/waitlist">Get the app</Link>
       </div>

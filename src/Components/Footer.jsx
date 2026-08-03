@@ -18,7 +18,7 @@ const footerNav = [
   { label: "Home", to: "/" },
   { label: "Waitlist", to: "/waitlist" },
   { label: "Partners", to: "/partners" },
-  { label: "Blog", to: "/blog" },
+  { label: "Guides", to: "/guides" },
 ];
 
 export default function Footer() {
