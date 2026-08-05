@@ -16,7 +16,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
+import { callApiRoute } from "../utils/api";
 import "./WaitlistBusiness.css";
+
+/* Backend's hidden honeypot field (formGuard.ts HONEYPOT_FIELD) - must render
+   and must stay empty. See the same constant in WaitlistPage.jsx. */
+const HONEYPOT_FIELD = "company_website_hp";
 
 const VENUE_TYPES = ["Restaurant", "Bar", "Cafe", "Attraction", "Hotel", "Experience", "Other"];
 
@@ -87,6 +92,8 @@ export default function WaitlistBusinessPage() {
   const [venueType, setVenueType] = useState("");
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState({});
+  const [honeypot, setHoneypot] = useState("");
+  const [sendError, setSendError] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | loading | done
 
   const loading = status === "loading";
@@ -123,9 +130,23 @@ export default function WaitlistBusinessPage() {
     if (Object.keys(found).length > 0) return;
 
     setStatus("loading");
-    // TODO(backend): POST to waitlist endpoint. UI-only for now.
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    setStatus("done");
+    setSendError(null);
+    try {
+      await callApiRoute("/waitlist/business", {
+        business: business.trim(),
+        contact: contact.trim(),
+        email: email.trim(),
+        city: city.trim(),
+        venueType,
+        consent,
+        [HONEYPOT_FIELD]: honeypot,
+      });
+      setStatus("done");
+    } catch (err) {
+      /* Straight back to the filled-in form - nothing is cleared on failure. */
+      setStatus("idle");
+      setSendError(err.message || "Could not send your request. Please try again.");
+    }
   };
 
   const reset = () => {
@@ -136,6 +157,7 @@ export default function WaitlistBusinessPage() {
     setVenueType("");
     setConsent(false);
     setErrors({});
+    setSendError(null);
     setStatus("idle");
   };
 
@@ -150,9 +172,13 @@ export default function WaitlistBusinessPage() {
     ? "Sending your request."
     : done
       ? "Request received. We will email you when partner early access opens."
-      : Object.keys(errors).length > 0
-        ? "There is a problem with the form. Check the highlighted fields."
-        : "";
+      : sendError
+        /* A send failure is not a field problem, so it must not tell the user
+           to go and check highlighted fields - there are none. */
+        ? sendError
+        : Object.keys(errors).length > 0
+          ? "There is a problem with the form. Check the highlighted fields."
+          : "";
 
   return (
     <div
@@ -275,6 +301,20 @@ export default function WaitlistBusinessPage() {
               </div>
             ) : (
               <form onSubmit={submit} noValidate>
+                {/* Honeypot: offscreen, aria-hidden and out of the tab order, so
+                    only a field-filling bot can reach it. Kept out of the
+                    visible layout rather than display:none - some bots skip
+                    fields that are display:none. */}
+                <input
+                  type="text"
+                  name={HONEYPOT_FIELD}
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  style={{ ...srOnly, opacity: 0 }}
+                />
                 <h2 style={{ ...head, margin: "0 0 6px", fontSize: 20 }}>Early access for your place</h2>
                 <p style={{ margin: "0 0 24px", fontSize: 13.5, lineHeight: 1.55, opacity: 0.55 }}>
                   Tell us about your place. We will email you when partner early access opens.
@@ -396,6 +436,13 @@ export default function WaitlistBusinessPage() {
                     <Link to="/privacy" style={{ color: "var(--nu-red)", fontWeight: 600 }}>privacy policy</Link>.
                   </p>
                 </div>
+
+                {/* The failure itself is already announced through liveMessage
+                    above, so this copy is visual only - no second live region,
+                    which would make a screen reader read it twice. */}
+                {sendError && (
+                  <p style={{ ...errorStyle, marginTop: 18 }}>{sendError}</p>
+                )}
 
                 <div style={{ marginTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
                   <p style={{ margin: 0, fontSize: 12.5, opacity: 0.45, maxWidth: "28ch" }}>{hint}</p>

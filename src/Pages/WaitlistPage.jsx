@@ -10,7 +10,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
+import { callApiRoute } from "../utils/api";
 import "./Waitlist.css";
+
+/* Name of the backend's hidden honeypot field (formGuard.ts HONEYPOT_FIELD).
+   It must render, and must stay empty: a bot that fills every input trips it
+   and its submission is silently dropped. Renamed only in lockstep with the
+   backend, or every real signup starts looking legitimate to a bot again. */
+const HONEYPOT_FIELD = "company_website_hp";
 
 const PLATFORMS = ["iOS", "Android", "Either"];
 
@@ -51,6 +58,8 @@ export default function WaitlistPage() {
   const [city, setCity] = useState("");
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | loading | done
+  const [error, setError] = useState(null);
+  const [honeypot, setHoneypot] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
   const [cityTouched, setCityTouched] = useState(false);
   const [occasion, setOccasion] = useState(0);
@@ -86,13 +95,27 @@ export default function WaitlistPage() {
     setCityTouched(true);
     if (!ready || loading) return;
     setStatus("loading");
-    // TODO(backend): POST to waitlist endpoint. UI-only for now.
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    setStatus("done");
+    setError(null);
+    try {
+      await callApiRoute("/waitlist", {
+        email: email.trim(),
+        city: city.trim(),
+        platform,
+        consent,
+        [HONEYPOT_FIELD]: honeypot,
+      });
+      setStatus("done");
+    } catch (err) {
+      /* Back to the form with the fields intact - the one thing a failed
+         signup must not do is make the user retype it. */
+      setStatus("idle");
+      setError(err.message || "Could not add you to the list. Please try again.");
+    }
   };
 
   const startOver = () => {
     setStatus("idle");
+    setError(null);
     setEmailTouched(false);
     setCityTouched(false);
     setEmail("");
@@ -174,6 +197,20 @@ export default function WaitlistPage() {
                 </div>
               ) : (
                 <form onSubmit={submit} noValidate>
+                  {/* Honeypot. Hidden from sight AND from assistive tech, and
+                      taken out of the tab order, so no human can reach it -
+                      only a bot filling every field. Not display:none: some
+                      bots skip those. tabIndex on an input is legitimate here. */}
+                  <input
+                    type="text"
+                    name={HONEYPOT_FIELD}
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+                  />
                   <p style={{ ...head, margin: "0 0 6px", fontSize: 20 }}>One email, the day it lands.</p>
                   <p style={{ margin: "0 0 22px", fontSize: 13.5, opacity: 0.55 }}>
                     Your email is all we need. The rest just helps.
@@ -266,6 +303,15 @@ export default function WaitlistPage() {
                       <Link className="wl-link" to="/privacy" style={{ color: "var(--nu-red)", fontWeight: 600 }}>privacy policy</Link>.
                     </span>
                   </label>
+
+                  {/* role="alert" so a failure is announced: it appears after
+                      the button was pressed, when focus is still on the button
+                      and the user may not be looking here. */}
+                  {error && (
+                    <p role="alert" style={{ margin: "18px 0 0", fontSize: 13, lineHeight: 1.5, color: "var(--nu-red)" }}>
+                      {error}
+                    </p>
+                  )}
 
                   <div className="wl-submit-row" style={{ marginTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
                     <p id="wl-submit-hint" aria-live="polite" style={{ margin: 0, fontSize: 12.5, opacity: 0.45, maxWidth: "24ch" }}>
