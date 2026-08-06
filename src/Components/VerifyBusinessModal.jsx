@@ -1,5 +1,5 @@
-/* "Verify Business" form â€” submits to partnerSubmitVerification, which moves
-   the account to `pending` for staff review (24â€“48h). Email verification has
+/* "Verify Business" form — submits to partnerSubmitVerification, which moves
+   the account to `pending` for staff review (24–48h). Email verification has
    already happened during account creation (RequireVerifiedEmail gate). */
 
 import { useState } from "react";
@@ -12,7 +12,7 @@ const FIELDS = [
   { name: "registrationNumber", label: "Business registration no. (CVR / VAT / equivalent)", placeholder: "DK12345678" },
   { name: "country", label: "Country", placeholder: "Denmark" },
   { name: "address", label: "Business address", placeholder: "Street, city, postal code" },
-  { name: "websiteOrInstagram", label: "Website or Instagram", placeholder: "https://â€¦" },
+  { name: "websiteOrInstagram", label: "Website or Instagram", placeholder: "https://…" },
   { name: "contactName", label: "Contact person", placeholder: "Full name" },
   { name: "contactEmail", label: "Contact email", placeholder: "owner@business.com", type: "email" },
 ];
@@ -60,9 +60,9 @@ export default function VerifyBusinessModal({ onClose }) {
 
         {done ? (
           <div className="py-6 text-center">
-            <p className="text-[#1C1114] font-medium mb-2">Submitted for review âœ“</p>
+            <p className="text-[#1C1114] font-medium mb-2">Submitted for review ✓</p>
             <p className="text-sm text-[#687076] mb-6">
-              Our team reviews new businesses within 24â€“48 hours. You'll unlock
+              Our team reviews new businesses within 24–48 hours. You'll unlock
               listings, promotions and campaigns once you're approved.
             </p>
             <button className="pd-btn pd-btn--fill mx-auto" onClick={onClose}>Done</button>
@@ -71,7 +71,7 @@ export default function VerifyBusinessModal({ onClose }) {
           <>
             <p className="text-sm text-[#687076] mb-5">
               Verification unlocks listings, promotions and campaigns. Review
-              usually takes 24â€“48 hours.
+              usually takes 24–48 hours.
             </p>
 
             {error && (
@@ -100,7 +100,7 @@ export default function VerifyBusinessModal({ onClose }) {
                 disabled={busy}
                 className="w-full rounded-xl bg-[#1C1114] py-3 text-sm font-semibold text-white hover:bg-[#e63636] disabled:opacity-60"
               >
-                {busy ? "Submittingâ€¦" : "Submit for review"}
+                {busy ? "Submitting…" : "Submit for review"}
               </button>
             </form>
           </>

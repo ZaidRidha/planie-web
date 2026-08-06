@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './newUi/tokens.css';
 import './newUi/override.css';
+import './newUi/loading.css';
 import logoMask from './Assets/Images/PlanieLogoMark.svg';
 import App from './App';
 import reportWebVitals from './reportWebVitals';

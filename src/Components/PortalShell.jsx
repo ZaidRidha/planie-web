@@ -1,9 +1,9 @@
-/* PortalShell â€” the new-design portal frame (dark sidebar + cream main).
+/* PortalShell — the new-design portal frame (dark sidebar + cream main).
    Shared by every portal page as it migrates to the new UI (see
    Objective/claudeObjective/uiMigrationPlan.md). Replaces the per-page
    Sidebar copies from the old design.
 
-   Behavior contract: identical to the old sidebars â€” real profile name,
+   Behavior contract: identical to the old sidebars — real profile name,
    real sign-out, Staff Review only for admins. Insights/GEO are static
    demo pages (owner decision 2026-07-24). */
 
@@ -14,7 +14,7 @@ import logoMask from "../Assets/Images/PlanieLogoMark.svg";
 import "../newUi/tokens.css";
 import "../newUi/shell.css";
 
-/* Nav model â€” `active` prop matches by id. Hash targets keep working with
+/* Nav model — `active` prop matches by id. Hash targets keep working with
    the existing PartnerDashboard tab logic until each tab becomes a page. */
 const NAV = [
   { id: "overview", label: "Overview", to: "/partners/dashboard#dashboard" },

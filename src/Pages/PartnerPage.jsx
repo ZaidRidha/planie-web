@@ -22,7 +22,7 @@ const benefits = [
     icon: Eye,
     title: "Discovery Page Visibility",
     description:
-      "Your business appears directly on our Discovery page â€” seen by travelers actively exploring destinations.",
+      "Your business appears directly on our Discovery page — seen by travelers actively exploring destinations.",
   },
   {
     icon: MapPin,
@@ -34,7 +34,7 @@ const benefits = [
     icon: Crosshair,
     title: "Geo-Targeted Reach",
     description:
-      "We show your brand to travelers heading to your area â€” no wasted impressions.",
+      "We show your brand to travelers heading to your area — no wasted impressions.",
   },
   {
     icon: BarChart3,
@@ -52,7 +52,7 @@ const benefits = [
     icon: Megaphone,
     title: "Full-App Advertising",
     description:
-      "Go beyond one page â€” your brand surfaces across the entire Planie experience.",
+      "Go beyond one page — your brand surfaces across the entire Planie experience.",
   },
 ];
 
@@ -61,7 +61,7 @@ const differentiators = [
     id: "matrix",
     title: "Matrix Affinity",
     description:
-      "Matrix Affinity connects your business with travelers who are actively looking for what you offer â€” boosting visibility, engagement, and conversions effortlessly.",
+      "Matrix Affinity connects your business with travelers who are actively looking for what you offer — boosting visibility, engagement, and conversions effortlessly.",
   },
   {
     id: "intent",
@@ -77,9 +77,9 @@ const differentiators = [
   },
 ];
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   Orbital Ring â€” floating icons around pulsing rings
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════════════════════════════════════════════
+   Orbital Ring — floating icons around pulsing rings
+   ═══════════════════════════════════════════════════════ */
 const orbitIcons = [
   { Icon: Store, angle: 0, delay: 0 },
   { Icon: TrendingUp, angle: 60, delay: 0.8 },
@@ -143,9 +143,9 @@ export default function PartnerPage() {
 
   return (
     <section className="w-full overflow-x-hidden">
-      {/* â”€â”€â”€ Hero â”€â”€â”€ */}
+      {/* ─── Hero ─── */}
       <div className="relative min-h-[82vh] flex flex-col items-center justify-center pt-24 pb-8 overflow-hidden">
-        {/* Radial gradient background â€” distinct from homepage linear */}
+        {/* Radial gradient background — distinct from homepage linear */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -202,10 +202,10 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
+      {/* ─── Divider ─── */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* â”€â”€â”€ Benefits Grid â”€â”€â”€ */}
+      {/* ─── Benefits Grid ─── */}
       <div className="w-full py-20 px-6" id="why-partner">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
@@ -213,7 +213,7 @@ export default function PartnerPage() {
               Why Partner with Planie?
             </h2>
             <p className="partner-animate partner-delay-2 mt-4 text-lg text-[#687076] max-w-2xl mx-auto">
-              Planie isn't just another app â€” it's the moment users decide what
+              Planie isn't just another app — it's the moment users decide what
               to do. That's when your business shows up.
             </p>
           </div>
@@ -247,10 +247,10 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
+      {/* ─── Divider ─── */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* â”€â”€â”€ How We're Different â”€â”€â”€ */}
+      {/* ─── How We're Different ─── */}
       <div className="w-full max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold mb-14 text-center text-[#1C1114]">
           How We're{" "}
@@ -286,10 +286,10 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* â”€â”€â”€ Divider â”€â”€â”€ */}
+      {/* ─── Divider ─── */}
       <div className="w-3/5 max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-auto" />
 
-      {/* â”€â”€â”€ Bottom CTA â”€â”€â”€ */}
+      {/* ─── Bottom CTA ─── */}
       <div className="w-full py-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-[#1C1114] mb-3">

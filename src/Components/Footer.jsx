@@ -26,12 +26,12 @@ export default function Footer() {
       {/* Subtle gradient top edge */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
-      {/* â”€â”€â”€ Main Footer â”€â”€â”€ */}
+      {/* ─── Main Footer ─── */}
       <div className="bg-gradient-to-b from-[#FAF7F1] to-[#F3EEE4]">
         <div className="max-w-6xl mx-auto px-6 lg:px-10 pt-16 pb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
 
-            {/* â”€â”€ Column 1: Brand â”€â”€ */}
+            {/* ── Column 1: Brand ── */}
             <div className="sm:col-span-2 lg:col-span-1">
               <Link to="/" className="inline-block mb-4">
                 <img src={PlanieLogo} alt="Planie" className="h-8 w-auto" />
@@ -59,7 +59,7 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* â”€â”€ Column 2: Navigation â”€â”€ */}
+            {/* ── Column 2: Navigation ── */}
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 Navigation
@@ -78,7 +78,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* â”€â”€ Column 3: Partner â”€â”€ */}
+            {/* ── Column 3: Partner ── */}
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 For Business
@@ -113,7 +113,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* â”€â”€ Column 4: Download the App â”€â”€ */}
+            {/* ── Column 4: Download the App ── */}
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1C1114]/40 mb-5">
                 Get the App
@@ -147,7 +147,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* â”€â”€â”€ Bottom Bar â”€â”€â”€ */}
+        {/* ─── Bottom Bar ─── */}
         <div className="border-t border-[#FF4040]/[0.06]">
           <div className="max-w-6xl mx-auto px-6 lg:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-[#687076]/70">

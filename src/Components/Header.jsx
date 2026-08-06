@@ -29,7 +29,7 @@ export default function Header() {
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10">
         <div className="relative flex items-center justify-between h-[72px]">
-          {/* â”€â”€â”€ Logo â”€â”€â”€ */}
+          {/* ─── Logo ─── */}
           <Link to="/" className="relative z-10 shrink-0 group">
             <img
               src={PlanieLogo}
@@ -38,7 +38,7 @@ export default function Header() {
             />
           </Link>
 
-          {/* â”€â”€â”€ Desktop Nav (truly centered) â”€â”€â”€ */}
+          {/* ─── Desktop Nav (truly centered) ─── */}
           <nav className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
             {navItems.map(({ label, to }) => (
               <NavLink
@@ -67,7 +67,7 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* â”€â”€â”€ Right Side â”€â”€â”€ */}
+          {/* ─── Right Side ─── */}
           <div className="flex items-center gap-3">
             <Link
               to="/partners/login"
@@ -89,7 +89,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* â”€â”€â”€ Mobile Menu â”€â”€â”€ */}
+      {/* ─── Mobile Menu ─── */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
           mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"

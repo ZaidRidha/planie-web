@@ -50,9 +50,9 @@ const allOccasions = [
 
 const offerTypes = [
   { id: "percentage", label: "Percentage discount", desc: "e.g. 20% off", icon: Percent },
-  { id: "fixed", label: "Fixed amount off", desc: "e.g. Â£10 off", icon: Tag },
+  { id: "fixed", label: "Fixed amount off", desc: "e.g. £10 off", icon: Tag },
   { id: "free_item", label: "Free item", desc: "e.g. free dessert, welcome drink", icon: Gift },
-  { id: "custom", label: "Custom", desc: "Free text â€” e.g. 'Complimentary upgrade on arrival'", icon: Pencil },
+  { id: "custom", label: "Custom", desc: "Free text — e.g. 'Complimentary upgrade on arrival'", icon: Pencil },
 ];
 
 const validityOptions = [
@@ -101,10 +101,10 @@ export default function AddPromotion() {
   const [loading, setLoading] = useState(isEditing);
   const [loadError, setLoadError] = useState(null);
 
-  /* Approved venues (active/inactive) â€” promotions attach to these. */
+  /* Approved venues (active/inactive) — promotions attach to these. */
   const [listings, setListings] = useState(null);
 
-  /* Multi-listing selection â€” only used when creating new */
+  /* Multi-listing selection — only used when creating new */
   const [selectedIds, setSelectedIds] = useState(() => (queryListing ? [queryListing] : []));
 
   const [conflicts, setConflicts] = useState([]); // [{ listingId, name, conflict, retry }]
@@ -114,7 +114,7 @@ export default function AddPromotion() {
 
   /* Explicit "All" toggles for the custom validity fields. They default to OFF
      for new promotions and only activate when the user clicks the chip
-     (or â€” when editing â€” if the saved promo had empty date/time fields). */
+     (or — when editing — if the saved promo had empty date/time fields). */
   const [allDates, setAllDates] = useState(false);
   const [allTimes, setAllTimes] = useState(false);
 
@@ -204,8 +204,8 @@ export default function AddPromotion() {
   };
 
   const requiresValue = form.offerType === "percentage" || form.offerType === "fixed";
-  const valuePrefix = form.offerType === "percentage" ? "%" : "Â£";
-  const valueIsPrefix = form.offerType !== "percentage"; // Â£ goes before, % goes after
+  const valuePrefix = form.offerType === "percentage" ? "%" : "£";
+  const valueIsPrefix = form.offerType !== "percentage"; // £ goes before, % goes after
 
   const targetIds = isEditing ? [form.listingId] : selectedIds;
   const allDaysActive = (form.validityDays || []).length === 7;
@@ -253,7 +253,7 @@ export default function AddPromotion() {
   };
 
   /* Submits into the staff review queue. The backend answers 409
-     PROMO_CONFLICT when a venue already has a live promotion â€” those are
+     PROMO_CONFLICT when a venue already has a live promotion — those are
      collected so the user can choose "deactivate & submit". */
   const handlePublish = async () => {
     if (targetIds.length === 0 || customNeedsDays || submitting) return;
@@ -297,7 +297,7 @@ export default function AddPromotion() {
           }
         }
       }
-      if (errors.length > 0) setSubmitError(errors.join(" Â· "));
+      if (errors.length > 0) setSubmitError(errors.join(" · "));
       if (issues.length > 0) {
         setConflicts(issues);
       } else if (errors.length === 0) {
@@ -322,13 +322,13 @@ export default function AddPromotion() {
       setConflicts([]);
       setSavedState("published");
     } catch (err) {
-      setSubmitError(err.message || "Could not resolve the conflict â€” please try again.");
+      setSubmitError(err.message || "Could not resolve the conflict — please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* â”€â”€ Loading / not-found (edit mode) â”€â”€ */
+  /* ── Loading / not-found (edit mode) ── */
   if (isEditing && (loading || loadError)) {
     return (
       <div className="pd-layout">
@@ -336,7 +336,7 @@ export default function AddPromotion() {
         <main className="pd-main">
           <div className="al-success pd-animate pd-d1">
             {loading ? (
-              <p style={{ color: "#687076" }}>Loading promotionâ€¦</p>
+              <p style={{ color: "#687076" }}>Loading promotion…</p>
             ) : (
               <>
                 <h2>Promotion not found</h2>
@@ -352,7 +352,7 @@ export default function AddPromotion() {
     );
   }
 
-  /* â”€â”€ Success state â”€â”€ */
+  /* ── Success state ── */
   if (savedState) {
     const isPublished = savedState === "published";
     const venueCount = isEditing ? 1 : selectedIds.length;
@@ -377,7 +377,7 @@ export default function AddPromotion() {
             </h2>
             <p>
               {isPublished
-                ? "Our staff review every promotion before it goes live â€” typically within 24â€“48 hours. You can follow the status from the Promotions tab, and it will appear alongside your venue in Planie once approved."
+                ? "Our staff review every promotion before it goes live — typically within 24–48 hours. You can follow the status from the Promotions tab, and it will appear alongside your venue in Planie once approved."
                 : "Your draft is saved. Come back any time to finish setting up and submit it for review."}
             </p>
             <div className="al-success-actions">
@@ -413,7 +413,7 @@ export default function AddPromotion() {
             </h1>
             <p style={{ margin: "8px 0 0", fontSize: 15, opacity: 0.6 }}>
               {isEditing && listingName
-                ? `For ${listingName} â€” edits go back to review.`
+                ? `For ${listingName} — edits go back to review.`
                 : "Pick which venues this offer applies to and we'll set it up across them."}
             </p>
           </div>
@@ -436,7 +436,7 @@ export default function AddPromotion() {
                   <>
                     <br />
                     <em>
-                      {conflicts.map((c) => `${c.name} â†’ "${c.conflict.title || "Untitled"}"`).join(", ")}
+                      {conflicts.map((c) => `${c.name} → "${c.conflict.title || "Untitled"}"`).join(", ")}
                     </em>
                   </>
                 )}
@@ -446,8 +446,8 @@ export default function AddPromotion() {
               <button className="pd-btn pd-btn--ghost" onClick={() => setConflicts([])} disabled={submitting}>
                 Cancel
               </button>
-              <button className="pd-btn pd-btn--primary" onClick={handleResolveConflicts} disabled={submitting}>
-                {submitting ? "Workingâ€¦" : "Deactivate & submit"}
+              <button className={`pd-btn pd-btn--primary${submitting ? " is-busy" : ""}`} onClick={handleResolveConflicts} disabled={submitting}>
+                {submitting ? <>Working<span className="busy-dots" /></> : "Deactivate & submit"}
               </button>
             </div>
           </div>
@@ -460,7 +460,7 @@ export default function AddPromotion() {
             handlePublish();
           }}
         >
-          {/* Listing picker â€” multi-select for new, locked for edit */}
+          {/* Listing picker — multi-select for new, locked for edit */}
           {isEditing ? (
             <section className="pd-card al-section pd-animate pd-d1">
               <h3 className="al-section-title">Applied to</h3>
@@ -485,13 +485,13 @@ export default function AddPromotion() {
                   </button>
                 </div>
                 <span className="al-help">
-                  Pick one venue, several, or all of them. We'll create a copy of this promotion for each selected listing â€” they can be edited or deactivated individually later. Only approved listings can carry promotions.
+                  Pick one venue, several, or all of them. We'll create a copy of this promotion for each selected listing — they can be edited or deactivated individually later. Only approved listings can carry promotions.
                 </span>
                 {listings === null ? (
-                  <span className="al-help" style={{ marginTop: 10 }}>Loading your venuesâ€¦</span>
+                  <span className="al-help" style={{ marginTop: 10 }}>Loading your venues…</span>
                 ) : listings.length === 0 ? (
                   <span className="al-help" style={{ marginTop: 10, color: "#B45309" }}>
-                    You don't have an approved listing yet â€” promotions attach to approved venues.{" "}
+                    You don't have an approved listing yet — promotions attach to approved venues.{" "}
                     <Link to="/partners/add-listing" className="pd-link">Create a listing</Link> first.
                   </span>
                 ) : (
@@ -520,7 +520,7 @@ export default function AddPromotion() {
             </section>
           )}
 
-          {/* â”€â”€ Offer Type â”€â”€ */}
+          {/* ── Offer Type ── */}
           <section className="pd-card al-section pd-animate pd-d1">
             <h3 className="al-section-title">What kind of offer is this?</h3>
             <div className="al-field">
@@ -603,7 +603,7 @@ export default function AddPromotion() {
               <div className="al-field al-field--divided">
                 <label className="al-label">Custom Offer *</label>
                 <span className="al-help">
-                  Describe your offer in your own words â€” travelers will see this exactly as written.
+                  Describe your offer in your own words — travelers will see this exactly as written.
                 </span>
                 <input
                   type="text"
@@ -618,7 +618,7 @@ export default function AddPromotion() {
             )}
           </section>
 
-          {/* â”€â”€ Discount code â”€â”€ */}
+          {/* ── Discount code ── */}
           <section className="pd-card al-section pd-animate pd-d2">
             <h3 className="al-section-title">Discount Code</h3>
             <div className="al-field">
@@ -638,7 +638,7 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* â”€â”€ Applicable Occasions â”€â”€ */}
+          {/* ── Applicable Occasions ── */}
           <section className="pd-card al-section pd-animate pd-d2">
             <h3 className="al-section-title">When does this offer apply?</h3>
             <div className="al-field">
@@ -671,7 +671,7 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* â”€â”€ Validity â”€â”€ */}
+          {/* ── Validity ── */}
           <section className="pd-card al-section pd-animate pd-d3">
             <h3 className="al-section-title">
               <Calendar size={18} strokeWidth={2} /> When is the promotion valid?
@@ -813,14 +813,14 @@ export default function AddPromotion() {
                     </button>
                   </div>
                   <span className="al-help" style={{ marginTop: 8 }}>
-                    e.g. Monâ€“Thu, 17:00 â†’ 19:00 for a happy-hour promo.
+                    e.g. Mon–Thu, 17:00 → 19:00 for a happy-hour promo.
                   </span>
                 </div>
               </>
             )}
           </section>
 
-          {/* â”€â”€ Minimum booking size â”€â”€ */}
+          {/* ── Minimum booking size ── */}
           <section className="pd-card al-section pd-animate pd-d3">
             <h3 className="al-section-title">
               <Users size={18} strokeWidth={2} /> Minimum Booking Size
@@ -844,13 +844,13 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* â”€â”€ Promotion title â”€â”€ */}
+          {/* ── Promotion title ── */}
           <section className="pd-card al-section pd-animate pd-d4">
             <h3 className="al-section-title">Promotion Headline</h3>
             <div className="al-field">
               <label className="al-label">Promotion Title *</label>
               <span className="al-help">
-                What the users will see â€” e.g. "20% off" or "Free dessert on date nights".
+                What the users will see — e.g. "20% off" or "Free dessert on date nights".
               </span>
               <input
                 type="text"
@@ -865,25 +865,25 @@ export default function AddPromotion() {
             </div>
           </section>
 
-          {/* â”€â”€ Internal note â”€â”€ */}
+          {/* ── Internal note ── */}
           <section className="pd-card al-section pd-animate pd-d4">
             <h3 className="al-section-title">Internal Note</h3>
             <div className="al-field">
               <label className="al-label">Note (optional)</label>
               <span className="al-help">
-                Not shown to users â€” for your own reference (e.g. campaign source, end-of-quarter target).
+                Not shown to users — for your own reference (e.g. campaign source, end-of-quarter target).
               </span>
               <textarea
                 className="al-textarea"
                 rows={3}
-                placeholder="Any context only your team needs to seeâ€¦"
+                placeholder="Any context only your team needs to see…"
                 value={form.internalNote}
                 onChange={(e) => updateField("internalNote", e.target.value)}
               />
             </div>
           </section>
 
-          {/* â”€â”€ Submit row â”€â”€ */}
+          {/* ── Submit row ── */}
           <div className="al-submit-row pd-animate pd-d4">
             <Link to="/partners/dashboard#promotions" className="pd-btn pd-btn--outline">
               Cancel
@@ -899,12 +899,12 @@ export default function AddPromotion() {
             </button>
             <button
               type="submit"
-              className="pd-btn pd-btn--primary al-submit-btn"
+              className={`pd-btn pd-btn--primary al-submit-btn${submitting ? " is-busy" : ""}`}
               disabled={!canSubmit}
             >
               <Sparkles size={15} strokeWidth={2} />
               {submitting
-                ? "Submittingâ€¦"
+                ? <>Submitting<span className="busy-dots" /></>
                 : isEditing
                   ? form.status === "active" ? "Update & Resubmit" : "Submit for Review"
                   : selectedIds.length > 1
