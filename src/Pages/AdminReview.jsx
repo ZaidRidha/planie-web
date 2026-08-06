@@ -1,11 +1,11 @@
-/* Staff review console â€” /partners/admin.
+/* Staff review console — /partners/admin.
    Three queues: pending business verifications, pending listings and pending
    promotions. Only rendered for admins (and every action re-checks the role
    server-side). */
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ShieldCheck, Store, Megaphone, RefreshCw, Check, X, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Store, Megaphone, RefreshCw, Check, X, ArrowLeft, ChevronDown, ChevronUp, ImageOff, MapPin, Clock, Tag, Phone, Mail, Globe, Ticket } from "lucide-react";
 import { usePartnerAuth } from "../Context/PartnerAuthContext";
 import {
   listPendingVerifications,
@@ -18,7 +18,7 @@ import {
 import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
 function fmtDate(iso) {
-  if (!iso) return "â€”";
+  if (!iso) return "—";
   return new Date(iso).toLocaleString(undefined, {
     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
   });
@@ -63,6 +63,118 @@ function DenyControl({ onDeny, busy }) {
   );
 }
 
+/* Thumbnail that degrades to a placeholder if the URL fails to load (e.g. a
+   stale Storage URL) instead of showing a broken-image icon. */
+function SafeThumb({ src, alt, className }) {
+  const [failed, setFailed] = useState(false);
+  if (failed || !src) {
+    return (
+      <div className={`flex items-center justify-center bg-[#1C1114]/5 text-[#1C1114]/30 ${className || ""}`} title="Image unavailable">
+        <ImageOff size={18} />
+      </div>
+    );
+  }
+  return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} loading="lazy" />;
+}
+
+/* One pending listing in the staff queue — collapsed to a summary row, expands
+   to full detail (photos, location, hours, pricing, contact, booking) so staff
+   can review everything before approve/deny. */
+function PendingListingCard({ l, busyId, act }) {
+  const [open, setOpen] = useState(false);
+  const busy = busyId === l.id;
+  const images = Array.isArray(l.images) ? l.images : [];
+  return (
+    <div className="bg-white border border-[#1C1114]/10 rounded-2xl p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-semibold text-[#1C1114]">{l.name}</p>
+          <p className="text-sm text-[#1C1114]/50">
+            {l.category} · {l.city}, {l.country} · submitted {fmtDate(l.submittedAt)}
+          </p>
+          {l.description && (
+            <p className={`text-sm text-[#1C1114]/50 mt-2 ${open ? "" : "line-clamp-3"}`}>{l.description}</p>
+          )}
+          <button
+            className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[#1C1114]/70 hover:text-[#1C1114]"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {open ? "Hide details" : `View details${images.length ? ` · ${images.length} photo${images.length === 1 ? "" : "s"}` : ""}`}
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#178A5E] px-4 py-1.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            onClick={() => act(l.id, () => reviewListing(l.id, "active"))}
+            disabled={busy}
+          >
+            <Check size={14} /> Approve
+          </button>
+          <DenyControl
+            busy={busy}
+            onDeny={(reason) => act(l.id, () => reviewListing(l.id, "denied", reason))}
+          />
+        </div>
+      </div>
+
+      {open && (
+        <div className="mt-4 border-t border-[#1C1114]/10 pt-4">
+          {/* Photos */}
+          <p className="text-xs uppercase tracking-wide text-[#9BA1A6] mb-2">Photos</p>
+          {images.length === 0 ? (
+            <p className="text-sm text-[#1C1114]/40 mb-4">No photos submitted.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {images.map((url, i) => (
+                <SafeThumb key={i} src={url} alt={`${l.name} photo ${i + 1}`} className="h-24 w-24 rounded-xl object-cover border border-[#1C1114]/10" />
+              ))}
+            </div>
+          )}
+
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            <Detail icon={MapPin} k="Address" v={[l.address, l.postcode, l.city, l.country].filter(Boolean).join(", ")} />
+            <Detail icon={Tag} k="Price range" v={l.priceRange} />
+            <Detail icon={Tag} k="Avg booking value" v={l.avgBookingValue ? `£${l.avgBookingValue} pp` : null} />
+            <Detail icon={Phone} k="Phone" v={l.phone} />
+            <Detail icon={Mail} k="Email" v={l.email} />
+            <Detail icon={Globe} k="Website" v={l.website} />
+            <Detail icon={Ticket} k="Booking" v={l.bookingPlatform ? `${l.bookingPlatform}${l.bookingUrl ? ` · ${l.bookingUrl}` : ""}` : null} />
+            <Detail icon={Clock} k="Occasions" v={(l.occasions || []).join(", ")} />
+          </dl>
+
+          {Array.isArray(l.hours) && l.hours.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs uppercase tracking-wide text-[#9BA1A6] mb-1">Opening hours</p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-sm sm:grid-cols-3">
+                {l.hours.map((h, i) => (
+                  <div key={i} className="flex justify-between">
+                    <span className="text-[#1C1114]/60">{h.day}</span>
+                    <span className="text-[#1C1114]">{h.closed ? "Closed" : `${h.open}–${h.close}`}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Detail({ icon: Icon, k, v }) {
+  if (!v) return null;
+  return (
+    <div className="flex items-start gap-2">
+      <Icon size={14} className="text-[#9BA1A6] mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <dt className="text-[#9BA1A6] text-xs uppercase tracking-wide">{k}</dt>
+        <dd className="text-[#1C1114] break-words">{v}</dd>
+      </div>
+    </div>
+  );
+}
+
 function QueueSection({ icon: Icon, title, empty, items, loading, renderItem }) {
   return (
     <section className="mb-10">
@@ -72,7 +184,7 @@ function QueueSection({ icon: Icon, title, empty, items, loading, renderItem }) 
         <span className="text-sm font-normal text-[#1C1114]/50">({items.length})</span>
       </h2>
       {loading ? (
-        <p className="text-sm text-[#1C1114]/50">Loadingâ€¦</p>
+        <p className="text-sm text-[#1C1114]/50">Loading…</p>
       ) : items.length === 0 ? (
         <p className="text-sm text-[#1C1114]/50 bg-white border border-[#1C1114]/10 rounded-2xl px-4 py-6 text-center">{empty}</p>
       ) : (
@@ -163,15 +275,15 @@ export default function AdminReview() {
         <QueueSection
           icon={ShieldCheck}
           title="Business verifications"
-          empty="No verifications waiting â€” all caught up."
+          empty="No verifications waiting — all caught up."
           items={verifications}
           loading={loading}
           renderItem={(v) => (
             <div key={v.uid} className="bg-white border border-[#1C1114]/10 rounded-2xl p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-[#1C1114]">{v.data?.businessName || v.businessName || "â€”"}</p>
-                  <p className="text-sm text-[#1C1114]/50">{v.email} Â· submitted {fmtDate(v.submittedAt)}</p>
+                  <p className="font-semibold text-[#1C1114]">{v.data?.businessName || v.businessName || "—"}</p>
+                  <p className="text-sm text-[#1C1114]/50">{v.email} · submitted {fmtDate(v.submittedAt)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -199,7 +311,7 @@ export default function AdminReview() {
                   ].map(([k, val]) => (
                     <div key={k}>
                       <dt className="text-[#9BA1A6] text-xs uppercase tracking-wide">{k}</dt>
-                      <dd className="text-[#1C1114] break-words">{val || "â€”"}</dd>
+                      <dd className="text-[#1C1114] break-words">{val || "—"}</dd>
                     </div>
                   ))}
                 </dl>
@@ -211,43 +323,18 @@ export default function AdminReview() {
         <QueueSection
           icon={Store}
           title="Listings awaiting approval"
-          empty="No listings waiting â€” all caught up."
+          empty="No listings waiting — all caught up."
           items={listings}
           loading={loading}
           renderItem={(l) => (
-            <div key={l.id} className="bg-white border border-[#1C1114]/10 rounded-2xl p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-[#1C1114]">{l.name}</p>
-                  <p className="text-sm text-[#1C1114]/50">
-                    {l.category} Â· {l.city}, {l.country} Â· submitted {fmtDate(l.submittedAt)}
-                  </p>
-                  {l.description && (
-                    <p className="text-sm text-[#1C1114]/50 mt-2 line-clamp-3">{l.description}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[#178A5E] px-4 py-1.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                    onClick={() => act(l.id, () => reviewListing(l.id, "active"))}
-                    disabled={busyId === l.id}
-                  >
-                    <Check size={14} /> Approve
-                  </button>
-                  <DenyControl
-                    busy={busyId === l.id}
-                    onDeny={(reason) => act(l.id, () => reviewListing(l.id, "denied", reason))}
-                  />
-                </div>
-              </div>
-            </div>
+            <PendingListingCard key={l.id} l={l} busyId={busyId} act={act} />
           )}
         />
 
         <QueueSection
           icon={Megaphone}
           title="Promotions awaiting approval"
-          empty="No promotions waiting â€” all caught up."
+          empty="No promotions waiting — all caught up."
           items={promotions}
           loading={loading}
           renderItem={(p) => (
@@ -256,16 +343,16 @@ export default function AdminReview() {
                 <div>
                   <p className="font-semibold text-[#1C1114]">{p.title || "Untitled promotion"}</p>
                   <p className="text-sm text-[#1C1114]/50">
-                    {p.listingName} Â· {p.offerType === "percentage" ? `${p.discountValue}% off`
-                      : p.offerType === "fixed" ? `Â£${p.discountValue} off`
-                      : p.discountValue} Â· submitted {fmtDate(p.submittedAt)}
+                    {p.listingName} · {p.offerType === "percentage" ? `${p.discountValue}% off`
+                      : p.offerType === "fixed" ? `£${p.discountValue} off`
+                      : p.discountValue} · submitted {fmtDate(p.submittedAt)}
                   </p>
                   <p className="text-sm text-[#1C1114]/50 mt-1">
-                    {p.discountCode ? `Code ${p.discountCode} Â· ` : ""}
+                    {p.discountCode ? `Code ${p.discountCode} · ` : ""}
                     {p.validityType === "always" ? "Always on" : "Custom validity"}
                     {(p.applicableOccasions ?? []).length > 0
-                      ? ` Â· ${p.applicableOccasions.join(", ")}`
-                      : " Â· All bookings"}
+                      ? ` · ${p.applicableOccasions.join(", ")}`
+                      : " · All bookings"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

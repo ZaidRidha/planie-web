@@ -30,6 +30,7 @@ import {
   Clock,
   Shield,
   ChevronDown,
+  ChevronUp,
   Pause,
   Play,
   FileText,
@@ -67,11 +68,13 @@ import {
   deleteListing,
   toCardShape,
 } from "../utils/listings";
+import { fetchAnalytics } from "../utils/analytics";
 import { usePartnerAuth } from "../Context/PartnerAuthContext";
 import VerificationBanner from "../Components/VerificationBanner";
+import ListingPreview from "../Components/ListingPreview";
 import "./PartnerDashboard.css";
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Animated counter ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Animated counter ─── */
 function useCounter(end, duration = 1400, delay = 0) {
   const [value, setValue] = useState(0);
   const raf = useRef(null);
@@ -90,7 +93,7 @@ function useCounter(end, duration = 1400, delay = 0) {
   return value;
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Performance chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Performance chart ─── */
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const views = [320, 480, 390, 620, 540, 710, 680];
 const clicks = [85, 130, 110, 195, 160, 220, 200];
@@ -144,7 +147,7 @@ function PerfChart() {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Donut ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Donut ─── */
 const sources = [
   { label: "Discovery Page", value: 42, color: "#FF4040" },
   { label: "AI Itineraries", value: 31, color: "#11181C" },
@@ -175,7 +178,7 @@ function Donut({ size = 160, data = sources }) {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Helpers ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Helpers ─── */
 /* Loads the signed-in partner's real listings; null while loading. */
 function useMyListings() {
   const [items, setItems] = useState(null);
@@ -232,9 +235,9 @@ const promoFormFields = (p) => ({
   internalNote: p.internalNote || "",
 });
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Legacy mock data (Analytics tab only ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Phase 6 replaces it) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Legacy mock data (Analytics tab only — Phase 6 replaces it) ─── */
 const listings = [
-  { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Marrakech, Morocco", rating: 4.8, views: 1240, clicks: 340, bookings: 47, conversionRate: 3.8, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views of the Marrakech medina. Craft cocktails & live music." },
+  { name: "Sunset Rooftop Bar", category: "Restaurant & Bar", location: "Copenhagen, Denmark", rating: 4.8, views: 1240, clicks: 340, bookings: 47, conversionRate: 3.8, status: "active", created: "Jan 15, 2026", description: "A stunning rooftop bar with panoramic views over the harbour. Craft cocktails & live music." },
   { name: "Desert Safari Tours", category: "Activity & Tour", location: "Dubai, UAE", rating: 4.9, views: 2100, clicks: 580, bookings: 92, conversionRate: 4.4, status: "active", created: "Dec 3, 2025", description: "Thrilling desert safaris with dune bashing, camel rides, and traditional Bedouin camp dinners." },
   { name: "Coastal Yoga Retreat", category: "Wellness & Spa", location: "Bali, Indonesia", rating: 4.7, views: 860, clicks: 210, bookings: 28, conversionRate: 3.3, status: "pending", created: "Feb 22, 2026", description: "A beachfront wellness retreat offering daily yoga, meditation sessions, and organic cuisine." },
   { name: "Old Town Walking Tour", category: "Activity & Tour", location: "Prague, Czech Republic", rating: 4.6, views: 1520, clicks: 410, bookings: 63, conversionRate: 4.1, status: "active", created: "Nov 18, 2025", description: "Discover hidden gems and centuries of history on this expertly guided walking tour." },
@@ -252,7 +255,7 @@ const navItems = [
   { icon: Settings, label: "Settings" },
 ];
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Billing: tier catalog copy (prices come live from Stripe) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Billing: tier catalog copy (prices come live from Stripe) ─── */
 const TIER_PLANS = [
   {
     tier: "Listed",
@@ -282,7 +285,7 @@ const fmtUnixDate = (unix) =>
     ? new Date(unix * 1000).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
     : null;
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics data ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Analytics data ─── */
 const monthLabels = ["Feb 5","Feb 12","Feb 19","Feb 26","Mar 5","Mar 12","Mar 19","Mar 26","Apr 2","Apr 9","Apr 16","Apr 23"];
 const monthViews = [1800,2200,1950,2600,2400,3100,2800,3400,3200,3600,3900,4200];
 const monthClicks = [420,530,470,640,580,760,690,850,780,900,960,1020];
@@ -313,11 +316,11 @@ const genderData = [
 ];
 
 const ageData = [
-  { label: "18ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“24", views: 710, pct: 14 },
-  { label: "25ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“34", views: 1920, pct: 38 },
-  { label: "35ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“44", views: 1210, pct: 24 },
-  { label: "45ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“54", views: 760, pct: 15 },
-  { label: "55ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“64", views: 300, pct: 6 },
+  { label: "18–24", views: 710, pct: 14 },
+  { label: "25–34", views: 1920, pct: 38 },
+  { label: "35–44", views: 1210, pct: 24 },
+  { label: "45–54", views: 760, pct: 15 },
+  { label: "55–64", views: 300, pct: 6 },
   { label: "65+", views: 150, pct: 3 },
 ];
 
@@ -338,7 +341,7 @@ const visitorOrigin = [
   { country: "Others", views: 1130, pct: 21 },
 ];
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics Chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Analytics Chart ─── */
 function AnalyticsLineChart({ labels, datasets, height = 220 }) {
   const w = 680, h = height, px = 48, py = 20;
   const iw = w - px * 2, ih = h - py * 2;
@@ -508,7 +511,7 @@ function AnalyticsLineChart({ labels, datasets, height = 220 }) {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Horizontal Bar Chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Horizontal Bar Chart ─── */
 function HBarChart({ data, maxVal }) {
   return (
     <div className="pd-an-hbar-list">
@@ -528,129 +531,185 @@ function HBarChart({ data, maxVal }) {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Analytics Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Analytics Tab ─── */
 const timeRanges = ["7 Days", "30 Days", "90 Days"];
 
 function AnalyticsTab() {
-  const [place, setPlace] = useState("All listings");
+  const { items: myListings } = useMyListings();
+  const activeListings = (myListings || []).filter((l) => l.status === "active");
+  const [selectedId, setSelectedId] = useState("all");
+  const [range, setRange] = useState(30);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const H = { fontFamily: "'Gabarito', sans-serif" };
-  const ages = [
-    { label: "18–24", pct: 22, color: "#FF4040" }, { label: "25–34", pct: 38, color: "#1C1114" },
-    { label: "35–44", pct: 21, color: "#1C1114" }, { label: "45–54", pct: 12, color: "#1C1114" },
-    { label: "55+", pct: 7, color: "#1C1114" },
-  ];
-  const origins = [
-    { label: "Local (<5km)", pct: 46, color: "#FF4040" }, { label: "Visiting the city", pct: 28, color: "#1C1114" },
-    { label: "Tourists", pct: 16, color: "#1C1114" }, { label: "Business trips", pct: 10, color: "#1C1114" },
-  ];
-  const asks = [
-    { rank: 1, quote: "Somewhere for a relaxed date night", visits: 214, trend: "+12%", up: true },
-    { rank: 2, quote: "Good food, not too loud", visits: 168, trend: "+8%", up: true },
-    { rank: 3, quote: "A spot for a small group dinner", visits: 121, trend: "+3%", up: true },
-    { rank: 4, quote: "Late-night, walkable from the river", visits: 74, trend: "−2%", up: false },
-  ];
-  const parties = [
-    { label: "Couples", pct: 44, color: "#FF4040" }, { label: "Small groups", pct: 31, color: "#1C1114" },
-    { label: "Solo", pct: 15, color: "rgba(28,17,20,0.5)" }, { label: "Families", pct: 10, color: "rgba(28,17,20,0.25)" },
-  ];
-  const surfaces = [
-    { name: "For You", value: "1,240", share: 80, barColor: "#FF4040", note: "Personalised home picks" },
-    { name: "Category", value: "540", share: 42, barColor: "#1C1114", note: "Occasion category pages" },
-    { name: "AI Guide", value: "310", share: 24, barColor: "#1C1114", note: "AI-generated local guides" },
-  ];
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchAnalytics(selectedId, range)
+      .then((d) => { if (!cancelled) { setData(d); setError(null); } })
+      .catch((e) => { if (!cancelled) setError(e.message || "Could not load insights."); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedId, range]);
+
+  const empty = data && data.cohort === 0 && !(data.totals?.views);
+  const suppressed = data && data.suppressed && !empty;
+  const t = data?.totals || {};
+  const topAge = data?.age?.[0]?.label;
+  const topOrigin = data?.origin?.[0]?.label;
+  const headline = empty ? "No insights yet."
+    : topAge && topOrigin ? `Mostly ${topOrigin.toLowerCase()}, around ${topAge}.`
+    : "Your audience is taking shape.";
+  const dwellLabel = t.avgDwellMs ? `${(t.avgDwellMs / 1000).toFixed(1)}s` : "—";
+  const partyColors = ["#FF4040", "#1C1114", "rgba(28,17,20,0.5)", "rgba(28,17,20,0.25)"];
+
+  const Bars = ({ items, labelW }) => (
+    <>
+      {items.map((a) => (
+        <div key={a.label} style={{ display: "grid", gridTemplateColumns: `${labelW}px 1fr 44px`, alignItems: "center", gap: 12, padding: "6px 0" }}>
+          <span style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.label}</span>
+          <div style={{ height: 6, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${a.pct}%`, height: "100%", borderRadius: 3, background: "#1C1114", transition: "width 0.55s cubic-bezier(0.22,1,0.36,1)" }} /></div>
+          <span style={{ fontSize: 13, opacity: 0.55, textAlign: "right" }}>{a.pct}%</span>
+        </div>
+      ))}
+    </>
+  );
+  const suppressNote = (
+    <p style={{ margin: "8px 0 0", fontSize: 13, opacity: 0.5, lineHeight: 1.5 }}>Not enough visitors yet to show this safely — it appears once at least {data?.minCohort ?? 15} people have discovered this venue.</p>
+  );
+
   return (
     <>
       <header className="pd-anim pd-a1">
         <p className="nu-microlabel" style={{ marginBottom: 6 }}>Insights</p>
         <h1 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 40, letterSpacing: "-0.02em" }}>Who Planie sends you.</h1>
-        <p style={{ margin: "12px 0 0", fontSize: 15, opacity: 0.6, maxWidth: "62ch" }}>The people arriving through plans — where they came from, and what they were really looking for. <strong>Sample data</strong> until the Insights platform goes live.</p>
+        <p style={{ margin: "12px 0 0", fontSize: 15, opacity: 0.6, maxWidth: "62ch" }}>The people arriving through plans — where they came from and what they were really looking for. Built from real activity as travelers discover your venues.</p>
       </header>
 
-      <div className="pd-anim pd-a2" style={{ marginTop: 30, display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", flexWrap: "wrap" }}>
-        {["All listings", "My venue"].map((t) => (
-          <button key={t} onClick={() => setPlace(t)} style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: "none", padding: "9px 18px", borderRadius: 100, background: place === t ? "#1C1114" : "transparent", color: place === t ? "#FAF7F1" : "#1C1114", transition: "all 0.25s" }}>{t}</button>
-        ))}
+      <div className="pd-anim pd-a2" style={{ marginTop: 30, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", flexWrap: "wrap" }}>
+          <button onClick={() => setSelectedId("all")} style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: "none", padding: "9px 16px", borderRadius: 100, background: selectedId === "all" ? "#1C1114" : "transparent", color: selectedId === "all" ? "#FAF7F1" : "#1C1114" }}>All listings</button>
+          {activeListings.map((l) => (
+            <button key={l.id} onClick={() => setSelectedId(l.id)} style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: "none", padding: "9px 16px", borderRadius: 100, background: selectedId === l.id ? "#1C1114" : "transparent", color: selectedId === l.id ? "#FAF7F1" : "#1C1114", whiteSpace: "nowrap" }}>{l.name}</button>
+          ))}
+        </div>
+        <div style={{ display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)" }}>
+          {[7, 30, 90].map((r) => (
+            <button key={r} onClick={() => setRange(r)} style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", border: "none", padding: "8px 14px", borderRadius: 100, background: range === r ? "#1C1114" : "transparent", color: range === r ? "#FAF7F1" : "#1C1114" }}>{r}d</button>
+          ))}
+        </div>
       </div>
 
-      <section className="pd-anim pd-a2" style={{ marginTop: 32 }}>
-        <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: "clamp(22px,2.4vw,30px)", letterSpacing: "-0.015em", lineHeight: 1.25, maxWidth: "30ch" }}>Mostly locals in their late twenties, planning a relaxed night out.</p>
-      </section>
+      {loading ? (
+        <p className="pd-anim pd-a2" style={{ marginTop: 32, opacity: 0.5 }}>Loading insights…</p>
+      ) : error ? (
+        <div className="pd-card pd-anim pd-a2" style={{ marginTop: 24 }}><p style={{ margin: 0, color: "#B42318" }}>{error}</p></div>
+      ) : empty ? (
+        <div className="pd-anim pd-a2" style={{ marginTop: 40, textAlign: "center", padding: "56px 24px", opacity: 0.7 }}>
+          <TrendingUp size={28} style={{ opacity: 0.4 }} />
+          <p style={{ ...H, margin: "14px 0 0", fontWeight: 700, fontSize: 20 }}>No insights yet</p>
+          <p style={{ margin: "8px 0 0", fontSize: 14.5, opacity: 0.7, maxWidth: "44ch", marginInline: "auto", lineHeight: 1.55 }}>These fill in as travelers discover your venues through plans. Add and get a listing approved, then check back.</p>
+        </div>
+      ) : (
+        <>
+          <section className="pd-anim pd-a2" style={{ marginTop: 32 }}>
+            <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: "clamp(22px,2.4vw,30px)", letterSpacing: "-0.015em", lineHeight: 1.25, maxWidth: "30ch" }}>{headline}</p>
+          </section>
 
-      <section className="pd-anim pd-a3" style={{ marginTop: 40, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,300px),1fr))", gap: 44 }}>
-        <div>
-          <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Age</h2>
-          <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Who plans included you this month.</p>
-          {ages.map((a) => (
-            <div key={a.label} style={{ display: "grid", gridTemplateColumns: "52px 1fr 44px", alignItems: "center", gap: 12, padding: "6px 0" }}>
-              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{a.label}</span>
-              <div style={{ height: 6, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${a.pct}%`, height: "100%", borderRadius: 3, background: a.color }} /></div>
-              <span style={{ fontSize: 13, opacity: 0.55, textAlign: "right" }}>{a.pct}%</span>
+          <section className="pd-anim pd-a2" style={{ marginTop: 32, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", rowGap: 24 }}>
+            {[["Views", (t.views || 0).toLocaleString()], ["People", (t.reach || 0).toLocaleString()], ["Clicks", (t.clicks || 0).toLocaleString()], ["Saves", (t.saves || 0).toLocaleString()], ["Avg. dwell", dwellLabel]].map(([label, val], i, arr) => (
+              <div key={label} style={{ padding: "4px 20px 8px 0", marginRight: 20, borderRight: i < arr.length - 1 ? "1px solid rgba(28,17,20,0.08)" : "none", minWidth: 0 }}>
+                <p style={{ margin: "0 0 10px", fontSize: 13, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{label}</p>
+                <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: 38, letterSpacing: "-0.02em", lineHeight: 1 }}>{val}</p>
+              </div>
+            ))}
+          </section>
+
+          <section className="pd-anim pd-a3" style={{ marginTop: 44, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,300px),1fr))", gap: 44 }}>
+            <div>
+              <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Age</h2>
+              <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Who plans included you.</p>
+              {suppressed ? suppressNote : data.age.length ? <Bars items={data.age} labelW={52} /> : <p style={{ fontSize: 13, opacity: 0.5 }}>No data yet.</p>}
             </div>
-          ))}
-        </div>
-        <div>
-          <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where they come from</h2>
-          <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Distance and travel intent.</p>
-          {origins.map((o) => (
-            <div key={o.label} style={{ display: "grid", gridTemplateColumns: "110px 1fr 44px", alignItems: "center", gap: 12, padding: "6px 0" }}>
-              <span style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.label}</span>
-              <div style={{ height: 6, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${o.pct}%`, height: "100%", borderRadius: 3, background: o.color }} /></div>
-              <span style={{ fontSize: 13, opacity: 0.55, textAlign: "right" }}>{o.pct}%</span>
+            <div>
+              <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where they come from</h2>
+              <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Distance and travel intent.</p>
+              {suppressed ? suppressNote : data.origin.length ? <Bars items={data.origin} labelW={110} /> : <p style={{ fontSize: 13, opacity: 0.5 }}>No data yet.</p>}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
-        <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>What they asked Planie for</h2>
-        <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>The desires behind the plans that included you — ranked by volume.</p>
-        {asks.map((ak) => (
-          <div key={ak.rank} style={{ display: "flex", alignItems: "baseline", gap: 18, padding: "15px 4px", borderBottom: "1px solid rgba(28,17,20,0.08)" }}>
-            <span style={{ ...H, fontWeight: 700, fontSize: 15, opacity: 0.35, minWidth: 20 }}>{ak.rank}</span>
-            <p style={{ margin: 0, fontSize: 15.5, fontWeight: 600, flex: 1, minWidth: 0 }}>“{ak.quote}”</p>
-            <span style={{ fontSize: 13, opacity: 0.5, whiteSpace: "nowrap" }}>{ak.visits} plans</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: ak.up ? "#15803d" : "#FF4040", whiteSpace: "nowrap", minWidth: 44, textAlign: "right" }}>{ak.trend}</span>
-          </div>
-        ))}
-      </section>
-
-      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
-        <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Who they came with</h2>
-        <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>Party composition across plans that placed you.</p>
-        <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", gap: 3 }}>
-          {parties.map((p) => <div key={p.label} style={{ width: `${p.pct}%`, background: p.color }} />)}
-        </div>
-        <div style={{ marginTop: 14, display: "flex", gap: 26, flexWrap: "wrap" }}>
-          {parties.map((p) => (
-            <span key={p.label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} /><strong>{p.pct}%</strong> <span style={{ opacity: 0.55 }}>{p.label}</span></span>
-          ))}
-        </div>
-      </section>
-
-      <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
-        <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where you appeared <span style={{ fontWeight: 500, fontSize: 13, opacity: 0.45 }}>· last 30 days</span></h2>
-        <p style={{ margin: "4px 0 20px", fontSize: 13, opacity: 0.5 }}>The surfaces that carried you into people's plans.</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,190px),1fr))", gap: 28 }}>
-          {surfaces.map((s) => (
-            <div key={s.name}>
-              <p style={{ margin: 0, fontSize: 12.5, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{s.name}</p>
-              <p style={{ ...H, margin: "8px 0 0", fontWeight: 700, fontSize: 32, letterSpacing: "-0.02em" }}>{s.value}</p>
-              <div style={{ marginTop: 12, height: 5, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${s.share}%`, height: "100%", borderRadius: 3, background: s.barColor }} /></div>
-              <p style={{ margin: "8px 0 0", fontSize: 12.5, opacity: 0.5 }}>{s.note}</p>
+            <div>
+              <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Home countries</h2>
+              <p style={{ margin: "0 0 18px", fontSize: 13, opacity: 0.5 }}>Where your visitors are based.</p>
+              {suppressed ? suppressNote : data.country?.length ? <Bars items={data.country} labelW={110} /> : <p style={{ fontSize: 13, opacity: 0.5 }}>No data yet.</p>}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
 
-      <section className="pd-anim pd-a4" style={{ marginTop: 52 }}>
-        <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Recent placements</h2>
-        <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.5, display: "flex", alignItems: "center", gap: 9 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF4040", animation: "nuPulseDot 2s ease-out infinite" }} />Every time a plan chose you, as it happens.</p>
-        <div style={{ textAlign: "center", padding: "56px 24px 40px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ width: 54, height: 54, borderRadius: 16, background: "rgba(28,17,20,0.05)", display: "grid", placeItems: "center", color: "rgba(28,17,20,0.4)", marginBottom: 16 }}><TrendingUp size={25} /></div>
-          <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: 18, letterSpacing: "-0.01em" }}>No placements yet</p>
-          <p style={{ margin: "8px 0 0", fontSize: 14, opacity: 0.55, maxWidth: "42ch", lineHeight: 1.55 }}>As soon as Planie places one of your venues in a plan, it'll appear here in real time.</p>
-        </div>
-      </section>
+          <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
+            <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>What they asked Planie for</h2>
+            <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>The desires behind the plans that included you — ranked by volume.</p>
+            {data.asks.length ? data.asks.map((ak) => (
+              <div key={ak.rank} style={{ display: "flex", alignItems: "baseline", gap: 18, padding: "15px 4px", borderBottom: "1px solid rgba(28,17,20,0.08)" }}>
+                <span style={{ ...H, fontWeight: 700, fontSize: 15, opacity: 0.35, minWidth: 20 }}>{ak.rank}</span>
+                <p style={{ margin: 0, fontSize: 15.5, fontWeight: 600, flex: 1, minWidth: 0, textTransform: "capitalize" }}>“{ak.quote}”</p>
+                <span style={{ fontSize: 13, opacity: 0.5, whiteSpace: "nowrap" }}>{ak.visits} plans</span>
+              </div>
+            )) : <p style={{ fontSize: 13, opacity: 0.5 }}>No occasion data yet.</p>}
+          </section>
+
+          <section className="pd-anim pd-a3" style={{ marginTop: 52 }}>
+            <h2 style={{ ...H, margin: "0 0 4px", fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Who they came with</h2>
+            <p style={{ margin: "0 0 20px", fontSize: 13, opacity: 0.5 }}>Party composition across plans that placed you.</p>
+            {suppressed ? suppressNote : data.party.length ? (
+              <>
+                <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", gap: 3 }}>
+                  {data.party.map((p, i) => <div key={p.label} style={{ width: `${p.pct}%`, background: partyColors[i % partyColors.length] }} />)}
+                </div>
+                <div style={{ marginTop: 14, display: "flex", gap: 26, flexWrap: "wrap" }}>
+                  {data.party.map((p, i) => (
+                    <span key={p.label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: partyColors[i % partyColors.length] }} /><strong>{p.pct}%</strong> <span style={{ opacity: 0.55 }}>{p.label}</span></span>
+                  ))}
+                </div>
+              </>
+            ) : <p style={{ fontSize: 13, opacity: 0.5 }}>No data yet.</p>}
+          </section>
+
+          <section className="pd-anim pd-a4" style={{ marginTop: 52 }}>
+            <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Where you appeared</h2>
+            <p style={{ margin: "4px 0 20px", fontSize: 13, opacity: 0.5 }}>The surfaces that carried you into people's plans.</p>
+            {data.surface.length ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,190px),1fr))", gap: 28 }}>
+                {data.surface.map((s) => (
+                  <div key={s.name}>
+                    <p style={{ margin: 0, fontSize: 12.5, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.45 }}>{s.name}</p>
+                    <p style={{ ...H, margin: "8px 0 0", fontWeight: 700, fontSize: 32, letterSpacing: "-0.02em" }}>{(s.value || 0).toLocaleString()}</p>
+                    <div style={{ marginTop: 12, height: 5, borderRadius: 3, background: "rgba(28,17,20,0.07)", overflow: "hidden" }}><div style={{ width: `${s.share}%`, height: "100%", borderRadius: 3, background: "#FF4040" }} /></div>
+                    <p style={{ margin: "8px 0 0", fontSize: 12.5, opacity: 0.5 }}>{s.note}</p>
+                  </div>
+                ))}
+              </div>
+            ) : <p style={{ fontSize: 13, opacity: 0.5 }}>No placements yet.</p>}
+          </section>
+
+          <section className="pd-anim pd-a4" style={{ marginTop: 52 }}>
+            <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 19, letterSpacing: "-0.015em" }}>Recent placements</h2>
+            <p style={{ margin: "4px 0 14px", fontSize: 13, opacity: 0.5, display: "flex", alignItems: "center", gap: 9 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF4040", animation: "nuPulseDot 2s ease-out infinite" }} />Every time a plan chose you.</p>
+            {data.recent.length ? data.recent.map((e, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr auto", alignItems: "center", gap: 14, padding: "14px 4px", borderBottom: "1px solid rgba(28,17,20,0.08)" }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{e.listing || "A venue"}</span>
+                <span style={{ fontSize: 13, opacity: 0.6, textTransform: "capitalize" }}>{e.occasion || "—"}</span>
+                <span style={{ fontSize: 13, opacity: 0.5 }}>{e.surface}</span>
+                <span style={{ justifySelf: "end", fontSize: 12.5, opacity: 0.45 }}>{e.ts ? new Date(e.ts).toLocaleDateString() : ""}</span>
+              </div>
+            )) : (
+              <div style={{ textAlign: "center", padding: "40px 24px", opacity: 0.6 }}>
+                <p style={{ ...H, margin: 0, fontWeight: 700, fontSize: 16 }}>No placements in this period</p>
+                <p style={{ margin: "6px 0 0", fontSize: 13.5 }}>As soon as Planie places a venue in a plan, it appears here.</p>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }
@@ -728,6 +787,7 @@ function ListingsTab() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
+  const [previewId, setPreviewId] = useState(null);
   const { items, loadError, reload } = useMyListings();
   const [sortBy, setSortBy] = useState("newest");
   const [actionError, setActionError] = useState(null);
@@ -843,8 +903,8 @@ function ListingsTab() {
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="pd-ml-sort-select">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="name-az">Name AÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Z</option>
-            <option value="name-za">Name ZÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“A</option>
+            <option value="name-az">Name A–Z</option>
+            <option value="name-za">Name Z–A</option>
             <option value="views">Most Views</option>
             <option value="clicks">Most Clicks</option>
             <option value="rating">Highest Rating</option>
@@ -868,7 +928,7 @@ function ListingsTab() {
       <div className="pd-ml-list pd-anim pd-a3">
         {loading ? (
           <div className="pd-ml-empty">
-            <h4>Loading your listingsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</h4>
+            <h4>Loading your listings…</h4>
           </div>
         ) : sorted.length === 0 ? (
           <div className="pd-ml-empty">
@@ -963,6 +1023,31 @@ function ListingsTab() {
                   <span className="pd-ml-card-stat-lbl">rating</span>
                 </div>
               </div>
+
+              {/* Virtual app view — see exactly how the listing looks in-app */}
+              <button
+                type="button"
+                onClick={() => setPreviewId(previewId === l.id ? null : l.id)}
+                style={{
+                  marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7,
+                  fontFamily: "'Instrument Sans', sans-serif", fontSize: 13.5, fontWeight: 600,
+                  cursor: "pointer", border: "1px solid rgba(28,17,20,0.14)", background: "transparent",
+                  color: "#1C1114", padding: "8px 14px", borderRadius: 100,
+                }}
+              >
+                <Eye size={14} strokeWidth={2} />
+                {previewId === l.id ? "Hide app preview" : "Preview in app"}
+                {previewId === l.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {previewId === l.id && (
+                <div style={{ marginTop: 14 }}>
+                  <ListingPreview
+                    form={{ name: l.name, category: l.category, city: l.city, country: l.country }}
+                    imagePreview={(l.images || []).map((url) => ({ url }))}
+                  />
+                </div>
+              )}
             </div>
           ))
         )}
@@ -977,10 +1062,10 @@ function ListingsTab() {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Promotions Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Promotions Tab ─── */
 const offerTypeMeta = {
   percentage: { icon: Percent, label: "% off" },
-  fixed: { icon: Tag, label: "Ãƒâ€šÃ‚Â£ off" },
+  fixed: { icon: Tag, label: "£ off" },
   free_item: { icon: Gift, label: "Free item" },
   custom: { icon: Sparkles, label: "Custom" },
 };
@@ -995,9 +1080,9 @@ const promoStatusLabel = {
 
 function formatPromoValue(p) {
   if (!p.offerType) return "";
-  if (p.offerType === "percentage") return p.discountValue ? `${p.discountValue}% off` : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
-  if (p.offerType === "fixed") return p.discountValue ? `Ãƒâ€šÃ‚Â£${p.discountValue} off` : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
-  return p.discountValue || "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
+  if (p.offerType === "percentage") return p.discountValue ? `${p.discountValue}% off` : "—";
+  if (p.offerType === "fixed") return p.discountValue ? `£${p.discountValue} off` : "—";
+  return p.discountValue || "—";
 }
 
 function formatValidity(p) {
@@ -1010,17 +1095,17 @@ function formatValidity(p) {
     const days = (p.validityDays || []).join(", ");
     const hasTimes = p.validityTimeFrom || p.validityTimeTo;
     const hasRange = p.validityFrom || p.validityTo;
-    if (!days && !hasTimes && !hasRange) return "Custom ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â not set";
+    if (!days && !hasTimes && !hasRange) return "Custom — not set";
     const parts = [];
-    if (hasRange) parts.push(`${p.validityFrom || "?"} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ${p.validityTo || "?"}`);
+    if (hasRange) parts.push(`${p.validityFrom || "?"} → ${p.validityTo || "?"}`);
     if (days || hasTimes) {
       const dayPart = days || "Any day";
       const timePart = hasTimes
-        ? `${p.validityTimeFrom || "00:00"}ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“${p.validityTimeTo || "23:59"}`
+        ? `${p.validityTimeFrom || "00:00"}–${p.validityTimeTo || "23:59"}`
         : "";
       parts.push(timePart ? `${dayPart}, ${timePart}` : dayPart);
     }
-    return parts.join(" Ãƒâ€šÃ‚Â· ");
+    return parts.join(" · ");
   }
   return "";
 }
@@ -1214,7 +1299,7 @@ function SetupChecklistSection({ setActiveTab, animClass = "pd-a2" }) {
 }
 
 /* Renders the partner's promotion drafts. Self-loads when no `promotions`
-   prop is given (overview usage); `listingNames` maps listingId ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ name. */
+   prop is given (overview usage); `listingNames` maps listingId → name. */
 function PromotionDraftsSection({ promotions: promotionsProp, listingNames = {}, onChanged, animClass = "pd-a2" }) {
   const navigate = useNavigate();
   const own = useMyPromotions(promotionsProp === undefined);
@@ -1243,7 +1328,7 @@ function PromotionDraftsSection({ promotions: promotionsProp, listingNames = {},
           <h3>Promotion Drafts</h3>
           <span className="pd-drafts-count">{drafts.length}</span>
         </div>
-        <span className="pd-drafts-sub">Unpublished promotions ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â finish setting up to go live</span>
+        <span className="pd-drafts-sub">Unpublished promotions — finish setting up to go live</span>
       </div>
       <div className="pd-drafts-grid">
         {drafts.map((p) => {
@@ -1261,7 +1346,7 @@ function PromotionDraftsSection({ promotions: promotionsProp, listingNames = {},
                   <h4>{p.title || "Untitled promotion"}</h4>
                   <div className="pd-draft-card-meta">
                     <span>{venueName}</span>
-                    <span className="pd-draft-card-dot">Ãƒâ€šÃ‚Â·</span>
+                    <span className="pd-draft-card-dot">·</span>
                     <span>{valueLabel || "No offer set"}</span>
                   </div>
                 </div>
@@ -1322,7 +1407,7 @@ function PromotionsTab() {
   };
 
   /* Submit a draft/denied promo into the review queue. On PROMO_CONFLICT the
-     server refused because another promo is live ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â offer deactivate & retry. */
+     server refused because another promo is live — offer deactivate & retry. */
   const handleSubmit = async (p) => {
     setActionError(null);
     try {
@@ -1412,12 +1497,12 @@ function PromotionsTab() {
       <div className="pd-promo-list pd-anim pd-a3">
         {loading ? (
           <div className="pd-promo-empty">
-            <span>Loading your promotionsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</span>
+            <span>Loading your promotions…</span>
           </div>
         ) : grouped.length === 0 ? (
           <div className="pd-promo-empty">
             <Megaphone size={20} strokeWidth={1.5} />
-            <span>Create a listing first ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â promotions are offers attached to one of your venues.</span>
+            <span>Create a listing first — promotions are offers attached to one of your venues.</span>
           </div>
         ) : null}
         {grouped.map((group) => {
@@ -1454,11 +1539,11 @@ function PromotionsTab() {
                             <h4>{p.title || "Untitled promotion"}</h4>
                             <div className="pd-promo-card-meta">
                               <span>{formatPromoValue(p)}</span>
-                              <span className="pd-promo-card-dot">Ãƒâ€šÃ‚Â·</span>
+                              <span className="pd-promo-card-dot">·</span>
                               <span>{formatValidity(p)}</span>
                               {p.discountCode && (
                                 <>
-                                  <span className="pd-promo-card-dot">Ãƒâ€šÃ‚Â·</span>
+                                  <span className="pd-promo-card-dot">·</span>
                                   <span className="pd-promo-card-code">{p.discountCode}</span>
                                 </>
                               )}
@@ -1543,10 +1628,10 @@ function PromotionsTab() {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Billing Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+/* ─── Billing Tab ───
    PER-LISTING Stripe billing (rework 2026-07-25). Each venue has its own
-   Listed/Partner/Featured plan. Upgrading a Listed venue Ã¢â€ â€™ Stripe Checkout;
-   switching between paid tiers or cancelling Ã¢â€ â€™ partnerChangeListingPlan (no
+   Listed/Partner/Featured plan. Upgrading a Listed venue → Stripe Checkout;
+   switching between paid tiers or cancelling → partnerChangeListingPlan (no
    redirect). Cards/invoices/cancel also available via the Customer Portal.
    Tiers only change when the backend webhook writes them. */
 function BillingTab() {
@@ -1593,7 +1678,7 @@ function BillingTab() {
     }
   };
 
-  /* Set a listing to a tier. ListedÃ¢â€ â€™paid opens Checkout (redirect); any change
+  /* Set a listing to a tier. Listed→paid opens Checkout (redirect); any change
      on a listing that already has a subscription goes through changeListingPlan. */
   const setListingTier = async (listing, nextTier) => {
     if (nextTier === listing.tier) return;
@@ -1640,7 +1725,7 @@ function BillingTab() {
         <div className="pd-card pd-anim pd-a1" style={{ marginBottom: 16 }}>
           <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
             <CheckCircle size={16} strokeWidth={2} />
-            Payment received ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the venue's plan updates as soon as Stripe confirms it (usually seconds).
+            Payment received — the venue's plan updates as soon as Stripe confirms it (usually seconds).
           </p>
         </div>
       )}
@@ -1648,7 +1733,7 @@ function BillingTab() {
         <div className="pd-card pd-anim pd-a1" style={{ marginBottom: 16 }}>
           <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
             <AlertCircle size={16} strokeWidth={2} />
-            Checkout was cancelled ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no changes were made.
+            Checkout was cancelled — no changes were made.
           </p>
         </div>
       )}
@@ -1669,18 +1754,18 @@ function BillingTab() {
             {listings.length} {listings.length === 1 ? "listing" : "listings"}
           </div>
           {compositionParts.length > 0 && (
-            <p className="pd-billing-renew" style={{ marginTop: 6 }}>{compositionParts.join(" Ãƒâ€šÃ‚Â· ")}</p>
+            <p className="pd-billing-renew" style={{ marginTop: 6 }}>{compositionParts.join(" · ")}</p>
           )}
           <div className="pd-billing-price" style={{ marginTop: 8 }}>
             <span className="pd-billing-price-amt">
-              {summary ? (fmtMoney(summary.netMonthly, currency) ?? "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â") : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â"}
+              {summary ? (fmtMoney(summary.netMonthly, currency) ?? "—") : "—"}
             </span>
             <span className="pd-billing-price-per">/month</span>
           </div>
           {summary?.discountMonthly > 0 && (
             <p className="pd-billing-renew" style={{ color: "#15803d" }}>
               <CheckCircle size={13} /> Includes {summary.volumePct}% volume discount
-              (ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢{fmtMoney(summary.discountMonthly, currency)})
+              (−{fmtMoney(summary.discountMonthly, currency)})
             </p>
           )}
         </div>
@@ -1688,7 +1773,7 @@ function BillingTab() {
           {anySub && (
             <button className="pd-btn pd-btn--ghost" onClick={portal} disabled={busyId !== null}>
               <CreditCard size={15} strokeWidth={2} />
-              {busyId === "portal" ? "OpeningÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦" : "Manage billing"}
+              {busyId === "portal" ? "Opening…" : "Manage billing"}
             </button>
           )}
           <p className="pd-billing-renew" style={{ marginTop: 8 }}>
@@ -1701,7 +1786,7 @@ function BillingTab() {
       <div className="pd-anim pd-a3">
         <h3 className="pd-billing-section-title">Listings &amp; plans</h3>
         {data == null && !loadError ? (
-          <p className="pd-billing-renew">Loading your listingsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</p>
+          <p className="pd-billing-renew">Loading your listings…</p>
         ) : listings.length === 0 ? (
           <div className="pd-card">
             <p style={{ margin: 0 }}>You have no listings yet. Add a listing first, then choose its plan here.</p>
@@ -1722,7 +1807,7 @@ function BillingTab() {
                       <p className="pd-billing-renew" style={{ marginTop: 4 }}>
                         <Calendar size={12} />
                         {l.cancelAtPeriodEnd ? "Ends on" : "Renews on"} <strong>{renew}</strong>
-                        {l.status === "past_due" && <span style={{ color: "#B42318" }}> Ãƒâ€šÃ‚Â· payment failed</span>}
+                        {l.status === "past_due" && <span style={{ color: "#B42318" }}> · payment failed</span>}
                       </p>
                     )}
                   </div>
@@ -1740,20 +1825,20 @@ function BillingTab() {
                           title={missing ? "Price not configured in Stripe yet" : ""}
                           style={{ opacity: missing ? 0.5 : 1 }}
                         >
-                          {t}{t !== "Listed" && price != null ? ` Ãƒâ€šÃ‚Â· ${fmtMoney(price, currency)}` : ""}
-                          {on ? " ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“" : ""}
+                          {t}{t !== "Listed" && price != null ? ` · ${fmtMoney(price, currency)}` : ""}
+                          {on ? " ✓" : ""}
                         </button>
                       );
                     })}
                   </div>
-                  {busy && <span className="pd-billing-renew">UpdatingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</span>}
+                  {busy && <span className="pd-billing-renew">Updating…</span>}
                 </div>
               );
             })}
           </div>
         )}
         <p className="pd-billing-renew" style={{ marginTop: 10 }}>
-          When 2ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“5 of your venues share a paid tier, each gets {summary?.volumePct ?? 20}% off automatically.
+          When 2–5 of your venues share a paid tier, each gets {summary?.volumePct ?? 20}% off automatically.
         </p>
       </div>
 
@@ -1772,7 +1857,7 @@ function BillingTab() {
           <div className="pd-billing-plans">
             {TIER_PLANS.map((p) => {
               const price = plans.find((pl) => pl.tier === p.tier);
-              const priceLabel = p.tier === "Listed" ? "Free" : fmtMoney(price?.amount, price?.currency) ?? "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â";
+              const priceLabel = p.tier === "Listed" ? "Free" : fmtMoney(price?.amount, price?.currency) ?? "—";
               return (
                 <div key={p.tier} className="pd-billing-plan-card">
                   {p.popular && <span className="pd-billing-popular">Most Popular</span>}
@@ -1799,9 +1884,9 @@ function BillingTab() {
           <h3>Invoice History</h3>
         </div>
         {data == null && !loadError ? (
-          <p className="pd-billing-renew">Loading invoicesÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</p>
+          <p className="pd-billing-renew">Loading invoices…</p>
         ) : (data?.invoices?.length ?? 0) === 0 ? (
-          <p className="pd-billing-renew">No invoices yet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â they'll appear here after your first payment.</p>
+          <p className="pd-billing-renew">No invoices yet — they'll appear here after your first payment.</p>
         ) : (
           <div className="pd-billing-invoices">
             <div className="pd-billing-invoice-header">
@@ -1842,7 +1927,7 @@ function BillingTab() {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Settings Tab ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+/* ─── Settings Tab ─── */
 function SettingsTab() {
   const { profile, logout } = usePartnerAuth();
   const [notifs, setNotifs] = useState({
@@ -1889,13 +1974,13 @@ function SettingsTab() {
           {/* Business profile */}
           <section id="set-business" style={CARD} className="pd-anim pd-a2">
             <h2 style={{ ...H, margin: 0, fontWeight: 700, fontSize: 20, letterSpacing: "-0.015em" }}>Business profile</h2>
-            <p style={{ margin: "4px 0 24px", fontSize: 13.5, opacity: 0.5 }}>Your Business Profile â€” the account every venue listing sits under.</p>
+            <p style={{ margin: "4px 0 24px", fontSize: 13.5, opacity: 0.5 }}>Your Business Profile — the account every venue listing sits under.</p>
             <label style={LBL}>Business name</label>
             <input type="text" defaultValue={bizName} placeholder="Your business name" style={INP} />
             <p style={KICK}>Primary contact</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%,220px),1fr))", gap: 16 }}>
               <div><label style={LBL}>Contact email</label><input type="text" defaultValue={email} style={INP} /></div>
-              <div><label style={LBL}>Phone</label><input type="text" placeholder="+44 â€¦" style={INP} /></div>
+              <div><label style={LBL}>Phone</label><input type="text" placeholder="+44 …" style={INP} /></div>
             </div>
             <label style={{ ...LBL, margin: "22px 0 8px" }}>Business description</label>
             <textarea rows={3} placeholder="A short description of your business." style={{ ...INP, resize: "vertical", lineHeight: 1.5 }} />
@@ -1982,7 +2067,7 @@ function SettingsTab() {
   );
 }
 
-/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */
+/* ═══════════════════════════════════════════════════════ */
 
 const tabSlugs = {
   "Overview": "dashboard",
@@ -2000,10 +2085,10 @@ function getTabFromHash() {
   return tabFromSlug[slug] || "Overview";
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Overview (design port of Planie Partner Dashboard.dc.html) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+/* ───────── Overview (design port of Planie Partner Dashboard.dc.html) ─────────
    Real data: greeting, listing counts + the "Your places" table, setup
    checklist. Analytics numbers (metric deltas, the chart, demand, review) are
-   sample data until the Phase-6 data platform exists Ã¢â‚¬â€ clearly a preview. */
+   sample data until the Phase-6 data platform exists — clearly a preview. */
 const OV_HEAD = { fontFamily: "'Gabarito', sans-serif" };
 const OV_CARD = {
   borderRadius: 20, background: "rgba(255,255,255,0.66)",
@@ -2066,7 +2151,7 @@ function FeedbackButton() {
                 <h3 style={{ ...OV_HEAD, margin: "0 0 4px", fontSize: 20 }}>How's it going?</h3>
                 <p style={{ margin: "0 0 18px", opacity: 0.55, fontSize: 13.5 }}>Tell us what's working or what's not.</p>
                 <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
-                  {["Ã°Å¸ËœÅ¾", "Ã°Å¸ËœÂ", "Ã°Å¸â„¢â€š", "Ã°Å¸ËœÂ"].map((e) => (
+                  {["😞", "😐", "🙂", "😍"].map((e) => (
                     <button key={e} onClick={() => setEmoji(e)} style={{
                       fontSize: 24, cursor: "pointer", width: 48, height: 48, borderRadius: 12,
                       border: `1px solid ${emoji === e ? "#1C1114" : "rgba(28,17,20,0.14)"}`,
@@ -2079,7 +2164,7 @@ function FeedbackButton() {
                     <button key={t} className={`al-category-chip${topic === t ? " al-category-chip--active" : ""}`} onClick={() => setTopic(t)}>{t}</button>
                   ))}
                 </div>
-                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything you'd like us to knowÃ¢â‚¬Â¦" style={{
+                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything you'd like us to know…" style={{
                   width: "100%", boxSizing: "border-box", minHeight: 90, resize: "vertical", fontFamily: "'Instrument Sans', sans-serif",
                   fontSize: 14, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(28,17,20,0.14)", background: "#fff", color: "#1C1114", outline: "none",
                 }} />
@@ -2096,7 +2181,7 @@ function FeedbackButton() {
   );
 }
 
-/* Right rail Ã¢â‚¬â€ Happening now (empty until placements exist), Demand near you
+/* Right rail — Happening now (empty until placements exist), Demand near you
    (sample), Latest review (sample). */
 function OverviewRail() {
   return (
@@ -2132,7 +2217,7 @@ function OverviewRail() {
           </div>
         ))}
         <p style={{ margin: "16px 0 0", fontSize: 13, opacity: 0.6, lineHeight: 1.5 }}>
-          Boost a listing to show up first for plans forming here Ã¢â‚¬â€ <Link to="/partners/campaigns" style={{ fontWeight: 600, color: "#FF4040" }}>run a campaign Ã¢â€ â€™</Link>
+          Boost a listing to show up first for plans forming here — <Link to="/partners/campaigns" style={{ fontWeight: 600, color: "#FF4040" }}>run a campaign →</Link>
         </p>
       </div>
 
@@ -2144,7 +2229,7 @@ function OverviewRail() {
         <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.6, fontStyle: "italic", opacity: 0.8 }}>
           "Found this spot through Planie and it was exactly our vibe. Booked in seconds."
         </p>
-        <p style={{ margin: "10px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample review Ã‚Â· shown until live reviews arrive</p>
+        <p style={{ margin: "10px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample review · shown until live reviews arrive</p>
       </div>
     </aside>
   );
@@ -2157,6 +2242,11 @@ export default function PartnerDashboard() {
   const { user, profile, isAdmin, logout } = usePartnerAuth();
   const { items: myListings } = useMyListings();
   useEffect(() => subscribeTier(setTier), []);
+
+  // Real total views for the Overview metric band (Phase 6). Verified partners
+  // only — 403 for others just leaves it null (shows 0), which is correct.
+  const [ovViews, setOvViews] = useState(null);
+  useEffect(() => { fetchAnalytics("all", 30).then((d) => setOvViews(d?.totals?.views ?? 0)).catch(() => {}); }, []);
 
   const partnerName =
     profile?.businessName || user?.displayName || user?.email?.split("@")[0] || "Partner";
@@ -2186,7 +2276,7 @@ export default function PartnerDashboard() {
 
   return (
     <div className="pd-layout">
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Sidebar ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* ── Sidebar ── */}
       <aside className="pd-sidebar">
         <div>
           <Link to="/" className="pd-logo">
@@ -2234,7 +2324,7 @@ export default function PartnerDashboard() {
         </div>
       </aside>
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Main ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* ── Main ── */}
       <main className="pd-main">
         <VerificationBanner />
         {activeTab === "Listings" ? (
@@ -2254,9 +2344,9 @@ export default function PartnerDashboard() {
               const activeCount = all.filter((l) => l.status === "active").length;
               const metrics = [
                 { label: "Listings", value: String(all.length), delta: `${activeCount} active`, deltaColor: "#15803d", divider: true },
-                { label: "Views", value: "4,200", delta: "+12.5%", deltaColor: "#15803d", divider: true },
-                { label: "Bookings", value: "187", delta: "+18.7%", deltaColor: "#15803d", divider: true },
-                { label: "Rating", value: "4.8", delta: "+0.1", deltaColor: "#15803d", divider: false },
+                { label: "Views", value: (ovViews ?? 0).toLocaleString(), delta: "last 30 days", deltaColor: "rgba(28,17,20,0.45)", divider: true },
+                { label: "Bookings", value: "—", delta: "placeholder — sample", deltaColor: "rgba(28,17,20,0.45)", divider: true },
+                { label: "Rating", value: "—", delta: "placeholder — sample", deltaColor: "rgba(28,17,20,0.45)", divider: false },
               ];
               const statusChip = (s) => {
                 const map = {
@@ -2318,7 +2408,7 @@ export default function PartnerDashboard() {
                             <text x="860" y="242" textAnchor="end">This week</text>
                           </g>
                         </svg>
-                        <p style={{ margin: "6px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample data Ã¢â‚¬â€ live analytics arrive with the Insights platform.</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 12.5, opacity: 0.45 }}>Sample data — live analytics arrive with the Insights platform.</p>
                       </section>
 
                       {/* Your places */}
@@ -2329,7 +2419,7 @@ export default function PartnerDashboard() {
                         </div>
                         <div style={{ marginTop: 8 }}>
                           {myListings === null ? (
-                            <p style={{ opacity: 0.5, fontSize: 14, padding: "16px 0" }}>LoadingÃ¢â‚¬Â¦</p>
+                            <p style={{ opacity: 0.5, fontSize: 14, padding: "16px 0" }}>Loading…</p>
                           ) : all.length === 0 ? (
                             <div style={{ textAlign: "center", padding: "40px 16px", opacity: 0.6 }}>
                               <p style={{ ...OV_HEAD, margin: 0, fontWeight: 700, fontSize: 16 }}>No places yet</p>
@@ -2344,7 +2434,7 @@ export default function PartnerDashboard() {
                                   <p style={{ margin: "3px 0 0", fontSize: 13.5, opacity: 0.5 }}>{l.location || l.city || l.category}</p>
                                 </div>
                                 <div><p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{(l.views ?? 0).toLocaleString()}</p><p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.45 }}>views</p></div>
-                                <div><p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Ã¢Ëœâ€¦ {l.rating ?? "Ã¢â‚¬â€"}</p><p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.45 }}>rating</p></div>
+                                <div><p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>★ {l.rating ?? "—"}</p><p style={{ margin: "2px 0 0", fontSize: 12.5, opacity: 0.45 }}>rating</p></div>
                                 <div style={{ display: "flex", justifyContent: "flex-end" }}>{statusChip(l.status)}</div>
                               </div>
                             ))

@@ -36,7 +36,13 @@ export const toCardShape = (l) => ({
   name: l.name || "Untitled",
   category: l.category || "—",
   location: [l.city, l.country].filter(Boolean).join(", ") || "—",
+  city: l.city || "",
+  country: l.country || "",
   description: l.description || "",
+  // Carried through for the in-dashboard "virtual app view" preview.
+  images: Array.isArray(l.images) ? l.images : [],
+  occasions: Array.isArray(l.occasions) ? l.occasions : [],
+  priceRange: l.priceRange || "",
   status: l.status,
   denialReason: l.denialReason || null,
   createdISO: l.createdAt,

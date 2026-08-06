@@ -30,7 +30,35 @@ function MiniStars({ rating }) {
   );
 }
 
-function PreviewCard({ name, type, color, rating, distance, featured, hasImage }) {
+/* Cover image inside the phone mockup — renders the real photo when a URL is
+   given, degrades to the styled placeholder if it's missing or fails to load. */
+function CoverImage({ coverUrl, color }) {
+  const [failed, setFailed] = React.useState(false);
+  if (coverUrl && !failed) {
+    return (
+      <img
+        src={coverUrl}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: "100%",
+      height: "100%",
+      background: `linear-gradient(135deg, ${color}25, ${color}10)`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      <span style={{ fontSize: 10, color: color, fontWeight: 600, opacity: 0.6 }}>Your Photo</span>
+    </div>
+  );
+}
+
+function PreviewCard({ name, type, color, rating, distance, featured, hasImage, coverUrl }) {
   return (
     <div style={{
       background: "#fff",
@@ -55,17 +83,8 @@ function PreviewCard({ name, type, color, rating, distance, featured, hasImage }
           justifyContent: "center",
           position: "relative",
         }}>
-          {hasImage ? (
-            <div style={{
-              width: "100%",
-              height: "100%",
-              background: `linear-gradient(135deg, ${color}25, ${color}10)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-              <span style={{ fontSize: 10, color: color, fontWeight: 600, opacity: 0.6 }}>Your Photo</span>
-            </div>
+          {hasImage || coverUrl ? (
+            <CoverImage coverUrl={coverUrl} color={color} />
           ) : (
             <span style={{ fontSize: 9, color: "#9CA3AF" }}>No photo yet</span>
           )}
@@ -235,6 +254,7 @@ export default function ListingPreview({ form, imagePreview = [] }) {
                   distance="0.3 km"
                   featured
                   hasImage={imagePreview.length > 0}
+                  coverUrl={imagePreview[0]?.url}
                 />
 
                 {/* Other listings */}

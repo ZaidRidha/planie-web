@@ -41,6 +41,29 @@ const AUTH_ERRORS = {
 const INK = "#1C1114", CREAM = "#FAF7F1", RED = "#FF4040";
 const head = { fontFamily: "'Gabarito', sans-serif" };
 const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+
+/* High-confidence fat-finger typos we can safely suggest a fix for. Structural
+   validEmail() passes ".con"/".cmo" (any 2+ char TLD), so we catch the common
+   ones here and offer a one-click correction rather than silently accepting a
+   dead address. Only near-certain typos are listed to avoid false positives
+   (e.g. ".co" is a real TLD and is intentionally NOT flagged). */
+const TLD_FIX = { con: "com", cno: "com", cmo: "com", ocm: "com", vom: "com", xom: "com", comm: "com", coom: "com", cok: "com", cim: "com", c0m: "com", "com.": "com", nte: "net", ne: "net", orgg: "org", og: "org" };
+const DOMAIN_FIX = { "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com", "gmil.com": "gmail.com", "gnail.com": "gmail.com", "hotnail.com": "hotmail.com", "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com", "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "outlok.com": "outlook.com", "outloo.com": "outlook.com", "iclod.com": "icloud.com" };
+function emailSuggestion(raw) {
+  const e = (raw || "").trim().toLowerCase();
+  const at = e.lastIndexOf("@");
+  if (at < 1) return null;
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  if (!domain) return null;
+  if (DOMAIN_FIX[domain]) return `${local}@${DOMAIN_FIX[domain]}`;
+  const dot = domain.lastIndexOf(".");
+  if (dot > 0) {
+    const tld = domain.slice(dot + 1);
+    if (TLD_FIX[tld]) return `${local}@${domain.slice(0, dot + 1)}${TLD_FIX[tld]}`;
+  }
+  return null;
+}
 const pwChecks = (p) => ({ len: p.length >= 8, letter: /[a-zA-Z]/.test(p), num: /[0-9]/.test(p) });
 const pwStrong = (p) => { const c = pwChecks(p); return c.len && c.letter && c.num; };
 
@@ -134,7 +157,8 @@ export default function PartnerLoginPage() {
   };
 
   /* ── wizard ── */
-  const step1Valid = bizName.trim().length > 1 && validEmail(email);
+  const emailFix = emailSuggestion(email);
+  const step1Valid = bizName.trim().length > 1 && validEmail(email) && !emailFix;
   const step2Valid = pwStrong(password) && password === confirm && fullName.trim().length > 1 && role.trim().length > 0;
   const step4Valid = venueName.trim().length > 1 && venueCat && venueCity.trim().length > 1;
 
@@ -267,7 +291,7 @@ export default function PartnerLoginPage() {
                   <button type="button" className="pla-link" onClick={handleForgot} disabled={busy} style={{ fontSize: 13, opacity: 0.55, background: "none", border: "none", cursor: "pointer", padding: 0, color: INK, marginBottom: 8 }}>Forgot password?</button>
                 </div>
                 <input className="pla-input" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !busy && handleSignIn()} disabled={busy} style={{ ...inputStyle, marginBottom: 18 }} />
-                <button className="pla-btn" onClick={handleSignIn} disabled={busy} style={primaryBtn}>{busy ? "Signing in…" : "Sign in"}{!busy && arrow}</button>
+                <button className="pla-btn" onClick={handleSignIn} disabled={busy} style={primaryBtn}>{busy ? <>Signing in<span className="busy-dots" /></> : "Sign in"}{!busy && arrow}</button>
                 <Divider />
                 <GoogleBtn onClick={handleGoogle} busy={busy} />
               </>
@@ -281,7 +305,14 @@ export default function PartnerLoginPage() {
                 <label style={label}>Business name</label>
                 <input className="pla-input" type="text" placeholder="e.g. Sunset Hospitality Group" value={bizName} onChange={(e) => setBizName(e.target.value)} style={{ ...inputStyle, marginBottom: 16 }} />
                 <label style={label}>Work email</label>
-                <input className="pla-input" type="email" autoComplete="email" placeholder="you@yourplace.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ ...inputStyle, marginBottom: 20 }} />
+                <input className="pla-input" type="email" autoComplete="email" placeholder="you@yourplace.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ ...inputStyle, marginBottom: emailFix ? 8 : 20 }} />
+                {emailFix && (
+                  <p style={{ margin: "0 0 20px", fontSize: 13.5, color: "#9a3412" }}>
+                    Did you mean{" "}
+                    <button type="button" onClick={() => setEmail(emailFix)} style={{ background: "none", border: "none", padding: 0, color: RED, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>{emailFix}</button>
+                    ?
+                  </p>
+                )}
                 <button className="pla-btn" onClick={() => step1Valid && setStep(2)} disabled={!step1Valid} style={{ ...primaryBtn, opacity: step1Valid ? 1 : 0.5, cursor: step1Valid ? "pointer" : "not-allowed" }}>Continue{arrow}</button>
                 <Divider />
                 <GoogleBtn onClick={handleGoogle} busy={busy} label="Sign up with Google" />
@@ -309,7 +340,7 @@ export default function PartnerLoginPage() {
                 <label style={label}>Confirm password</label>
                 <input className="pla-input" type="password" autoComplete="new-password" placeholder="Re-enter password" value={confirm} onChange={(e) => setConfirm(e.target.value)} style={{ ...inputStyle, marginBottom: confirm && confirm !== password ? 6 : 20 }} />
                 {confirm && confirm !== password && <p style={{ margin: "0 0 16px", fontSize: 13, color: RED }}>Passwords don't match.</p>}
-                <button className="pla-btn" onClick={handleCreateAccount} disabled={!step2Valid || busy} style={{ ...primaryBtn, opacity: (step2Valid && !busy) ? 1 : 0.5, cursor: (step2Valid && !busy) ? "pointer" : "not-allowed" }}>{busy ? "Creating…" : "Create account"}{!busy && arrow}</button>
+                <button className="pla-btn" onClick={handleCreateAccount} disabled={!step2Valid || busy} style={{ ...primaryBtn, opacity: (step2Valid && !busy) ? 1 : 0.5, cursor: (step2Valid && !busy) ? "pointer" : "not-allowed" }}>{busy ? <>Creating<span className="busy-dots" /></> : "Create account"}{!busy && arrow}</button>
                 <button type="button" className="pla-link" onClick={() => setStep(1)} disabled={busy} style={{ marginTop: 14, fontSize: 14, opacity: 0.55, background: "none", border: "none", cursor: "pointer", color: INK }}>← Back</button>
               </>
             )}
@@ -346,7 +377,7 @@ export default function PartnerLoginPage() {
                   })}
                 </div>
                 <label style={label}>City</label>
-                <input className="pla-input" type="text" placeholder="e.g. Marrakech, Morocco" value={venueCity} onChange={(e) => setVenueCity(e.target.value)} style={{ ...inputStyle, marginBottom: 22 }} />
+                <input className="pla-input" type="text" placeholder="e.g. your city" value={venueCity} onChange={(e) => setVenueCity(e.target.value)} style={{ ...inputStyle, marginBottom: 22 }} />
                 <div style={{ display: "flex", gap: 12 }}>
                   <button type="button" className="pla-out" onClick={skipListing} style={{ flex: 1, boxSizing: "border-box", fontFamily: "'Instrument Sans', sans-serif", fontSize: 15, fontWeight: 600, cursor: "pointer", padding: 15, borderRadius: 100, border: "1px solid rgba(28,17,20,0.16)", background: "transparent", color: INK, transition: "border-color 0.2s" }}>Skip for now</button>
                   <button className="pla-btn" onClick={continueListing} disabled={!step4Valid} style={{ ...primaryBtn, flex: 1, opacity: step4Valid ? 1 : 0.5, cursor: step4Valid ? "pointer" : "not-allowed" }}>Continue{arrow}</button>
