@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
@@ -22,6 +22,7 @@ import Campaigns from "./Pages/Campaigns";
 import GeoPage from "./Pages/GeoPage";
 import SharedItinerary from "./Pages/SharedItinerary";
 import AdminReview from "./Pages/AdminReview";
+import AdminWaitlist from "./Pages/AdminWaitlist";
 import { PartnerAuthProvider, RequirePartnerAuth } from "./Context/PartnerAuthContext";
 import { RequireVerifiedEmail } from "./Components/VerifyEmailScreen";
 import DarkModeToggle from "./Components/DarkModeToggle";
@@ -58,18 +59,27 @@ function App() {
     <Router>
       <ScrollToTop />
       <DarkModeToggle />
-      <PartnerAuthProvider>
       <Routes>
-        {/* Partner pages — standalone, no header/footer */}
-        <Route path="/partners/login" element={<PartnerLoginPage />} />
-        <Route path="/partners/dashboard" element={guarded(<PartnerDashboard />)} />
-        <Route path="/partners/add-listing" element={guarded(<AddListing />)} />
-        <Route path="/partners/edit-listing/:slug" element={guarded(<EditListing />)} />
-        <Route path="/partners/add-promotion" element={guarded(<AddPromotion />)} />
-        <Route path="/partners/edit-promotion/:id" element={guarded(<AddPromotion />)} />
-        <Route path="/partners/campaigns" element={guarded(<Campaigns />)} />
-        <Route path="/partners/geo" element={guarded(<GeoPage />)} />
-        <Route path="/partners/admin" element={guarded(<AdminReview />)} />
+        {/* Staff waitlist panel — its own Firebase sign-in, and deliberately
+            outside PartnerAuthProvider: admins are ordinary app accounts
+            (users/{uid}.isAdmin), which the partner provider signs out on
+            sight as APP_ACCOUNT. */}
+        <Route path="/admin" element={<AdminWaitlist />} />
+
+        {/* Partner pages — standalone, no header/footer. Grouped under one
+            layout route so the auth provider mounts once for the whole portal
+            (and only for the portal). */}
+        <Route element={<PartnerAuthProvider><Outlet /></PartnerAuthProvider>}>
+          <Route path="/partners/login" element={<PartnerLoginPage />} />
+          <Route path="/partners/dashboard" element={guarded(<PartnerDashboard />)} />
+          <Route path="/partners/add-listing" element={guarded(<AddListing />)} />
+          <Route path="/partners/edit-listing/:slug" element={guarded(<EditListing />)} />
+          <Route path="/partners/add-promotion" element={guarded(<AddPromotion />)} />
+          <Route path="/partners/edit-promotion/:id" element={guarded(<AddPromotion />)} />
+          <Route path="/partners/campaigns" element={guarded(<Campaigns />)} />
+          <Route path="/partners/geo" element={guarded(<GeoPage />)} />
+          <Route path="/partners/admin" element={guarded(<AdminReview />)} />
+        </Route>
         <Route path="/share/:shareCode" element={<SharedItinerary />} />
 
         {/* Homepage — the design's full-viewport marketing page (own nav+footer),
@@ -117,7 +127,6 @@ function App() {
           }
         />
       </Routes>
-      </PartnerAuthProvider>
     </Router>
   );
 }
