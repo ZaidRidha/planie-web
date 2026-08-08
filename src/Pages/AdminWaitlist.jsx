@@ -20,9 +20,9 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { ArrowLeft, Download, LogOut, Phone, RefreshCw, Search, Users, Store } from "lucide-react";
+import { ArrowLeft, Download, LogOut, Mail, Phone, RefreshCw, Search, Send, Users, Store, X } from "lucide-react";
 import { auth, appleProvider, googleProvider } from "../utils/firebaseClient";
-import { listWaitlist } from "../utils/waitlistAdminApi";
+import { listWaitlist, sendWaitlistEmail } from "../utils/waitlistAdminApi";
 import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
 const PAGE_LIMIT = 1000;
@@ -57,8 +57,22 @@ function downloadCsv(filename, columns, rows) {
   URL.revokeObjectURL(url);
 }
 
+/* Unsubscribed rows stay visible — they're still signups and still count —
+   but they're marked, and the backend refuses to mail them regardless of what
+   this page thinks. */
+const emailCell = (r) => (
+  <span className={r.unsubscribed ? "text-[#1C1114]/40" : undefined}>
+    {r.email}
+    {r.unsubscribed && (
+      <span className="ml-2 rounded-full bg-[#1C1114]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#1C1114]/50">
+        unsubscribed
+      </span>
+    )}
+  </span>
+);
+
 const CONSUMER_COLUMNS = [
-  { label: "Email", get: (r) => r.email },
+  { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Platform", get: (r) => r.platform },
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
@@ -69,7 +83,7 @@ const CONSUMER_COLUMNS = [
 const BUSINESS_COLUMNS = [
   { label: "Business", get: (r) => r.business },
   { label: "Contact", get: (r) => r.contact },
-  { label: "Email", get: (r) => r.email },
+  { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Venue type", get: (r) => r.venueType },
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
@@ -335,7 +349,7 @@ function SignIn({ denied }) {
 
 /* ── Table ───────────────────────────────────────────────────────────── */
 
-function Table({ columns, rows, emptyLabel }) {
+function Table({ columns, rows, emptyLabel, selected, onToggle, onToggleAll }) {
   if (rows.length === 0) {
     return (
       <p className="text-sm text-[#1C1114]/50 bg-white border border-[#1C1114]/10 rounded-2xl px-4 py-10 text-center">
@@ -343,13 +357,27 @@ function Table({ columns, rows, emptyLabel }) {
       </p>
     );
   }
+  const allShown = rows.every((r) => selected.has(r.id));
+  const someShown = !allShown && rows.some((r) => selected.has(r.id));
   return (
     // The table sets its own min width and scrolls inside this box, so a long
     // business name can never push the page itself sideways on mobile.
     <div className="bg-white border border-[#1C1114]/10 rounded-2xl overflow-x-auto">
-      <table className="w-full min-w-[640px] text-sm">
+      <table className="w-full min-w-[680px] text-sm">
         <thead>
           <tr className="border-b border-[#1C1114]/10">
+            <th className="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[#FF4040] cursor-pointer"
+                checked={allShown}
+                // Header box reflects the CURRENTLY VISIBLE rows, so with a
+                // search active it selects the matches rather than the world.
+                ref={(el) => { if (el) el.indeterminate = someShown; }}
+                onChange={() => onToggleAll(rows, !allShown)}
+                aria-label={allShown ? "Deselect all shown" : "Select all shown"}
+              />
+            </th>
             {columns.map((c) => (
               <th key={c.label} className="text-left font-semibold text-[#1C1114]/50 text-xs uppercase tracking-wide px-4 py-3 whitespace-nowrap">
                 {c.label}
@@ -358,17 +386,237 @@ function Table({ columns, rows, emptyLabel }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-b border-[#1C1114]/5 last:border-0 hover:bg-[#FAF7F1]/60">
-              {columns.map((c) => (
-                <td key={c.label} className="px-4 py-3 text-[#1C1114] align-top">
-                  {c.label === "Joined" ? fmtDate(r.joinedAt) : c.get(r) || "—"}
+          {rows.map((r) => {
+            const isOn = selected.has(r.id);
+            return (
+              <tr
+                key={r.id}
+                className={`border-b border-[#1C1114]/5 last:border-0 cursor-pointer ${isOn ? "bg-[#FF4040]/[0.045]" : "hover:bg-[#FAF7F1]/60"}`}
+                // Whole row toggles: with a checkbox column this is what
+                // everyone tries first.
+                onClick={() => onToggle(r.id)}
+              >
+                <td className="px-4 py-3 align-top">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-[#FF4040] cursor-pointer"
+                    checked={isOn}
+                    onChange={() => onToggle(r.id)}
+                    onClick={(e) => e.stopPropagation()} // row handler would undo it
+                    aria-label={`Select ${r.email}`}
+                  />
                 </td>
-              ))}
-            </tr>
-          ))}
+                {columns.map((c) => (
+                  <td key={c.label} className="px-4 py-3 text-[#1C1114] align-top">
+                    {c.render
+                      ? c.render(r)
+                      : c.label === "Joined" ? fmtDate(r.joinedAt) : c.get(r) || "—"}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/* ── Composer ────────────────────────────────────────────────────────── */
+
+const MERGE_TAGS = {
+  consumer: ["email", "city", "platform"],
+  business: ["email", "city", "business", "contact", "venueType"],
+};
+
+function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(null); // null | "test" | "send"
+  const [armed, setArmed] = useState(false); // second press actually sends
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+  const bodyRef = useRef(null);
+
+  // Unsubscribed rows can be selected (they're normal rows) but are never
+  // recipients. Counting them in "Send to N" would overstate the reach and
+  // then mismatch the result, so they're removed from the count everywhere.
+  const unsubscribed = recipients.filter((r) => r.unsubscribed);
+  const sendable = recipients.filter((r) => !r.unsubscribed);
+  const noConsent = sendable.filter((r) => !r.consent);
+  const ready = subject.trim().length > 0 && body.trim().length > 0 && sendable.length > 0;
+
+  // Arming is per-body: editing after arming must re-arm, or you can send a
+  // half-finished edit with a press you thought was aimed at the old text.
+  useEffect(() => setArmed(false), [subject, body, sendable.length]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape" && !busy) onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, busy]);
+
+  const insertTag = (tag) => {
+    const el = bodyRef.current;
+    const token = `{{${tag}}}`;
+    if (!el) { setBody((b) => b + token); return; }
+    const { selectionStart: s, selectionEnd: e } = el;
+    setBody((b) => b.slice(0, s) + token + b.slice(e));
+    // Restore the caret after React re-renders, or the next tag lands at 0.
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(s + token.length, s + token.length);
+    });
+  };
+
+  const submit = async (test) => {
+    setBusy(test ? "test" : "send");
+    setError(null);
+    try {
+      const res = await sendWaitlistEmail({
+        list,
+        ids: sendable.map((r) => r.id),
+        subject: subject.trim(),
+        body: body.trim(),
+        test,
+      });
+      setResult(res);
+      if (!test) onSent();
+    } catch (err) {
+      setError(err.message || "Could not send.");
+    } finally {
+      setBusy(null);
+      setArmed(false);
+    }
+  };
+
+  const preview = sendable.slice(0, 3).map((r) => r.email).join(", ");
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#1C1114]/40 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-label="Compose email" className="w-full max-w-xl bg-white rounded-2xl border border-[#1C1114]/10 my-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1C1114]/10">
+          <h2 className="font-bold text-[#1C1114] text-lg" style={{ fontFamily: "var(--nu-font-head)", letterSpacing: "-0.02em" }}>
+            {result && !result.test ? "Sent" : `Email ${sendable.length} ${sendable.length === 1 ? "person" : "people"}`}
+          </h2>
+          <button onClick={onClose} className="text-[#1C1114]/40 hover:text-[#1C1114]" aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        {result && !result.test ? (
+          <div className="px-6 py-6">
+            <p className="text-sm text-[#1C1114]">
+              Sent to <strong>{result.sent}</strong> of {result.recipientCount}.
+              {result.failed > 0 && <> <span className="text-red-600">{result.failed} failed.</span></>}
+            </p>
+            {result.failures?.length > 0 && (
+              <ul className="mt-3 text-xs text-[#1C1114]/60 space-y-1 max-h-40 overflow-y-auto">
+                {result.failures.map((f) => <li key={f.email}>{f.email} — {f.error}</li>)}
+              </ul>
+            )}
+            <button onClick={onClose} className="mt-6 w-full rounded-full bg-[#1C1114] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="px-6 py-5">
+            <div className="rounded-xl bg-[#FAF7F1] px-4 py-3 text-sm text-[#1C1114]/70">
+              <span className="font-semibold text-[#1C1114]">To:</span> {preview}
+              {sendable.length > 3 && <> and {sendable.length - 3} more</>}
+            </div>
+
+            {/* Consent is the tickbox they agreed to at signup. Sending anyway
+                is the admin's call, but it must be a decision, not an
+                accident — hence the one-click way out. */}
+            {unsubscribed.length > 0 && (
+              <div className="mt-3 rounded-xl border border-[#1C1114]/10 bg-[#FAF7F1] px-4 py-3 text-sm text-[#1C1114]/70">
+                <strong>{unsubscribed.length}</strong> of the rows you selected have unsubscribed and
+                will not be emailed.
+              </div>
+            )}
+
+            {noConsent.length > 0 && (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <strong>{noConsent.length}</strong> of these did not tick the marketing consent box.
+                <button
+                  className="ml-2 underline font-semibold"
+                  onClick={() => onDropRecipients(noConsent.map((r) => r.id))}
+                >
+                  Remove them
+                </button>
+              </div>
+            )}
+
+            <label htmlFor="bc-subject" className="block text-sm font-semibold text-[#1C1114] mt-5 mb-1.5">Subject</label>
+            <input
+              id="bc-subject" type="text" maxLength={200} autoFocus
+              value={subject} onChange={(e) => setSubject(e.target.value)}
+              placeholder="Planie is live in {{city}}"
+              className={fieldClass}
+            />
+
+            <div className="flex items-baseline justify-between mt-4 mb-1.5">
+              <label htmlFor="bc-body" className="block text-sm font-semibold text-[#1C1114]">Message</label>
+              <span className="text-xs text-[#1C1114]/40">{body.length}/20000</span>
+            </div>
+            <textarea
+              id="bc-body" ref={bodyRef} rows={9} maxLength={20000}
+              value={body} onChange={(e) => setBody(e.target.value)}
+              placeholder={"Hi,\n\nPlanie is now live in {{city}}…"}
+              className={`${fieldClass} resize-y leading-relaxed`}
+            />
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-[#1C1114]/40 mr-1">Insert:</span>
+              {MERGE_TAGS[list].map((tag) => (
+                <button
+                  key={tag} type="button" onClick={() => insertTag(tag)}
+                  className="rounded-full border border-[#1C1114]/15 px-2.5 py-1 text-xs font-mono text-[#1C1114]/70 hover:bg-[#FAF7F1]"
+                >
+                  {`{{${tag}}}`}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-[#1C1114]/45">
+              Plain text — blank lines become paragraphs and links are made clickable. Merge tags
+              resolve per recipient, and empty ones become nothing.
+            </p>
+
+            {result?.test && (
+              <p className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-800">
+                Test sent to {result.sentTo}. Nothing went to the list.
+              </p>
+            )}
+            {error && <p role="alert" className="mt-4 text-sm text-red-600">{error}</p>}
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button" disabled={!ready || busy !== null} onClick={() => submit(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#1C1114]/15 px-4 py-2 text-sm font-semibold text-[#1C1114] hover:bg-[#FAF7F1] disabled:opacity-50"
+              >
+                <Send size={14} /> {busy === "test" ? "Sending…" : "Send test to me"}
+              </button>
+              <button
+                type="button" disabled={!ready || busy !== null}
+                onClick={() => (armed ? submit(false) : setArmed(true))}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50 ${armed ? "bg-[#1C1114]" : "bg-[#FF4040] hover:opacity-90"}`}
+              >
+                {busy === "send"
+                  ? "Sending…"
+                  : armed
+                    ? `Confirm — send to ${sendable.length}`
+                    : `Send to ${sendable.length}`}
+              </button>
+            </div>
+            {armed && (
+              <p className="mt-2 text-right text-xs text-[#1C1114]/50">
+                This cannot be undone. Press again to send.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -384,6 +632,10 @@ export default function AdminWaitlist() {
   const [denied, setDenied] = useState(null); // { uid, label } of a rejected account
   const [tab, setTab] = useState("consumer");
   const [query, setQuery] = useState("");
+  // Per-tab, because a selection of people and a selection of businesses go to
+  // different endpoints' worth of merge tags — mixing them would be nonsense.
+  const [selection, setSelection] = useState({ consumer: new Set(), business: new Set() });
+  const [composing, setComposing] = useState(false);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
@@ -441,6 +693,33 @@ export default function AdminWaitlist() {
     if (!q) return rows;
     return rows.filter((r) => columns.some((c) => String(c.get(r) ?? "").toLowerCase().includes(q)));
   }, [rows, columns, query]);
+
+  const selected = selection[tab];
+  const selectedRows = useMemo(() => rows.filter((r) => selected.has(r.id)), [rows, selected]);
+
+  const mutateSelection = useCallback((fn) => {
+    setSelection((prev) => {
+      const next = new Set(prev[tab]);
+      fn(next);
+      return { ...prev, [tab]: next };
+    });
+  }, [tab]);
+
+  const toggleRow = useCallback((id) => {
+    mutateSelection((s) => (s.has(id) ? s.delete(id) : s.add(id)));
+  }, [mutateSelection]);
+
+  const toggleShown = useCallback((shown, on) => {
+    mutateSelection((s) => shown.forEach((r) => (on ? s.add(r.id) : s.delete(r.id))));
+  }, [mutateSelection]);
+
+  const clearSelection = useCallback(() => {
+    mutateSelection((s) => s.clear());
+  }, [mutateSelection]);
+
+  const dropRecipients = useCallback((ids) => {
+    mutateSelection((s) => ids.forEach((id) => s.delete(id)));
+  }, [mutateSelection]);
 
   if (!authReady) {
     return (
@@ -549,9 +828,53 @@ export default function AdminWaitlist() {
             columns={columns}
             rows={filtered}
             emptyLabel={query ? "Nothing matches that search." : "No signups yet."}
+            selected={selected}
+            onToggle={toggleRow}
+            onToggleAll={toggleShown}
           />
         )}
+
+        {/* Bottom sheet rather than a toolbar above the table: it only exists
+            once something is selected, and appearing at the thumb end of the
+            screen keeps it reachable on a phone. pb-safe-ish padding keeps it
+            clear of the iOS home indicator. */}
+        {selectedRows.length > 0 && !composing && (
+          <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-5 pt-3 pointer-events-none">
+            <div className="pointer-events-auto mx-auto max-w-2xl flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#1C1114] px-5 py-3 text-white shadow-lg">
+              <span className="text-sm">
+                <strong>{selectedRows.length}</strong> selected
+                {selectedRows.length < selected.size && (
+                  <span className="opacity-60"> ({selected.size - selectedRows.length} not in view)</span>
+                )}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-sm text-white/60 hover:text-white px-2"
+                  onClick={clearSelection}
+                >
+                  Clear
+                </button>
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#FF4040] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                  onClick={() => setComposing(true)}
+                >
+                  <Mail size={15} /> Write email
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {composing && (
+        <Composer
+          list={tab}
+          recipients={selectedRows}
+          onClose={() => setComposing(false)}
+          onSent={clearSelection}
+          onDropRecipients={dropRecipients}
+        />
+      )}
     </div>
   );
 }
