@@ -117,11 +117,21 @@
 }
 
 @media (max-width: 640px) {
-  .mk-nav { padding: 12px 18px; }
-  .mk-logo { height: 44px; }
-  .mk-nav-links { gap: 16px; }
-  .mk-nav-link { font-size: 14px; }
-  .mk-nav-cta { font-size: 14px; padding: 9px 16px; }
+  /* Kept in step with the same breakpoint in home.html: a visitor crossing from
+     the iframe homepage to a React route should not see the nav resize. */
+  .mk-nav { padding: 10px 16px; }
+  .mk-logo { height: 40px; }
+  .mk-nav-links { gap: 14px; }
+  .mk-nav-link { font-size: 13px; }
+  .mk-nav-cta { font-size: 13px; padding: 8px 14px; }
   .mk-footer { padding: 56px 20px 40px; }
   .mk-footer-links { gap: 18px; flex-wrap: wrap; }
+}
+
+@media (max-width: 380px) {
+  .mk-nav { padding: 9px 12px; }
+  .mk-logo { height: 34px; }
+  .mk-nav-links { gap: 10px; }
+  .mk-nav-link { font-size: 12px; }
+  .mk-nav-cta { font-size: 12px; padding: 7px 12px; }
 }
