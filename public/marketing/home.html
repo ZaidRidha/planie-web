@@ -51,6 +51,26 @@
   [data-m="unstick"] { position: static !important; top: auto !important; }
 }
 @media (max-width: 640px) {
+  /* Nav at phone widths: the desktop values (64px logo, 32px gap, 15px links,
+     10px/22px pill) add up to more than 360px of content, so the row crowds
+     edge to edge. Scale the whole nav down together - shrinking only the pill
+     would leave it looking bolted onto an oversized logo. */
+  nav { padding: 10px 16px !important; }
+  nav img { height: 40px !important; }
+  nav > div { gap: 14px !important; }
+  nav a { font-size: 13px !important; }
+  nav a[href="#keep"] { padding: 8px 14px !important; }
+}
+@media (max-width: 380px) {
+  /* Small phones (iPhone SE / mini): one more step down so the three links and
+     the logo still fit on a single line without wrapping. */
+  nav { padding: 9px 12px !important; }
+  nav img { height: 34px !important; }
+  nav > div { gap: 10px !important; }
+  nav a { font-size: 12px !important; }
+  nav a[href="#keep"] { padding: 7px 12px !important; }
+}
+@media (max-width: 640px) {
   /* Hook: on phones the nav-clearing top padding outweighs the bottom, so the
      centred block sits low. Lighten the top and add it back at the bottom -
      the section keeps its 100vh height, the headline just rides higher. */
