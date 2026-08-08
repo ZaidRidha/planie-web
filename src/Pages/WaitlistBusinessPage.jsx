@@ -23,7 +23,18 @@ import "./WaitlistBusiness.css";
    and must stay empty. See the same constant in WaitlistPage.jsx. */
 const HONEYPOT_FIELD = "company_website_hp";
 
-const VENUE_TYPES = ["Restaurant", "Bar", "Cafe", "Attraction", "Hotel", "Experience", "Other"];
+/* Must stay in sync with the listing categories in AddListing.jsx - a waitlist
+   signup should map straight onto the category the venue will pick later. */
+const VENUE_TYPES = [
+  "Restaurant & Bar",
+  "Activity & Tour",
+  "Wellness & Spa",
+  "Hotel & Resort",
+  "Shopping & Market",
+  "Nightlife & Entertainment",
+  "Museum & Gallery",
+  "Outdoor & Adventure",
+];
 
 /* Three words lifted from the home.html value prop. They are three attributes
    of one offer, NOT a sequence - so they get a plain stack that reveals in
