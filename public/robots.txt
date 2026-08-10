@@ -9,4 +9,4 @@ Disallow: /share/
 Disallow: /admin
 Allow: /
 
-Sitemap: https://planie.app/sitemap.xml
+Sitemap: https://useplanie.com/sitemap.xml

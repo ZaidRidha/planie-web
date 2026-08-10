@@ -23,7 +23,7 @@
 
 import { useEffect } from "react";
 
-export const SITE_URL = "https://planie.app";
+export const SITE_URL = "https://useplanie.com";
 export const SITE_NAME = "Planie";
 const DEFAULT_TITLE = "Planie";
 const DEFAULT_DESCRIPTION = "Planie";
