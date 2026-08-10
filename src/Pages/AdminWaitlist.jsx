@@ -20,12 +20,57 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { ArrowLeft, Download, LogOut, Mail, Phone, RefreshCw, Search, Send, Users, Store, X } from "lucide-react";
+import {
+  ArrowLeft, Download, Eye, FlaskConical, LogOut, Mail, Pencil, Phone, RefreshCw, Search, Send,
+  Users, Store, X,
+} from "lucide-react";
 import { auth, appleProvider, googleProvider } from "../utils/firebaseClient";
-import { listWaitlist, sendWaitlistEmail } from "../utils/waitlistAdminApi";
+import { listWaitlist, sendWaitlistEmail, setBetaTesters } from "../utils/waitlistAdminApi";
+import { applyMergeTags, buildBroadcastEmail, renderParts } from "../utils/broadcastEmailTemplate";
 import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
 const PAGE_LIMIT = 1000;
+
+/* The default TestFlight invite link. REACT_APP_TESTFLIGHT_URL sets it without
+   a code edit, and the last link actually sent is remembered below — either way
+   it stays editable in the composer, because it changes per build. */
+const TESTFLIGHT_URL_DEFAULT = process.env.REACT_APP_TESTFLIGHT_URL || "";
+const TESTFLIGHT_URL_KEY = "planie.admin.testflightUrl";
+
+const readTestFlightUrl = () => {
+  try {
+    return localStorage.getItem(TESTFLIGHT_URL_KEY) || TESTFLIGHT_URL_DEFAULT;
+  } catch {
+    return TESTFLIGHT_URL_DEFAULT; // private mode / storage disabled
+  }
+};
+const rememberTestFlightUrl = (url) => {
+  try { localStorage.setItem(TESTFLIGHT_URL_KEY, url); } catch { /* not worth failing a send over */ }
+};
+
+/* Prefill for the beta invite. A starting point, not a locked template: the
+   tone changes between builds, and a template nobody can edit gets worked
+   around by not using the button at all. The link itself is a separate field
+   rather than prose, so it can be validated before anything sends. */
+const BETA_INVITE_TEMPLATE = {
+  subject: "You're in — early access to Planie",
+  eyebrow: "Beta access",
+  heading: "You're on the Planie beta",
+  body:
+    "Thanks for joining the waitlist. You're one of the first people we're letting in, and " +
+    "we'd love your help testing Planie before it goes public.\n\n" +
+    "Anything broken, confusing or missing — just reply to this email. That's exactly what we " +
+    "want to hear.",
+  ctaLabel: "Get the TestFlight build",
+  ctaNote: "You'll need Apple's free TestFlight app first — the button will prompt you if you don't have it.",
+  stepsTitle: "Getting started",
+  steps: [
+    "Tap the button above on your iPhone and install TestFlight if you're asked to.",
+    "Install Planie from TestFlight, then sign in with this email address.",
+    "Send feedback straight from TestFlight, or just reply here.",
+  ],
+  footerNote: "This build is pre-release, so expect the odd rough edge. Please don't share the link.",
+};
 
 function fmtDate(iso) {
   if (!iso) return "—";
@@ -71,10 +116,30 @@ const emailCell = (r) => (
   </span>
 );
 
+/* Two states in one column, because "flagged" and "actually has the link" are
+   different questions and the second is the one you ask when somebody says
+   they never got it. */
+const BETA_COLUMN = {
+  label: "Beta",
+  get: (r) => (r.betaTester ? (r.betaInviteSentAt ? `invited ${r.betaInviteSentAt}` : "flagged") : ""),
+  render: (r) =>
+    r.betaTester ? (
+      <span
+        className="inline-flex items-center gap-1 rounded-full bg-[#FF4040]/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#FF4040] whitespace-nowrap"
+        title={r.betaInviteSentAt ? `TestFlight invite sent ${fmtDate(r.betaInviteSentAt)}` : "Not invited yet"}
+      >
+        <FlaskConical size={11} /> {r.betaInviteSentAt ? "invited" : "beta"}
+      </span>
+    ) : (
+      <span className="text-[#1C1114]/25">—</span>
+    ),
+};
+
 const CONSUMER_COLUMNS = [
   { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Platform", get: (r) => r.platform },
+  BETA_COLUMN,
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
   { label: "Confirmation sent", get: (r) => (r.confirmationSent ? "yes" : "no") },
   { label: "Joined", get: (r) => r.joinedAt ?? "" },
@@ -86,6 +151,7 @@ const BUSINESS_COLUMNS = [
   { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Venue type", get: (r) => r.venueType },
+  BETA_COLUMN,
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
   { label: "Confirmation sent", get: (r) => (r.confirmationSent ? "yes" : "no") },
   { label: "Joined", get: (r) => r.joinedAt ?? "" },
@@ -429,9 +495,15 @@ const MERGE_TAGS = {
   business: ["email", "city", "business", "contact", "venueType"],
 };
 
-function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+/* `betaInvite` does two things: prefills the TestFlight template, and tells the
+   backend to stamp betaTester/betaInviteSentAt on everyone the mail reached.
+   The stamp is driven by the send rather than the button that opened this
+   dialog, so a row is only ever marked "invited" if a mail actually left. */
+function Composer({ list, recipients, betaInvite, onClose, onSent, onDropRecipients }) {
+  const [subject, setSubject] = useState(betaInvite ? BETA_INVITE_TEMPLATE.subject : "");
+  const [body, setBody] = useState(betaInvite ? BETA_INVITE_TEMPLATE.body : "");
+  const [testflightUrl, setTestflightUrl] = useState(betaInvite ? readTestFlightUrl() : "");
+  const [pane, setPane] = useState("write"); // "write" | "preview"
   const [busy, setBusy] = useState(null); // null | "test" | "send"
   const [armed, setArmed] = useState(false); // second press actually sends
   const [error, setError] = useState(null);
@@ -444,11 +516,18 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
   const unsubscribed = recipients.filter((r) => r.unsubscribed);
   const sendable = recipients.filter((r) => !r.unsubscribed);
   const noConsent = sendable.filter((r) => !r.consent);
-  const ready = subject.trim().length > 0 && body.trim().length > 0 && sendable.length > 0;
+
+  /* The backend rejects a non-http button link, but that failure arrives after
+     the admin has already pressed send twice. Check the same rule here so the
+     button is simply unavailable until the link is usable. */
+  const linkOk = /^https?:\/\/\S+$/i.test(testflightUrl.trim());
+  const ready =
+    subject.trim().length > 0 && body.trim().length > 0 && sendable.length > 0 &&
+    (!betaInvite || linkOk);
 
   // Arming is per-body: editing after arming must re-arm, or you can send a
   // half-finished edit with a press you thought was aimed at the old text.
-  useEffect(() => setArmed(false), [subject, body, sendable.length]);
+  useEffect(() => setArmed(false), [subject, body, testflightUrl, sendable.length]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape" && !busy) onClose(); };
@@ -469,6 +548,36 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
     });
   };
 
+  /* The exact template fields the backend will render, built once so the
+     preview cannot drift from the send. Everything beyond the message only
+     exists for the beta invite; a plain broadcast sends none of it and the
+     backend renders the frame bare. */
+  const parts = useMemo(() => ({
+    message: body.trim(),
+    ...(betaInvite
+      ? {
+        eyebrow: BETA_INVITE_TEMPLATE.eyebrow,
+        heading: BETA_INVITE_TEMPLATE.heading,
+        ctaLabel: BETA_INVITE_TEMPLATE.ctaLabel,
+        ctaUrl: testflightUrl.trim(),
+        ctaNote: BETA_INVITE_TEMPLATE.ctaNote,
+        stepsTitle: BETA_INVITE_TEMPLATE.stepsTitle,
+        steps: BETA_INVITE_TEMPLATE.steps,
+        footerNote: BETA_INVITE_TEMPLATE.footerNote,
+      }
+      : {}),
+  }), [body, betaInvite, testflightUrl]);
+
+  /* Rendered against the first recipient, the same row the backend uses for a
+     test send — so merge tags show real values rather than {{city}}.
+     The unsubscribe link is drawn but left dead: this is a preview. */
+  const sample = sendable[0];
+  const previewHtml = useMemo(
+    () => buildBroadcastEmail(renderParts(parts, sample ?? {}), "#"),
+    [parts, sample],
+  );
+  const previewSubject = applyMergeTags(subject.trim(), sample ?? {});
+
   const submit = async (test) => {
     setBusy(test ? "test" : "send");
     setError(null);
@@ -479,8 +588,14 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
         subject: subject.trim(),
         body: body.trim(),
         test,
+        betaInvite: betaInvite === true,
+        // `message` is already carried as `body`; the rest are the template.
+        ...(({ message, ...template }) => template)(parts),
       });
       setResult(res);
+      // Remembered on any successful send including a test — a link that
+      // rendered correctly in a preview is the one worth keeping.
+      if (betaInvite) rememberTestFlightUrl(testflightUrl.trim());
       if (!test) onSent();
     } catch (err) {
       setError(err.message || "Could not send.");
@@ -494,10 +609,14 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#1C1114]/40 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-      <div role="dialog" aria-modal="true" aria-label="Compose email" className="w-full max-w-xl bg-white rounded-2xl border border-[#1C1114]/10 my-auto">
+      <div role="dialog" aria-modal="true" aria-label="Compose email" className="w-full max-w-2xl bg-white rounded-2xl border border-[#1C1114]/10 my-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#1C1114]/10">
           <h2 className="font-bold text-[#1C1114] text-lg" style={{ fontFamily: "var(--nu-font-head)", letterSpacing: "-0.02em" }}>
-            {result && !result.test ? "Sent" : `Email ${sendable.length} ${sendable.length === 1 ? "person" : "people"}`}
+            {result && !result.test
+              ? "Sent"
+              : betaInvite
+                ? `TestFlight invite · ${sendable.length}`
+                : `Email ${sendable.length} ${sendable.length === 1 ? "person" : "people"}`}
           </h2>
           <button onClick={onClose} className="text-[#1C1114]/40 hover:text-[#1C1114]" aria-label="Close">
             <X size={18} />
@@ -536,6 +655,12 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
               </div>
             )}
 
+            {betaInvite && (
+              <div className="mt-3 rounded-xl border border-[#1C1114]/10 bg-[#FAF7F1] px-4 py-3 text-sm text-[#1C1114]/70">
+                Everyone this reaches is marked as a beta tester and stamped with today's date.
+              </div>
+            )}
+
             {noConsent.length > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 <strong>{noConsent.length}</strong> of these did not tick the marketing consent box.
@@ -548,9 +673,77 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
               </div>
             )}
 
+            {/* Preview is a pane, not a second dialog: the email is 560px of
+                cream and the fields are 560px of form, so they can't sit side
+                by side at this width without shrinking both. */}
+            <div className="mt-5 inline-flex rounded-full border border-[#1C1114]/15 p-0.5">
+              {[
+                { key: "write", label: "Write", icon: Pencil },
+                { key: "preview", label: "Preview", icon: Eye },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key} type="button" onClick={() => setPane(key)}
+                  aria-pressed={pane === key}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+                    pane === key ? "bg-[#1C1114] text-white" : "text-[#1C1114]/60 hover:text-[#1C1114]"
+                  }`}
+                >
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+
+            {pane === "preview" ? (
+              <div className="mt-4">
+                <div className="rounded-t-xl border border-b-0 border-[#1C1114]/10 bg-[#FAF7F1] px-4 py-2.5">
+                  <p className="text-xs text-[#1C1114]/45">Subject</p>
+                  <p className="text-sm font-semibold text-[#1C1114] break-words">
+                    {previewSubject || <span className="text-[#1C1114]/35">No subject yet</span>}
+                  </p>
+                </div>
+                {/* sandbox with no allow-* tokens: the preview must not run
+                    scripts or navigate the panel away mid-compose. */}
+                <iframe
+                  title="Email preview"
+                  sandbox=""
+                  srcDoc={previewHtml}
+                  className="w-full h-[520px] rounded-b-xl border border-[#1C1114]/10 bg-[#EFE7DD]"
+                />
+                <p className="mt-2 text-xs text-[#1C1114]/45">
+                  {sample
+                    ? <>Rendered with {sample.email}'s details, the same row a test send uses. </>
+                    : null}
+                  Links and the unsubscribe footer are inert here. Send a test to yourself to check
+                  it in a real inbox.
+                </p>
+              </div>
+            ) : (
+            <>
+            {/* Its own field rather than a URL typed into the prose: it becomes
+                the button in the email, it changes every build, and it is the
+                one part of this message that fails silently when it's wrong. */}
+            {betaInvite && (
+              <>
+                <label htmlFor="bc-testflight" className="block text-sm font-semibold text-[#1C1114] mt-5 mb-1.5">
+                  TestFlight link
+                </label>
+                <input
+                  id="bc-testflight" type="url" inputMode="url" autoFocus
+                  value={testflightUrl} onChange={(e) => setTestflightUrl(e.target.value)}
+                  placeholder="https://testflight.apple.com/join/…"
+                  className={fieldClass}
+                />
+                <p className={`mt-2 text-xs ${testflightUrl.trim() && !linkOk ? "text-red-600" : "text-[#1C1114]/45"}`}>
+                  {testflightUrl.trim() && !linkOk
+                    ? "That doesn't look like a link — it must start with https://."
+                    : "Becomes the button in the email. Remembered for next time."}
+                </p>
+              </>
+            )}
+
             <label htmlFor="bc-subject" className="block text-sm font-semibold text-[#1C1114] mt-5 mb-1.5">Subject</label>
             <input
-              id="bc-subject" type="text" maxLength={200} autoFocus
+              id="bc-subject" type="text" maxLength={200} autoFocus={!betaInvite}
               value={subject} onChange={(e) => setSubject(e.target.value)}
               placeholder="Planie is live in {{city}}"
               className={fieldClass}
@@ -581,7 +774,10 @@ function Composer({ list, recipients, onClose, onSent, onDropRecipients }) {
             <p className="mt-2 text-xs text-[#1C1114]/45">
               Plain text — blank lines become paragraphs and links are made clickable. Merge tags
               resolve per recipient, and empty ones become nothing.
+              {betaInvite && " The install button and setup steps are added below this text automatically."}
             </p>
+            </>
+            )}
 
             {result?.test && (
               <p className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-800">
@@ -632,10 +828,12 @@ export default function AdminWaitlist() {
   const [denied, setDenied] = useState(null); // { uid, label } of a rejected account
   const [tab, setTab] = useState("consumer");
   const [query, setQuery] = useState("");
+  const [betaFilter, setBetaFilter] = useState("all"); // "all" | "beta" | "notBeta"
+  const [flagging, setFlagging] = useState(false);
   // Per-tab, because a selection of people and a selection of businesses go to
   // different endpoints' worth of merge tags — mixing them would be nonsense.
   const [selection, setSelection] = useState({ consumer: new Set(), business: new Set() });
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useState(null); // null | "email" | "beta"
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
@@ -690,9 +888,13 @@ export default function AdminWaitlist() {
      email all work without the user picking a field first. */
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => columns.some((c) => String(c.get(r) ?? "").toLowerCase().includes(q)));
-  }, [rows, columns, query]);
+    return rows.filter((r) => {
+      if (betaFilter === "beta" && !r.betaTester) return false;
+      if (betaFilter === "notBeta" && r.betaTester) return false;
+      if (!q) return true;
+      return columns.some((c) => String(c.get(r) ?? "").toLowerCase().includes(q));
+    });
+  }, [rows, columns, query, betaFilter]);
 
   const selected = selection[tab];
   const selectedRows = useMemo(() => rows.filter((r) => selected.has(r.id)), [rows, selected]);
@@ -721,6 +923,29 @@ export default function AdminWaitlist() {
     mutateSelection((s) => ids.forEach((id) => s.delete(id)));
   }, [mutateSelection]);
 
+  /* Flags the selection, then patches the loaded rows in place rather than
+     re-fetching: the whole list is a second-long round trip and the only thing
+     that changed is a boolean we already know the value of. The selection is
+     kept so "mark these, now email these" is one continuous action. */
+  const markBeta = useCallback(async (on) => {
+    const ids = selectedRows.map((r) => r.id);
+    if (ids.length === 0 || flagging) return;
+    setFlagging(true);
+    setError(null);
+    try {
+      await setBetaTesters({ list: tab, ids, betaTester: on });
+      const touched = new Set(ids);
+      setData((prev) => (prev ? {
+        ...prev,
+        [tab]: prev[tab].map((r) => (touched.has(r.id) ? { ...r, betaTester: on } : r)),
+      } : prev));
+    } catch (err) {
+      setError(err.message || "Could not update the beta flag.");
+    } finally {
+      setFlagging(false);
+    }
+  }, [selectedRows, flagging, tab]);
+
   if (!authReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF7F1]">
@@ -735,6 +960,12 @@ export default function AdminWaitlist() {
 
   const total = data?.counts?.[tab] ?? 0;
   const truncated = data && rows.length < total;
+  // Counted over the loaded rows, not the collection — there is no aggregation
+  // query behind it, so it means "of the ones on this page".
+  const betaCount = rows.filter((r) => r.betaTester).length;
+  // Drives which of mark/unmark the action bar offers. A mixed selection shows
+  // "Mark as beta", so one press always ends with everything flagged.
+  const allSelectedAreBeta = selectedRows.length > 0 && selectedRows.every((r) => r.betaTester);
 
   return (
     <div className="min-h-screen bg-[#FAF7F1]">
@@ -806,6 +1037,30 @@ export default function AdminWaitlist() {
               className="w-full rounded-full border border-[#1C1114]/15 bg-white pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#FF4040]/25"
             />
           </div>
+          {/* Segmented, not a checkbox: "not beta" is the view you want when
+              picking the next round of testers, and it isn't reachable from a
+              single on/off. */}
+          <div className="inline-flex rounded-full border border-[#1C1114]/15 bg-white p-0.5">
+            {[
+              { key: "all", label: "All" },
+              { key: "beta", label: "Beta testers" },
+              { key: "notBeta", label: "Not beta" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setBetaFilter(key)}
+                aria-pressed={betaFilter === key}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+                  betaFilter === key ? "bg-[#1C1114] text-white" : "text-[#1C1114]/60 hover:text-[#1C1114]"
+                }`}
+              >
+                {label}
+                {key === "beta" && betaCount > 0 && (
+                  <span className={betaFilter === key ? "opacity-60" : "opacity-45"}> ({betaCount})</span>
+                )}
+              </button>
+            ))}
+          </div>
           <button
             className="inline-flex items-center gap-1.5 rounded-full border border-[#1C1114]/15 bg-white px-4 py-2 text-sm font-semibold text-[#1C1114] hover:bg-[#FAFAFA] disabled:opacity-50"
             onClick={() => downloadCsv(`planie-${tab}-waitlist.csv`, columns, filtered)}
@@ -847,18 +1102,43 @@ export default function AdminWaitlist() {
                   <span className="opacity-60"> ({selected.size - selectedRows.length} not in view)</span>
                 )}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   className="text-sm text-white/60 hover:text-white px-2"
                   onClick={clearSelection}
                 >
                   Clear
                 </button>
+                {/* Unmark only offered when the selection actually contains
+                    testers, so the common case stays a single button. */}
+                {allSelectedAreBeta ? (
+                  <button
+                    className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => markBeta(false)}
+                    disabled={flagging}
+                  >
+                    {flagging ? "Saving…" : "Unmark beta"}
+                  </button>
+                ) : (
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => markBeta(true)}
+                    disabled={flagging}
+                  >
+                    <FlaskConical size={15} /> {flagging ? "Saving…" : "Mark as beta"}
+                  </button>
+                )}
                 <button
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#FF4040] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-                  onClick={() => setComposing(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 hover:bg-white/10"
+                  onClick={() => setComposing("email")}
                 >
                   <Mail size={15} /> Write email
+                </button>
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#FF4040] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                  onClick={() => setComposing("beta")}
+                >
+                  <Send size={15} /> TestFlight invite
                 </button>
               </div>
             </div>
@@ -870,8 +1150,11 @@ export default function AdminWaitlist() {
         <Composer
           list={tab}
           recipients={selectedRows}
-          onClose={() => setComposing(false)}
-          onSent={clearSelection}
+          betaInvite={composing === "beta"}
+          onClose={() => setComposing(null)}
+          // A beta invite writes betaInviteSentAt server-side, so the row data
+          // this page holds is now stale — reload rather than guess at it.
+          onSent={() => { clearSelection(); if (composing === "beta") load(); }}
           onDropRecipients={dropRecipients}
         />
       )}
