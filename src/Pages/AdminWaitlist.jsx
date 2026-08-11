@@ -638,7 +638,7 @@ function Composer({ list, recipients, betaInvite, onClose, onSent, onDropRecipie
                 {/* Fixed designed template — nothing to write. The email is
                     rendered server-side; "Send test to me" is the preview. */}
                 <div className="mt-4 rounded-xl border border-[#1C1114]/10 bg-[#FAF7F1] px-4 py-3 text-sm text-[#1C1114]/70">
-                  <p><span className="font-semibold text-[#1C1114]">Subject:</span> How to install Planie</p>
+                  <p><span className="font-semibold text-[#1C1114]">Subject:</span> You've been chosen to test Planie</p>
                   <p className="mt-1.5">
                     The designed install walkthrough — five steps, a troubleshooting card, and your
                     TestFlight link as the button. Send a test to yourself to see it in your inbox.
