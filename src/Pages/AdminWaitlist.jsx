@@ -22,10 +22,10 @@ import {
 } from "firebase/auth";
 import {
   ArrowLeft, Download, Eye, FlaskConical, LogOut, Mail, Pencil, Phone, RefreshCw, Search, Send,
-  Users, Store, X,
+  Trash2, Users, Store, X,
 } from "lucide-react";
 import { auth, appleProvider, googleProvider } from "../utils/firebaseClient";
-import { listWaitlist, sendWaitlistEmail, setBetaTesters } from "../utils/waitlistAdminApi";
+import { listWaitlist, sendWaitlistEmail, setBetaTesters, deleteWaitlistRows } from "../utils/waitlistAdminApi";
 import { applyMergeTags, buildBroadcastEmail, renderParts } from "../utils/broadcastEmailTemplate";
 import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
@@ -797,6 +797,11 @@ export default function AdminWaitlist() {
   const [query, setQuery] = useState("");
   const [betaFilter, setBetaFilter] = useState("all"); // "all" | "beta" | "notBeta"
   const [flagging, setFlagging] = useState(false);
+  // Deleting is two-press (arm, then confirm) like sending — and the armed
+  // state dies whenever the selection changes, so the press can never land on
+  // different rows than the ones it was aimed at.
+  const [deleting, setDeleting] = useState(false);
+  const [deleteArmed, setDeleteArmed] = useState(false);
   // Per-tab, because a selection of people and a selection of businesses go to
   // different endpoints' worth of merge tags — mixing them would be nonsense.
   const [selection, setSelection] = useState({ consumer: new Set(), business: new Set() });
@@ -912,6 +917,35 @@ export default function AdminWaitlist() {
       setFlagging(false);
     }
   }, [selectedRows, flagging, tab]);
+
+  /* Permanent removal. The rows vanish from the loaded data on success —
+     no refetch needed, the backend confirmed exactly what was deleted. */
+  const deleteSelected = useCallback(async () => {
+    const ids = selectedRows.map((r) => r.id);
+    if (ids.length === 0 || deleting) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await deleteWaitlistRows({ list: tab, ids });
+      const gone = new Set(ids);
+      setData((prev) => (prev ? {
+        ...prev,
+        [tab]: prev[tab].filter((r) => !gone.has(r.id)),
+        counts: prev.counts
+          ? { ...prev.counts, [tab]: Math.max(0, (prev.counts[tab] ?? 0) - gone.size) }
+          : prev.counts,
+      } : prev));
+      mutateSelection((sel) => ids.forEach((id) => sel.delete(id)));
+    } catch (err) {
+      setError(err.message || "Could not delete.");
+    } finally {
+      setDeleting(false);
+      setDeleteArmed(false);
+    }
+  }, [selectedRows, deleting, tab, mutateSelection]);
+
+  // Selection changed → any armed delete was aimed at different rows.
+  useEffect(() => setDeleteArmed(false), [selectedRows.length, tab]);
 
   if (!authReady) {
     return (
@@ -1095,6 +1129,22 @@ export default function AdminWaitlist() {
                     <FlaskConical size={15} /> {flagging ? "Saving…" : "Mark as beta"}
                   </button>
                 )}
+                <button
+                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
+                    deleteArmed
+                      ? "bg-red-600 text-white hover:bg-red-700"
+                      : "border border-white/20 text-white/80 hover:bg-white/10"
+                  }`}
+                  onClick={() => (deleteArmed ? deleteSelected() : setDeleteArmed(true))}
+                  disabled={deleting}
+                >
+                  <Trash2 size={15} />
+                  {deleting
+                    ? "Deleting…"
+                    : deleteArmed
+                      ? `Confirm — delete ${selectedRows.length}`
+                      : "Delete"}
+                </button>
                 <button
                   className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 hover:bg-white/10"
                   onClick={() => setComposing("email")}
