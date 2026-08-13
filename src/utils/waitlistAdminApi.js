@@ -39,3 +39,9 @@ export const sendTestWaitlistEmail = (payload) =>
    are skipped rather than failing the whole call. */
 export const setBetaTesters = ({ list, ids, betaTester }) =>
   callFunction("adminSetBetaTester", { list, ids, betaTester });
+
+/* Permanently removes signups. { list, ids } -> { deleted, notFound }
+   The backend writes an audit record (including the removed emails) before
+   deleting — this is the one admin action with nothing left to inspect after. */
+export const deleteWaitlistRows = ({ list, ids }) =>
+  callFunction("adminDeleteWaitlist", { list, ids });
