@@ -25,6 +25,7 @@ import AdminReview from "./Pages/AdminReview";
 import AdminShell from "./Pages/AdminShell";
 import AdminHome from "./Pages/AdminHome";
 import AdminWaitlist from "./Pages/AdminWaitlist";
+import AdminTesters from "./Pages/AdminTesters";
 import { PartnerAuthProvider, RequirePartnerAuth } from "./Context/PartnerAuthContext";
 import { RequireVerifiedEmail } from "./Components/VerifyEmailScreen";
 import DarkModeToggle from "./Components/DarkModeToggle";
@@ -70,6 +71,7 @@ function App() {
         <Route path="/admin" element={<AdminShell />}>
           <Route index element={<AdminHome />} />
           <Route path="waitlist" element={<AdminWaitlist />} />
+          <Route path="testers" element={<AdminTesters />} />
         </Route>
 
         {/* Partner pages — standalone, no header/footer. Grouped under one

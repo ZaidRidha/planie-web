@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useOutletContext } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { LayoutDashboard, ListChecks, LogOut } from "lucide-react";
+import { FlaskConical, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
 import { auth } from "../utils/firebaseClient";
 import { listWaitlist } from "../utils/waitlistAdminApi";
 import AdminSignIn from "./AdminAuth";
@@ -22,6 +22,7 @@ const PAGE_LIMIT = 1000;
 const TABS = [
   { to: "/admin", end: true, label: "Home", icon: LayoutDashboard },
   { to: "/admin/waitlist", end: false, label: "Waitlist", icon: ListChecks },
+  { to: "/admin/testers", end: false, label: "Testers", icon: FlaskConical },
 ];
 
 // Consumed by AdminHome / AdminWaitlist via useOutletContext() instead of
