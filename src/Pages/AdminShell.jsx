@@ -138,7 +138,7 @@ export default function AdminShell() {
           </div>
         )}
 
-        <Outlet context={{ data, setData, loading, error, reload: load }} />
+        <Outlet context={{ data, setData, loading, error, reload: load, user }} />
       </div>
     </div>
   );

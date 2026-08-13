@@ -20,6 +20,19 @@ export const listWaitlist = (limit = 500) =>
 export const sendWaitlistEmail = (payload) =>
   callFunction("adminSendWaitlistEmail", payload);
 
+/* Sends the signup confirmation email — the one a real waitlist signup gets —
+   to any address, so it can be read in a real inbox rather than a preview.
+
+   { to, variant: "consumer" | "business", city?, platform?, business? }
+   -> { sent: true, to, variant }
+
+   The arbitrary `to` is why this endpoint has no body parameter: the content is
+   fixed to the confirmation template, so an admin session cannot be turned into
+   a way to send arbitrary mail from the sending domain. Writes nothing — a test
+   send creates no signup and stamps no existing one. */
+export const sendTestWaitlistEmail = (payload) =>
+  callFunction("adminSendTestWaitlistEmail", payload);
+
 /* Flags (or unflags) signups as beta testers.
    { list, ids, betaTester } -> { updated }
    `updated` can be lower than ids.length — rows deleted since the page loaded

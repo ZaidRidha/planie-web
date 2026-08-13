@@ -12,10 +12,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Download, Eye, FlaskConical, Mail, Pencil, RefreshCw, Search, Send,
+  CheckCircle2, Download, Eye, FlaskConical, Mail, Pencil, RefreshCw, Search, Send,
   Trash2, Users, Store, X,
 } from "lucide-react";
-import { sendWaitlistEmail, setBetaTesters, deleteWaitlistRows } from "../utils/waitlistAdminApi";
+import {
+  deleteWaitlistRows, sendTestWaitlistEmail, sendWaitlistEmail, setBetaTesters,
+} from "../utils/waitlistAdminApi";
 import { applyMergeTags, buildBroadcastEmail, renderParts } from "../utils/broadcastEmailTemplate";
 import { useAdminData } from "./AdminShell";
 
@@ -34,6 +36,22 @@ const readTestFlightUrl = () => {
 };
 const rememberTestFlightUrl = (url) => {
   try { localStorage.setItem(TESTFLIGHT_URL_KEY, url); } catch { /* not worth failing a send over */ }
+};
+
+/* The last address a test email went to. Remembered because checking a
+   template is never one send — you fix the spacing, deploy, and send it to the
+   same mailbox again. Falls back to the signed-in admin's own address. */
+const TEST_EMAIL_TO_KEY = "planie.admin.testEmailTo";
+
+const readTestEmailTo = (fallback) => {
+  try {
+    return localStorage.getItem(TEST_EMAIL_TO_KEY) || fallback || "";
+  } catch {
+    return fallback || ""; // private mode / storage disabled
+  }
+};
+const rememberTestEmailTo = (address) => {
+  try { localStorage.setItem(TEST_EMAIL_TO_KEY, address); } catch { /* not worth failing a send over */ }
 };
 
 function fmtDate(iso) {
@@ -99,10 +117,31 @@ const BETA_COLUMN = {
     ),
 };
 
+/* "Signed up" means an actual app profile exists for this email — not that we
+   invited them, and not that an auth account exists (signing into this panel
+   with Google makes one of those). The backend answers it per row; the tick is
+   deliberately the only loud thing in the table. */
+const SIGNED_UP_COLUMN = {
+  label: "Signed up",
+  get: (r) => (r.signedUp ? (r.signedUpAt ? `yes ${r.signedUpAt}` : "yes") : ""),
+  render: (r) =>
+    r.signedUp ? (
+      <span
+        className="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-700 whitespace-nowrap"
+        title={r.signedUpAt ? `Joined the app ${fmtDate(r.signedUpAt)}` : "Has a Planie account"}
+      >
+        <CheckCircle2 size={11} /> signed up
+      </span>
+    ) : (
+      <span className="text-[#1C1114]/25">—</span>
+    ),
+};
+
 const CONSUMER_COLUMNS = [
   { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Platform", get: (r) => r.platform },
+  SIGNED_UP_COLUMN,
   BETA_COLUMN,
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
   { label: "Confirmation sent", get: (r) => (r.confirmationSent ? "yes" : "no") },
@@ -115,6 +154,7 @@ const BUSINESS_COLUMNS = [
   { label: "Email", get: (r) => r.email, render: emailCell },
   { label: "City", get: (r) => r.city },
   { label: "Venue type", get: (r) => r.venueType },
+  SIGNED_UP_COLUMN,
   BETA_COLUMN,
   { label: "Consent", get: (r) => (r.consent ? "yes" : "no") },
   { label: "Confirmation sent", get: (r) => (r.confirmationSent ? "yes" : "no") },
@@ -520,13 +560,179 @@ function Composer({ list, recipients, betaInvite, onClose, onSent, onDropRecipie
   );
 }
 
+/* ── Test confirmation email ─────────────────────────────────────────── */
+
+/* Sends the signup confirmation — the email a real waitlist signup receives —
+   to an address you type, so it can be judged in an inbox rather than a
+   preview pane. There is no preview tab here on purpose: the broadcast
+   template is duplicated in this repo for that, and a second hand-synced copy
+   of the confirmation template is a lie waiting to happen. The real inbox is
+   the only rendering that counts anyway — image blocking, dark mode and
+   Gmail's clipping are all things a same-page iframe cannot show you. */
+function TestEmailDialog({ list, defaultTo, onClose }) {
+  const [to, setTo] = useState(defaultTo ?? "");
+  // Opens on whichever list you were looking at — the common case is "I'm on
+  // Businesses, show me what they get".
+  const [variant, setVariant] = useState(list);
+  const [city, setCity] = useState("");
+  const [platform, setPlatform] = useState("Either");
+  const [business, setBusiness] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [sent, setSent] = useState(null);
+
+  const isConsumer = variant === "consumer";
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to.trim());
+
+  const send = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await sendTestWaitlistEmail({
+        to: to.trim(),
+        variant,
+        city: city.trim(),
+        ...(isConsumer ? { platform } : { business: business.trim() }),
+      });
+      rememberTestEmailTo(res.to);
+      setSent(res.to);
+    } catch (err) {
+      setError(err.message || "Could not send the test email.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const inputCls =
+    "w-full rounded-xl border border-[#1C1114]/15 px-3.5 py-2.5 text-sm text-[#1C1114] outline-none focus:border-[#1C1114]/40";
+  const labelCls = "block text-xs font-semibold text-[#1C1114]/50 mb-1.5";
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#1C1114]/40 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-label="Send test email" className="w-full max-w-md bg-white rounded-2xl border border-[#1C1114]/10 my-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1C1114]/10">
+          <h2 className="font-bold text-[#1C1114] text-lg" style={{ fontFamily: "var(--nu-font-head)", letterSpacing: "-0.02em" }}>
+            {sent ? "Sent" : "Test confirmation email"}
+          </h2>
+          <button onClick={onClose} className="text-[#1C1114]/40 hover:text-[#1C1114]" aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        {sent ? (
+          <div className="px-6 py-6">
+            <p className="text-sm text-[#1C1114]">
+              The {isConsumer ? "consumer" : "business"} confirmation is on its way to{" "}
+              <strong>{sent}</strong>.
+            </p>
+            <p className="mt-2 text-xs text-[#1C1114]/50">
+              Identical to a real signup's, subject line included — so check spam too, and use
+              "Display images" to see the logo the first time.
+            </p>
+            <div className="mt-6 flex gap-2">
+              <button
+                onClick={() => setSent(null)}
+                className="flex-1 rounded-full border border-[#1C1114]/15 px-5 py-2.5 text-sm font-semibold text-[#1C1114] hover:bg-[#FAFAFA]"
+              >
+                Send another
+              </button>
+              <button onClick={onClose} className="flex-1 rounded-full bg-[#1C1114] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+                Done
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 py-5">
+            <div className="inline-flex rounded-full border border-[#1C1114]/15 p-0.5 mb-5">
+              {[
+                { key: "consumer", label: "Normal user", icon: Users },
+                { key: "business", label: "Business", icon: Store },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key} type="button" onClick={() => setVariant(key)}
+                  aria-pressed={variant === key}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+                    variant === key ? "bg-[#1C1114] text-white" : "text-[#1C1114]/60 hover:text-[#1C1114]"
+                  }`}
+                >
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+
+            <label className={labelCls} htmlFor="test-to">Send to</label>
+            <input
+              id="test-to" type="email" value={to} onChange={(e) => setTo(e.target.value)}
+              placeholder="you@example.com" className={inputCls} autoFocus
+            />
+
+            {/* These are the values the email echoes back in its details table.
+                Blank is fine — the backend fills in a realistic sample, because
+                a details table reading "test" tells you nothing about spacing. */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} htmlFor="test-city">City</label>
+                <input
+                  id="test-city" value={city} onChange={(e) => setCity(e.target.value)}
+                  placeholder="London" className={inputCls}
+                />
+              </div>
+              {isConsumer ? (
+                <div>
+                  <label className={labelCls} htmlFor="test-platform">Phone</label>
+                  <select
+                    id="test-platform" value={platform} onChange={(e) => setPlatform(e.target.value)}
+                    className={inputCls}
+                  >
+                    {["iOS", "Android", "Either"].map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelCls} htmlFor="test-business">Place</label>
+                  <input
+                    id="test-business" value={business} onChange={(e) => setBusiness(e.target.value)}
+                    placeholder="The Camberwell Arms" className={inputCls}
+                  />
+                </div>
+              )}
+            </div>
+
+            <p className="mt-4 text-xs text-[#1C1114]/45">
+              {isConsumer
+                ? platform === "Either"
+                  ? "With \"Either\" the email says \"the day Planie goes live\" and names no platform — worth seeing both ways."
+                  : `The email will say "the day Planie lands on ${platform}".`
+                : "The business version echoes the place and city back, and has no platform line."}
+              {" "}Nothing is written to the waitlist.
+            </p>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700" role="alert">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={send} disabled={!valid || busy}
+              className="mt-5 w-full inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1C1114] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            >
+              <Send size={14} /> {busy ? "Sending…" : "Send test"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Panel ───────────────────────────────────────────────────────────── */
 
 export default function AdminWaitlist() {
   // Auth, the isAdmin gate, and the actual data fetch all live in AdminShell
   // (shared with the Home tab) — this component only reloads by calling the
   // same `reload` the shell used for the first load.
-  const { data, setData, loading, reload: load } = useAdminData();
+  const { data, setData, loading, reload: load, user } = useAdminData();
   const [tab, setTab] = useState("consumer");
   const [query, setQuery] = useState("");
   const [betaFilter, setBetaFilter] = useState("all"); // "all" | "beta" | "notBeta"
@@ -543,6 +749,7 @@ export default function AdminWaitlist() {
   // different endpoints' worth of merge tags — mixing them would be nonsense.
   const [selection, setSelection] = useState({ consumer: new Set(), business: new Set() });
   const [composing, setComposing] = useState(null); // null | "email" | "beta"
+  const [testingEmail, setTestingEmail] = useState(false);
 
   // Memoised because the filter below depends on them: a fresh [] each render
   // would re-run the filter on every keystroke elsewhere in the tree.
@@ -682,13 +889,23 @@ export default function AdminWaitlist() {
             </button>
           ))}
         </div>
-        <button
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#1C1114]/15 bg-white px-4 py-1.5 text-sm font-semibold text-[#1C1114] hover:bg-[#FAFAFA] disabled:opacity-50"
-          onClick={load}
-          disabled={loading}
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : undefined} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Sends to an address you type, so it has nothing to do with which
+              rows are ticked — lives next to Refresh, not the selection bar. */}
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#1C1114]/15 bg-white px-4 py-1.5 text-sm font-semibold text-[#1C1114] hover:bg-[#FAFAFA]"
+            onClick={() => setTestingEmail(true)}
+          >
+            <FlaskConical size={14} /> Test email
+          </button>
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#1C1114]/15 bg-white px-4 py-1.5 text-sm font-semibold text-[#1C1114] hover:bg-[#FAFAFA] disabled:opacity-50"
+            onClick={load}
+            disabled={loading}
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : undefined} /> Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -826,6 +1043,14 @@ export default function AdminWaitlist() {
             </div>
           </div>
         )}
+
+      {testingEmail && (
+        <TestEmailDialog
+          list={tab}
+          defaultTo={readTestEmailTo(user.email)}
+          onClose={() => setTestingEmail(false)}
+        />
+      )}
 
       {composing && (
         <Composer
