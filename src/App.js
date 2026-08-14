@@ -22,7 +22,10 @@ import Campaigns from "./Pages/Campaigns";
 import GeoPage from "./Pages/GeoPage";
 import SharedItinerary from "./Pages/SharedItinerary";
 import AdminReview from "./Pages/AdminReview";
+import AdminShell from "./Pages/AdminShell";
+import AdminHome from "./Pages/AdminHome";
 import AdminWaitlist from "./Pages/AdminWaitlist";
+import AdminTesters from "./Pages/AdminTesters";
 import { PartnerAuthProvider, RequirePartnerAuth } from "./Context/PartnerAuthContext";
 import { RequireVerifiedEmail } from "./Components/VerifyEmailScreen";
 import DarkModeToggle from "./Components/DarkModeToggle";
@@ -60,11 +63,16 @@ function App() {
       <ScrollToTop />
       <DarkModeToggle />
       <Routes>
-        {/* Staff waitlist panel — its own Firebase sign-in, and deliberately
+        {/* Staff admin dashboard — its own Firebase sign-in, and deliberately
             outside PartnerAuthProvider: admins are ordinary app accounts
             (users/{uid}.isAdmin), which the partner provider signs out on
-            sight as APP_ACCOUNT. */}
-        <Route path="/admin" element={<AdminWaitlist />} />
+            sight as APP_ACCOUNT. AdminShell owns auth + the one waitlist
+            data load; Home and Waitlist are tabs within it. */}
+        <Route path="/admin" element={<AdminShell />}>
+          <Route index element={<AdminHome />} />
+          <Route path="waitlist" element={<AdminWaitlist />} />
+          <Route path="testers" element={<AdminTesters />} />
+        </Route>
 
         {/* Partner pages — standalone, no header/footer. Grouped under one
             layout route so the auth provider mounts once for the whole portal

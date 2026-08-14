@@ -4,7 +4,7 @@
    on partner endpoints and vice versa. */
 
 import { initializeApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { connectAuthEmulator, getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
 
@@ -33,14 +33,23 @@ export const app = initializeApp(firebaseConfig);
    auth-related in this app works until this is initialised, which is why it
    runs before getAuth().
 
-   The site key is a reCAPTCHA v3 PUBLIC key — safe in the bundle, and useless
-   without the matching domain allowlist. Set REACT_APP_APPCHECK_SITE_KEY in
-   .env / the Netlify build environment. Register the key against this web app
-   in Firebase console → App Check.
+   The web app is registered under App Check's reCAPTCHA ENTERPRISE provider,
+   not classic reCAPTCHA v3 — the two are separate APIs and their tokens are
+   not interchangeable, so ReCaptchaV3Provider here yields tokens the backend
+   rejects (same 401 as having no token at all). If you ever re-register under
+   classic v3 instead, this must switch back to ReCaptchaV3Provider.
+
+   The site key is a PUBLIC key — safe in the bundle, and useless without the
+   matching domain allowlist (Cloud console → Security → reCAPTCHA → the key →
+   Allowed domains). Set REACT_APP_APPCHECK_SITE_KEY in .env / the Netlify
+   build environment; it must equal the site key shown against this web app in
+   Firebase console → App Check → Apps.
 
    In development, set REACT_APP_APPCHECK_DEBUG_TOKEN=true, read the debug
    token the SDK prints to the console once, and add it under App Check →
-   Manage debug tokens. reCAPTCHA v3 cannot verify localhost otherwise. */
+   Manage debug tokens. reCAPTCHA cannot verify localhost otherwise — note the
+   debug token bypasses the provider entirely, so a provider/registration
+   mismatch like the above stays invisible locally and only breaks in prod. */
 const APPCHECK_SITE_KEY = process.env.REACT_APP_APPCHECK_SITE_KEY;
 const APPCHECK_DEBUG = process.env.REACT_APP_APPCHECK_DEBUG_TOKEN;
 
@@ -54,7 +63,7 @@ if (APPCHECK_DEBUG && process.env.NODE_ENV !== "production") {
 
 if (APPCHECK_SITE_KEY && !USE_EMULATORS) {
   initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(APPCHECK_SITE_KEY),
+    provider: new ReCaptchaEnterpriseProvider(APPCHECK_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
   });
 } else if (!USE_EMULATORS) {

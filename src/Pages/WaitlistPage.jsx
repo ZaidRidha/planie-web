@@ -49,7 +49,7 @@ const legendLabel = {
 const STEPS = [
   { title: "You join", body: "Email now. Everything else is optional." },
   { title: "We build", body: "Plans, places and timings, city by city." },
-  { title: "You get one email", body: "The day Planie goes live. Nothing before it." },
+  { title: "You get two emails", body: "A confirmation now, then the day Planie goes live." },
 ];
 
 export default function WaitlistPage() {
@@ -57,7 +57,7 @@ export default function WaitlistPage() {
   const [platform, setPlatform] = useState("Either");
   const [city, setCity] = useState("");
   const [consent, setConsent] = useState(false);
-  const [status, setStatus] = useState("idle"); // idle | loading | done
+  const [status, setStatus] = useState("idle"); // idle | loading | done | already
   const [error, setError] = useState(null);
   const [honeypot, setHoneypot] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
@@ -69,7 +69,7 @@ export default function WaitlistPage() {
      region alone would be unreliable (it mounts at the same moment its content
      appears), so this focus move is what makes it announce - do not remove it. */
   useEffect(() => {
-    if (status === "done") doneHeadingRef.current?.focus();
+    if (status === "done" || status === "already") doneHeadingRef.current?.focus();
   }, [status]);
 
   /* Rotate the hero's occasion line. Reduced motion stops the rotation
@@ -97,14 +97,14 @@ export default function WaitlistPage() {
     setStatus("loading");
     setError(null);
     try {
-      await callApiRoute("/waitlist", {
+      const data = await callApiRoute("/waitlist", {
         email: email.trim(),
         city: city.trim(),
         platform,
         consent,
         [HONEYPOT_FIELD]: honeypot,
       });
-      setStatus("done");
+      setStatus(data?.alreadyRegistered ? "already" : "done");
     } catch (err) {
       /* Back to the form with the fields intact - the one thing a failed
          signup must not do is make the user retype it. */
@@ -166,7 +166,7 @@ export default function WaitlistPage() {
           {/* Form / confirmation */}
           <div className="wl-reveal" style={{ ...glass, "--wl-d": "0.3s", padding: "clamp(24px, 4vw, 30px) clamp(20px, 4vw, 32px)" }}>
             <div>
-              {status === "done" ? (
+              {status === "done" || status === "already" ? (
                 <div aria-live="polite" style={{ textAlign: "center", padding: "22px 0 10px" }}>
                   <div className="wl-badge" style={{ width: 54, height: 54, margin: "0 auto 18px", borderRadius: "50%", background: "var(--nu-ink)", color: "var(--nu-cream)", display: "grid", placeItems: "center" }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -179,12 +179,23 @@ export default function WaitlistPage() {
                       hide both the header-lapped title and the tick animation
                       that is the point of the moment. Found by rendering. */}
                   <h2 ref={doneHeadingRef} tabIndex={-1} className="wl-done-line" style={{ ...head, "--wl-d": "0.12s", margin: 0, fontSize: 26, outline: "none", scrollMarginTop: 198 }}>
-                    You're in.
+                    {status === "already" ? "You're already in." : "You're in."}
                   </h2>
-                  <p className="wl-done-line" style={{ "--wl-d": "0.2s", margin: "12px auto 0", fontSize: 15, lineHeight: 1.6, opacity: 0.6, maxWidth: "36ch" }}>
-                    We'll email <strong style={{ fontWeight: 600, opacity: 0.85 }}>{email}</strong> the day Planie goes live
-                    {platform === "Either" ? "" : ` on ${platform}`}. Nothing before then.
-                  </p>
+                  {status === "already" ? (
+                    <p className="wl-done-line" style={{ "--wl-d": "0.2s", margin: "12px auto 0", fontSize: 15, lineHeight: 1.6, opacity: 0.6, maxWidth: "36ch" }}>
+                      <strong style={{ fontWeight: 600, opacity: 0.85 }}>{email}</strong> is already on the waitlist. We'll email you the day Planie goes live. Nothing before then.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="wl-done-line" style={{ "--wl-d": "0.2s", margin: "12px auto 0", fontSize: 15, lineHeight: 1.6, opacity: 0.6, maxWidth: "36ch" }}>
+                        Check <strong style={{ fontWeight: 600, opacity: 0.85 }}>{email}</strong> for a confirmation now, then we'll email you again the day Planie goes live
+                        {platform === "Either" ? "" : ` on ${platform}`}. Nothing else before then.
+                      </p>
+                      <p className="wl-done-line" style={{ "--wl-d": "0.24s", margin: "10px auto 0", fontSize: 13, lineHeight: 1.6, opacity: 0.5, maxWidth: "36ch" }}>
+                        Check your spam/junk folder if you don't see it.
+                      </p>
+                    </>
+                  )}
                   <p className="wl-done-line" style={{ "--wl-d": "0.28s", margin: "22px auto 0", fontSize: 14, lineHeight: 1.6, opacity: 0.6, maxWidth: "40ch" }}>
                     Run a place people should find?{" "}
                     <Link className="wl-link" to="/waitlist/business" style={{ fontWeight: 600, color: "var(--nu-red)" }}>
@@ -318,7 +329,7 @@ export default function WaitlistPage() {
                       {loading
                         ? "Adding you to the list."
                         : ready
-                          ? "We'll only email you about the launch."
+                          ? "We'll send a confirmation, then email you about the launch."
                           : "Add your email and city, then tick the box."}
                     </p>
                     <button type="submit" className="nu-btn nu-btn--fill wl-btn wl-submit" disabled={!ready || loading} aria-describedby="wl-submit-hint" style={{ fontSize: 15, padding: "14px 30px" }}>

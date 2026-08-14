@@ -10,79 +10,79 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
-    <loc>https://planie.app/</loc>
+    <loc>https://useplanie.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides</loc>
+    <loc>https://useplanie.com/guides</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://planie.app/placements</loc>
+    <loc>https://useplanie.com/placements</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/waitlist</loc>
+    <loc>https://useplanie.com/waitlist</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/waitlist/business</loc>
+    <loc>https://useplanie.com/waitlist/business</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://planie.app/contact</loc>
+    <loc>https://useplanie.com/contact</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://planie.app/privacy</loc>
+    <loc>https://useplanie.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://planie.app/terms</loc>
+    <loc>https://useplanie.com/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
 
   <!-- Guides -->
   <url>
-    <loc>https://planie.app/guides/how-to-plan-a-date-night-in-london</loc>
+    <loc>https://useplanie.com/guides/how-to-plan-a-date-night-in-london</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides/48-hours-in-lisbon</loc>
+    <loc>https://useplanie.com/guides/48-hours-in-lisbon</loc>
     <lastmod>2026-07-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides/how-to-plan-a-group-trip</loc>
+    <loc>https://useplanie.com/guides/how-to-plan-a-group-trip</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides/ai-trip-planning-what-it-gets-wrong</loc>
+    <loc>https://useplanie.com/guides/ai-trip-planning-what-it-gets-wrong</loc>
     <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides/what-to-do-in-london-when-it-rains</loc>
+    <loc>https://useplanie.com/guides/what-to-do-in-london-when-it-rains</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://planie.app/guides/how-restaurants-get-recommended-by-ai</loc>
+    <loc>https://useplanie.com/guides/how-restaurants-get-recommended-by-ai</loc>
     <lastmod>2026-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
