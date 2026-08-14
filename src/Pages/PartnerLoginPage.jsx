@@ -23,7 +23,7 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "../utils/firebaseClient";
 import { usePartnerAuth } from "../Context/PartnerAuthContext";
-import { requestPasswordReset, sendPartnerVerificationEmail } from "../utils/partnerAccount";
+import { requestPasswordReset, sendPartnerVerificationEmail, confirmPartnerEmailCode } from "../utils/partnerAccount";
 import { saveDraft } from "../utils/listingDrafts";
 import PlanieLogo from "../Assets/Images/PlanieLogoNew.svg";
 
@@ -97,6 +97,9 @@ export default function PartnerLoginPage() {
   const [resetNotice, setResetNotice] = useState(null);
   const [verifyResent, setVerifyResent] = useState(false);
   const verifySent = useRef(false);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [codeError, setCodeError] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -182,7 +185,20 @@ export default function PartnerLoginPage() {
   };
 
   const resendVerify = async () => {
+    setCodeError(null); setVerifyCode("");
     try { await sendPartnerVerificationEmail(); setVerifyResent(true); setTimeout(() => setVerifyResent(false), 4000); } catch { /* ignore */ }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!/^\d{6}$/.test(verifyCode)) { setCodeError("Enter the 6-digit code."); return; }
+    setCodeError(null); setVerifyingCode(true);
+    try {
+      await confirmPartnerEmailCode(verifyCode);
+      await refreshProfile().catch(() => {});
+      setStep(4); // verified — the emailVerified effect would also advance us
+    } catch (err) {
+      setCodeError(err.message || "Could not verify the code. Please try again.");
+    } finally { setVerifyingCode(false); }
   };
 
   const skipListing = () => navigate(destination, { replace: true });
@@ -348,15 +364,26 @@ export default function PartnerLoginPage() {
             {/* ───────── STEP 3: verify email (auto) ───────── */}
             {mode === "signup" && step === 3 && (
               <>
-                <div style={{ width: 54, height: 54, borderRadius: 16, background: "rgba(28,17,20,0.05)", display: "grid", placeItems: "center", marginBottom: 20 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: "50%", border: `2.5px solid rgba(28,17,20,0.15)`, borderTopColor: RED, animation: "plaSpin 0.9s linear infinite" }} />
-                </div>
                 <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Confirm your email.</h2>
-                <p style={{ margin: "0 0 6px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>We've sent a verification link to</p>
+                <p style={{ margin: "0 0 6px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>Enter the 6-digit code we emailed to</p>
                 <p style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 600, wordBreak: "break-all" }}>{email}</p>
-                <p style={{ fontSize: 14, opacity: 0.6, lineHeight: 1.6, marginBottom: 20 }}>Click the link in the email — this page updates on its own the moment you do. The link expires after 15 minutes (check spam too).</p>
-                {verifyResent && <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#15803D" }}>Sent again — check your inbox.</p>}
-                <button type="button" className="pla-link" onClick={resendVerify} style={{ fontSize: 14, fontWeight: 600, background: "none", border: "none", cursor: "pointer", color: INK }}>Resend email</button>
+                <input
+                  className="pla-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={verifyCode}
+                  onChange={(e) => { setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setCodeError(null); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleVerifyCode(); }}
+                  style={{ ...inputStyle, marginBottom: 12, letterSpacing: "0.5em", textAlign: "center", fontSize: 22, fontWeight: 700 }}
+                />
+                {codeError && <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#DC2626" }}>{codeError}</p>}
+                <button className="pla-btn" onClick={handleVerifyCode} disabled={verifyingCode || verifyCode.length !== 6} style={{ ...primaryBtn, marginBottom: 14, opacity: (verifyCode.length === 6 && !verifyingCode) ? 1 : 0.5, cursor: (verifyCode.length === 6 && !verifyingCode) ? "pointer" : "not-allowed" }}>{verifyingCode ? <>Verifying<span className="busy-dots" /></> : "Verify email"}</button>
+                <p style={{ fontSize: 13.5, opacity: 0.6, lineHeight: 1.6, marginBottom: 14 }}>The code expires after 15 minutes (check spam too).</p>
+                {verifyResent && <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#15803D" }}>New code sent — check your inbox.</p>}
+                <button type="button" className="pla-link" onClick={resendVerify} style={{ fontSize: 14, fontWeight: 600, background: "none", border: "none", cursor: "pointer", color: INK }}>Resend code</button>
                 <button type="button" onClick={logout} style={{ display: "block", marginTop: 20, fontSize: 13.5, color: "rgba(28,17,20,0.5)", background: "none", border: "none", cursor: "pointer" }}>Use a different email</button>
               </>
             )}

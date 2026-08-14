@@ -35,10 +35,14 @@ export const getPartnerProfile = () =>
 export const submitBusinessVerification = (data) =>
   callFunction("partnerSubmitVerification", data);
 
-/* Sends the SendGrid verification email (from no-reply@mail.useplanie.com).
-   Verification lands in partners/{uid}.emailVerified via the email link. */
+/* Emails a 6-digit verification code (from no-reply@mail.useplanie.com) — same
+   model as the app. Confirm it with confirmPartnerEmailCode below. */
 export const sendPartnerVerificationEmail = () =>
   callFunction("partnerVerifyEmail", {});
+
+/* Confirms the 6-digit code → flips partners/{uid}.emailVerified. */
+export const confirmPartnerEmailCode = (code) =>
+  callFunction("partnerConfirmEmailCode", { code });
 
 /* Public: emails a password-reset link (no enumeration — always "success"). */
 export const requestPasswordReset = (email) =>
