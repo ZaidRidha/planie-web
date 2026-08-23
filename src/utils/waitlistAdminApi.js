@@ -40,6 +40,12 @@ export const sendTestWaitlistEmail = (payload) =>
 export const setBetaTesters = ({ list, ids, betaTester }) =>
   callFunction("adminSetBetaTester", { list, ids, betaTester });
 
+/* Hand-tags rows as signed up (or removes the manual tag). For people the
+   automatic email match can't see — Apple hide-my-email, different address.
+   { list, ids, signedUp } -> { updated } */
+export const setSignedUp = ({ list, ids, signedUp }) =>
+  callFunction("adminSetSignedUp", { list, ids, signedUp });
+
 /* Permanently removes signups. { list, ids } -> { deleted, notFound }
    The backend writes an audit record (including the removed emails) before
    deleting — this is the one admin action with nothing left to inspect after. */

@@ -16,7 +16,7 @@ import {
   Trash2, Users, Store, X,
 } from "lucide-react";
 import {
-  deleteWaitlistRows, sendTestWaitlistEmail, sendWaitlistEmail, setBetaTesters,
+  deleteWaitlistRows, sendTestWaitlistEmail, sendWaitlistEmail, setBetaTesters, setSignedUp,
 } from "../utils/waitlistAdminApi";
 import { applyMergeTags, buildBroadcastEmail, renderParts } from "../utils/broadcastEmailTemplate";
 import { useAdminData } from "./AdminShell";
@@ -123,14 +123,18 @@ const BETA_COLUMN = {
    deliberately the only loud thing in the table. */
 const SIGNED_UP_COLUMN = {
   label: "Signed up",
-  get: (r) => (r.signedUp ? (r.signedUpAt ? `yes ${r.signedUpAt}` : "yes") : ""),
+  get: (r) => (r.signedUp ? [r.signedUpAt ? `yes ${r.signedUpAt}` : "yes", r.signedUpSource === "manual" ? "(manual)" : ""].join(" ").trim() : ""),
   render: (r) =>
     r.signedUp ? (
       <span
         className="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-700 whitespace-nowrap"
-        title={r.signedUpAt ? `Joined the app ${fmtDate(r.signedUpAt)}` : "Has a Planie account"}
+        title={
+          r.signedUpSource === "manual"
+            ? `Marked by admin${r.signedUpAt ? ` on ${fmtDate(r.signedUpAt)}` : ""}`
+            : r.signedUpAt ? `Joined the app ${fmtDate(r.signedUpAt)}` : "Has a Planie account"
+        }
       >
-        <CheckCircle2 size={11} /> signed up
+        <CheckCircle2 size={11} /> signed up{r.signedUpSource === "manual" ? <span className="normal-case font-medium opacity-60">manual</span> : null}
       </span>
     ) : (
       <span className="text-[#1C1114]/25">—</span>
@@ -737,6 +741,7 @@ export default function AdminWaitlist() {
   const [query, setQuery] = useState("");
   const [betaFilter, setBetaFilter] = useState("all"); // "all" | "beta" | "notBeta"
   const [flagging, setFlagging] = useState(false);
+  const [tagging, setTagging] = useState(false);
   // Scoped to this tab's own actions (mark-beta, delete) — separate from the
   // shell's load error, which only ever describes the initial fetch failing.
   const [actionError, setActionError] = useState(null);
@@ -821,6 +826,32 @@ export default function AdminWaitlist() {
     }
   }, [selectedRows, flagging, tab, setData]);
 
+  /* Manual signed-up tag — for rows the automatic email match can't see
+     (Apple hide-my-email, different signup address). Only the manual tag is
+     ever removed; auto-matched rows would just re-detect on the next load. */
+  const markSignedUp = useCallback(async (on) => {
+    const ids = selectedRows
+      .filter((r) => (on ? !r.signedUp : r.signedUpSource === "manual"))
+      .map((r) => r.id);
+    if (ids.length === 0 || tagging) return;
+    setTagging(true);
+    setActionError(null);
+    try {
+      await setSignedUp({ list: tab, ids, signedUp: on });
+      const touched = new Set(ids);
+      setData((prev) => (prev ? {
+        ...prev,
+        [tab]: prev[tab].map((r) => (touched.has(r.id)
+          ? { ...r, signedUp: on, signedUpSource: on ? "manual" : null, signedUpAt: on ? new Date().toISOString() : null }
+          : r)),
+      } : prev));
+    } catch (err) {
+      setActionError(err.message || "Could not update the signed-up tag.");
+    } finally {
+      setTagging(false);
+    }
+  }, [selectedRows, tagging, tab, setData]);
+
   /* Permanent removal. The rows vanish from the loaded data on success —
      no refetch needed, the backend confirmed exactly what was deleted. */
   const deleteSelected = useCallback(async () => {
@@ -858,6 +889,10 @@ export default function AdminWaitlist() {
   // Drives which of mark/unmark the action bar offers. A mixed selection shows
   // "Mark as beta", so one press always ends with everything flagged.
   const allSelectedAreBeta = selectedRows.length > 0 && selectedRows.every((r) => r.betaTester);
+  // Signed-up action: offer "unmark" only when everything selected is a
+  // manual tag; otherwise offer "mark" for whatever isn't signed up yet.
+  const allSelectedManualSignedUp = selectedRows.length > 0 && selectedRows.every((r) => r.signedUpSource === "manual");
+  const someSelectedNotSignedUp = selectedRows.some((r) => !r.signedUp);
 
   return (
     <div>
@@ -994,6 +1029,23 @@ export default function AdminWaitlist() {
                 </button>
                 {/* Unmark only offered when the selection actually contains
                     testers, so the common case stays a single button. */}
+                {allSelectedManualSignedUp ? (
+                  <button
+                    className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => markSignedUp(false)}
+                    disabled={tagging}
+                  >
+                    {tagging ? "Saving…" : "Unmark signed up"}
+                  </button>
+                ) : someSelectedNotSignedUp ? (
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => markSignedUp(true)}
+                    disabled={tagging}
+                  >
+                    <CheckCircle2 size={15} /> {tagging ? "Saving…" : "Mark signed up"}
+                  </button>
+                ) : null}
                 {allSelectedAreBeta ? (
                   <button
                     className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
