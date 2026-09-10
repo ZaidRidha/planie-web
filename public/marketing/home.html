@@ -1,9 +1,52 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+
+<!-- SEO tags live in the real <head>, not only in the <helmet> block below.
+     The runtime hoists <helmet> into the head at render time, which is fine
+     for browsers but invisible to any crawler that does not execute JS (most
+     social unfurlers, Bing, LLM fetchers). These are static duplicates so the
+     served HTML carries them on the first pass.
+
+     This file is served at BOTH https://useplanie.com/ (a forced rewrite in
+     public/_redirects) and /marketing/home.html. The canonical below points
+     at "/" so the second URL never competes with the homepage. -->
+<title>Planie - Your Saturday, solved</title>
+<meta name="description" content="Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together. Date nights, days out and group trips, sorted.">
+<link rel="canonical" href="https://useplanie.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Planie">
+<meta property="og:url" content="https://useplanie.com/">
+<meta property="og:title" content="Planie - Your Saturday, solved">
+<meta property="og:description" content="Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together. Date nights, days out and group trips, sorted.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Planie - Your Saturday, solved">
+<meta name="twitter:description" content="Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together. Date nights, days out and group trips, sorted.">
+<meta property="og:image" content="https://useplanie.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Planie logo">
+<meta name="twitter:image" content="https://useplanie.com/og-image.png">
+<meta name="theme-color" content="#ff4041">
+
+<!-- Icon links must be in the static head too: Google's favicon crawler and
+     most other bots read the served HTML, not the JS-hoisted <helmet> block.
+     Without these the search result shows a generic globe. favicon.ico
+     carries 16/32/48/64/128/256 - Google wants a multiple of 48px. -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/logo192.png">
+<link rel="manifest" href="/manifest.json">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Planie","url":"https://useplanie.com/","description":"Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together."}
+</script>
+
+<!-- Absolute, not "./" - this file is served from / as well as /marketing/,
+     and a relative src resolves against the *request* URL, not the file. -->
+<script src="/marketing/support.js"></script>
 </head>
 <body>
 <x-dc>
@@ -43,7 +86,7 @@
     #scrollCue .chev:nth-child(2) { display: none; }
   }
 </style>
-<script src="./refine.js"></script>
+<script src="/marketing/refine.js"></script>
 <style>
 @media (max-width: 900px) {
   nav { padding: 14px 18px !important; }
@@ -136,7 +179,7 @@
 
   <!-- Nav: porcelain glass, one link, one quiet action -->
   <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; background: rgba(250, 247, 241, 0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(28, 17, 20, 0.05);">
-    <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
+    <img src="/marketing/uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
     <div style="display: flex; align-items: center; gap: 32px;">
       <!-- Guides is a real route (React owns it), so unlike its siblings here
            it needs target="_top" to escape the iframe this page is served in. -->
@@ -395,7 +438,7 @@
   <!-- CODA B - whisper footer -->
   <footer style="border-top: 1px solid rgba(28, 17, 20, 0.08); padding: 72px 40px 48px; max-width: 1240px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap;">
-      <img src="uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
+      <img src="/marketing/uploads/Planie New Logo.png" alt="Planie" style="height: 64px; display: block; mix-blend-mode: multiply;">
       <div style="display: flex; align-items: center; gap: 28px; font-size: 14px;">
         <a href="/guides" target="_top" style="opacity: 0.55;">Guides</a>
         <a href="/privacy" target="_top" style="opacity: 0.55;">Privacy</a>

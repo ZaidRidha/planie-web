@@ -1,13 +1,20 @@
-/* HomePage — the public marketing homepage.
+/* HomePage — DEV-ONLY preview of the public marketing homepage.
 
-   This page is the designers' actual homepage (an intricate, fully-animated
-   scroll experience: intro route-draw, hero typewriter, interactive plan
-   switcher, scroll-driven "ink theatre", marquees, and dozens of reveals).
-   Rather than risk re-implementing 900 lines of bespoke choreography, we serve
-   their real file from public/marketing/home.html (its internal Privacy/Terms/
-   Contact/Partners/Placements links were rewritten to our routes with
-   target="_top" so they navigate the app). Rendered full-viewport — the design
-   carries its own nav + footer, so this route sits outside the app Header/Footer. */
+   In production this component never renders: public/_redirects rewrites "/"
+   straight to /marketing/home.html, so the browser gets the designers' real
+   static file as the document at "/". That is deliberate and is the whole
+   point — serving it in an <iframe> (what this file used to do) meant Google
+   indexed "/" as a page with no text, no headings and a placeholder title,
+   because iframe content is crawled as its own URL and is not credited to the
+   parent page.
+
+   The CRA dev server has no _redirects, so `npm start` would show a blank "/"
+   without this. The iframe stands in for the rewrite locally. If you are
+   changing the homepage, edit public/marketing/home.html — not this file —
+   and check it at /marketing/home.html, which is what production serves.
+
+   The design carries its own nav, footer and dark-mode toggle, so this route
+   sits outside the app Header/Footer. */
 
 export default function HomePage() {
   return (

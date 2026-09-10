@@ -90,8 +90,9 @@ function App() {
         </Route>
         <Route path="/share/:shareCode" element={<SharedItinerary />} />
 
-        {/* Homepage — the design's full-viewport marketing page (own nav+footer),
-            so it sits outside the app Header/Footer. */}
+        {/* Homepage — dev only. In production public/_redirects rewrites "/"
+            to /marketing/home.html, so this route never renders there; see the
+            comment in HomePage.jsx. */}
         <Route path="/" element={<HomePage />} />
 
         {/* Waitlist + placements pages wear the homepage's own nav + whisper

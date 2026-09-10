@@ -25,13 +25,19 @@ import { useEffect } from "react";
 
 export const SITE_URL = "https://useplanie.com";
 export const SITE_NAME = "Planie";
-const DEFAULT_TITLE = "Planie";
-const DEFAULT_DESCRIPTION = "Planie";
+const DEFAULT_TITLE = "Planie - Your Saturday, solved";
+const DEFAULT_DESCRIPTION =
+  "Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together. Date nights, days out and group trips, sorted.";
 
 /* Find an existing meta tag by name or property, or make one. Tags we create
    are marked so cleanup only removes our own. */
-function meta(attr, key) {
+function meta(attr, key, restore) {
   let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (el && restore && !el.hasAttribute("data-seo") && !restore.has(el)) {
+    // index.html now ships default og:/twitter: tags; remember their content
+    // so leaving the route puts the defaults back instead of a stale title.
+    restore.set(el, el.getAttribute("content"));
+  }
   if (!el) {
     el = document.createElement("meta");
     el.setAttribute(attr, key);
@@ -69,18 +75,20 @@ export function useSeo({ title, description, path, type = "website", jsonLd }) {
     const descEl = document.head.querySelector('meta[name="description"]');
     const prevDesc = descEl ? descEl.getAttribute("content") : null;
 
+    const restore = new Map();
+
     document.title = title;
     meta("name", "description").setAttribute("content", description);
     link("canonical").setAttribute("href", url);
 
-    meta("property", "og:title").setAttribute("content", title);
-    meta("property", "og:description").setAttribute("content", description);
-    meta("property", "og:url").setAttribute("content", url);
-    meta("property", "og:type").setAttribute("content", type);
-    meta("property", "og:site_name").setAttribute("content", SITE_NAME);
-    meta("name", "twitter:card").setAttribute("content", "summary_large_image");
-    meta("name", "twitter:title").setAttribute("content", title);
-    meta("name", "twitter:description").setAttribute("content", description);
+    meta("property", "og:title", restore).setAttribute("content", title);
+    meta("property", "og:description", restore).setAttribute("content", description);
+    meta("property", "og:url", restore).setAttribute("content", url);
+    meta("property", "og:type", restore).setAttribute("content", type);
+    meta("property", "og:site_name", restore).setAttribute("content", SITE_NAME);
+    meta("name", "twitter:card", restore).setAttribute("content", "summary_large_image");
+    meta("name", "twitter:title", restore).setAttribute("content", title);
+    meta("name", "twitter:description", restore).setAttribute("content", description);
 
     let script;
     if (jsonLd) {
@@ -95,6 +103,7 @@ export function useSeo({ title, description, path, type = "website", jsonLd }) {
       document.title = prevTitle || DEFAULT_TITLE;
       if (descEl) descEl.setAttribute("content", prevDesc || DEFAULT_DESCRIPTION);
       if (script) script.remove();
+      restore.forEach((content, el) => el.setAttribute("content", content));
       // Only tags this module created carry data-seo; index.html's do not.
       document.head
         .querySelectorAll('meta[data-seo], link[data-seo]')

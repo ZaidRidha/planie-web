@@ -1,5 +1,21 @@
+# The homepage is served straight from the designers' static file. It used to
+# be a React route rendering /marketing/home.html in an <iframe>, which meant
+# Google indexed "/" as a document with no text and no headings - iframe
+# content is crawled as its own URL and is not credited to the parent page.
+#
+# The `!` is required: without it Netlify serves the real /index.html on disk
+# and never reaches this rule. 200 (rewrite, not redirect) keeps the URL as
+# "/". home.html carries <link rel="canonical" href="https://useplanie.com/">
+# so the /marketing/home.html URL does not compete with it.
+/            /marketing/home.html   200!
+
+# One homepage URL, not two.
+/index.html  /                      301!
+
 # Single-page app fallback. React Router owns /waitlist, /privacy, /contact and
 # friends client-side, but Netlify only has index.html on disk — without this,
 # a direct hit or refresh on any of those paths returns Netlify's 404 page.
-# Real files (assets, /marketing/*) still win over this rule.
+# Real files (assets, /marketing/*) still win over this rule. Rewrite targets
+# are served as-is and not re-matched against these rules, so the /index.html
+# redirect above does not fire for them.
 /*  /index.html  200
