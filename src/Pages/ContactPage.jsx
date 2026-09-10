@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { callApiRoute } from "../utils/api";
+import { useSeo } from "../utils/seo";
 
 const TOPICS = ["General", "Partnerships", "Press", "Support"];
 const CHANNELS = [
@@ -27,6 +28,11 @@ const inputStyle = {
 };
 
 export default function ContactPage() {
+  useSeo({
+    title: "Contact | Planie",
+    description: "Get in touch with the Planie team about the app, partnerships, press or anything else.",
+    path: "/contact",
+  });
   const [topic, setTopic] = useState("General");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

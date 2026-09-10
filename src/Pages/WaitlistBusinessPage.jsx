@@ -17,6 +17,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
 import { callApiRoute } from "../utils/api";
+import { useSeo } from "../utils/seo";
 import "./WaitlistBusiness.css";
 
 /* Backend's hidden honeypot field (formGuard.ts HONEYPOT_FIELD) - must render
@@ -96,6 +97,11 @@ const Arrow = () => (
 const validEmail = (e) => /.+@.+\..+/.test(e);
 
 export default function WaitlistBusinessPage() {
+  useSeo({
+    title: "Planie for businesses: get chosen, not advertised | Planie",
+    description: "Restaurants, bars and venues: register interest in Planie placements and be the place Planie picks when someone plans their evening near you.",
+    path: "/waitlist/business",
+  });
   const [business, setBusiness] = useState("");
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");

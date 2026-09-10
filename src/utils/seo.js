@@ -92,6 +92,8 @@ export function useSeo({ title, description, path, type = "website", jsonLd }) {
 
     let script;
     if (jsonLd) {
+      // A prerendered page already ships this route's block; replace, don't stack.
+      document.head.querySelectorAll("script[data-seo]").forEach((el) => el.remove());
       script = document.createElement("script");
       script.type = "application/ld+json";
       script.setAttribute("data-seo", "");

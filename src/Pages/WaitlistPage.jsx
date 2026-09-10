@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
 import { callApiRoute } from "../utils/api";
+import { useSeo } from "../utils/seo";
 import "./Waitlist.css";
 
 /* Name of the backend's hidden honeypot field (formGuard.ts HONEYPOT_FIELD).
@@ -53,6 +54,11 @@ const STEPS = [
 ];
 
 export default function WaitlistPage() {
+  useSeo({
+    title: "Join the waitlist | Planie",
+    description: "Planie is not out yet. Join the waitlist to be first in when it launches and get a real plan for your next date night, day out or trip.",
+    path: "/waitlist",
+  });
   const [email, setEmail] = useState("");
   const [platform, setPlatform] = useState("Either");
   const [city, setCity] = useState("");

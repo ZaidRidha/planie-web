@@ -1,6 +1,7 @@
 /* Privacy policy — static, copy from "Planie Privacy.dc.html" (2026-07-24). */
 
 import LegalArticle from "../Components/LegalArticle";
+import { useSeo } from "../utils/seo";
 
 const SECTIONS = [
   { title: "The short version", paras: [
@@ -37,6 +38,11 @@ const SECTIONS = [
 ];
 
 export default function PrivacyPolicy() {
+  useSeo({
+    title: "Privacy Policy | Planie",
+    description: "How Planie collects, uses and protects your data.",
+    path: "/privacy",
+  });
   return (
     <LegalArticle
       kicker="Legal"

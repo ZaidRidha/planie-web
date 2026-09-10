@@ -7,6 +7,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MARKETING_NAV_HEIGHT } from "../Components/MarketingHeader";
+import { useSeo } from "../utils/seo";
 
 const head = { fontFamily: "var(--nu-font-head)", fontWeight: 700, letterSpacing: "-0.02em" };
 
@@ -191,6 +192,11 @@ const PAGE_CSS = `
 `;
 
 export default function PlacementWorks() {
+  useSeo({
+    title: "How Planie placements work | Planie",
+    description: "You do not buy ads on Planie. You get chosen. How placements work for restaurants, bars and venues, and what it takes to be picked into a plan.",
+    path: "/placements",
+  });
   /* Scroll reveal, same as the design's data-reveal behavior. */
   useEffect(() => {
     const els = document.querySelectorAll("[data-reveal]");

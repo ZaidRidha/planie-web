@@ -41,7 +41,10 @@
 <link rel="manifest" href="/manifest.json">
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","name":"Planie","url":"https://useplanie.com/","description":"Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together."}
+{"@context":"https://schema.org","@graph":[
+ {"@type":"Organization","@id":"https://useplanie.com/#organization","name":"Planie","url":"https://useplanie.com/","logo":{"@type":"ImageObject","url":"https://useplanie.com/logo512.png","width":512,"height":512},"sameAs":["https://www.instagram.com/useplanie/","https://www.tiktok.com/@useplanie","https://x.com/useplanie"]},
+ {"@type":"WebSite","@id":"https://useplanie.com/#website","name":"Planie","url":"https://useplanie.com/","publisher":{"@id":"https://useplanie.com/#organization"},"description":"Tell Planie the kind of time you want, and get a real plan back - places, timings and travel that fit together."}
+]}
 </script>
 
 <!-- Absolute, not "./" - this file is served from / as well as /marketing/,
@@ -464,7 +467,18 @@
         </a>
       </div>
     </div>
-    <p style="margin: 40px 0 0; font-size: 13px; opacity: 0.35;">© 2026 Planie. Made for the time of your life.</p>
+    <!-- Guide links: the guides are React routes, so the only static HTML
+         linking to them was the sitemap. Crawlable links from the homepage
+         pass authority to them; keep in step with src/content/guides.js. -->
+    <nav aria-label="Guides" style="margin: 40px 0 0; display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 13px;">
+      <a href="/guides/how-to-plan-a-date-night-in-london" target="_top" style="opacity: 0.45;">Date night in London</a>
+      <a href="/guides/what-to-do-in-london-when-it-rains" target="_top" style="opacity: 0.45;">London when it rains</a>
+      <a href="/guides/48-hours-in-lisbon" target="_top" style="opacity: 0.45;">48 hours in Lisbon</a>
+      <a href="/guides/how-to-plan-a-group-trip" target="_top" style="opacity: 0.45;">Planning a group trip</a>
+      <a href="/guides/ai-trip-planning-what-it-gets-wrong" target="_top" style="opacity: 0.45;">AI trip planning</a>
+      <a href="/guides/how-restaurants-get-recommended-by-ai" target="_top" style="opacity: 0.45;">How AI recommends restaurants</a>
+    </nav>
+    <p style="margin: 28px 0 0; font-size: 13px; opacity: 0.35;">© 2026 Planie. Made for the time of your life.</p>
   </footer>
 
 </div>
@@ -480,9 +494,9 @@ class Component extends DCLogic {
       title: 'One evening, considered.',
       caption: 'Southbank, London - 1 km on foot, timed for sunset.',
       stops: [
-        { time: '18:30', name: 'Skylon Bar', addr: 'Royal Festival Hall, Belvedere Road, SE1', price: '££', whisper: 'Starting soft - a corner table, low light.', note: 'Third floor of the Festival Hall, floor-to-ceiling glass over the river. One drink while the light goes.', rating: '4.3', hours: 'Open until 23:00', photo: 'uploads/places/date-1-bar.jpg', alt: 'Riverside bar at dusk' },
-        { time: '20:00', name: 'OXO Tower Brasserie', addr: 'Barge House Street, SE1', price: '£££', whisper: 'This is the one. Locals book it twice.', note: 'Eighth floor, whole-river view, seasonal plates. The table is held under your name.', rating: '4.5', hours: 'Table held · 20:00', verdict: true, photo: 'uploads/places/date-2-restaurant.jpg', alt: 'Candle-lit restaurant plate' },
-        { time: '22:15', name: 'Queen’s Walk', addr: 'South Bank, SE1', price: 'Free', whisper: 'Then no plan at all - on purpose.', note: 'Nine minutes along the water to Blackfriars Bridge. The city does the rest.', rating: '-', hours: 'Always open', photo: 'uploads/places/date-3-riverwalk.jpg', alt: 'The Thames at dusk' }
+        { time: '18:30', name: 'Skylon Bar', addr: 'Royal Festival Hall, Belvedere Road, SE1', price: '££', whisper: 'Starting soft - a corner table, low light.', note: 'Third floor of the Festival Hall, floor-to-ceiling glass over the river. One drink while the light goes.', rating: '4.3', hours: 'Open until 23:00', photo: '/marketing/uploads/places/date-1-bar.jpg', alt: 'Riverside bar at dusk' },
+        { time: '20:00', name: 'OXO Tower Brasserie', addr: 'Barge House Street, SE1', price: '£££', whisper: 'This is the one. Locals book it twice.', note: 'Eighth floor, whole-river view, seasonal plates. The table is held under your name.', rating: '4.5', hours: 'Table held · 20:00', verdict: true, photo: '/marketing/uploads/places/date-2-restaurant.jpg', alt: 'Candle-lit restaurant plate' },
+        { time: '22:15', name: 'Queen’s Walk', addr: 'South Bank, SE1', price: 'Free', whisper: 'Then no plan at all - on purpose.', note: 'Nine minutes along the water to Blackfriars Bridge. The city does the rest.', rating: '-', hours: 'Always open', photo: '/marketing/uploads/places/date-3-riverwalk.jpg', alt: 'The Thames at dusk' }
       ],
       swaps: [
         { name: 'OXO Tower Brasserie', note: 'Eighth floor, whole-river view, seasonal plates. The table is held under your name.', rating: '4.4', hours: 'Table held · 20:00' },
@@ -496,9 +510,9 @@ class Component extends DCLogic {
       title: 'Rain, handled.',
       caption: 'Waterloo to Covent Garden - all indoors, all pram-friendly.',
       stops: [
-        { time: '10:00', name: 'SEA LIFE London', addr: 'County Hall, Westminster Bridge Road, SE1', price: '££', whisper: 'Energy first. Trust the order.', note: 'Dark, warm and entirely indoors. First session of the day is the quiet one - booked.', rating: '4.4', hours: 'Session held · 10:00', photo: 'uploads/places/kids-1-aquarium.jpg', alt: 'Aquarium tank' },
-        { time: '12:30', name: 'wagamama Southbank', addr: 'Royal Festival Hall, Belvedere Road, SE1', price: '££', whisper: 'High chairs, fast kitchen, no waiting.', note: 'Six minutes up the Queen’s Walk. Kids’ bowls land before the patience runs out.', rating: '4.3', hours: 'Open until 22:00', verdict: true, photo: 'uploads/places/kids-2-noodles.jpg', alt: 'Bowl of ramen' },
-        { time: '14:00', name: 'London Transport Museum', addr: 'Covent Garden Piazza, WC2E', price: '££', whisper: 'Ending gentle - naps in the pram welcome.', note: 'Real buses and tube carriages to climb into, all under one roof. Quiet by two.', rating: '4.6', hours: 'Open until 18:00', photo: 'uploads/places/kids-3-transport.jpg', alt: 'London bus and taxi' }
+        { time: '10:00', name: 'SEA LIFE London', addr: 'County Hall, Westminster Bridge Road, SE1', price: '££', whisper: 'Energy first. Trust the order.', note: 'Dark, warm and entirely indoors. First session of the day is the quiet one - booked.', rating: '4.4', hours: 'Session held · 10:00', photo: '/marketing/uploads/places/kids-1-aquarium.jpg', alt: 'Aquarium tank' },
+        { time: '12:30', name: 'wagamama Southbank', addr: 'Royal Festival Hall, Belvedere Road, SE1', price: '££', whisper: 'High chairs, fast kitchen, no waiting.', note: 'Six minutes up the Queen’s Walk. Kids’ bowls land before the patience runs out.', rating: '4.3', hours: 'Open until 22:00', verdict: true, photo: '/marketing/uploads/places/kids-2-noodles.jpg', alt: 'Bowl of ramen' },
+        { time: '14:00', name: 'London Transport Museum', addr: 'Covent Garden Piazza, WC2E', price: '££', whisper: 'Ending gentle - naps in the pram welcome.', note: 'Real buses and tube carriages to climb into, all under one roof. Quiet by two.', rating: '4.6', hours: 'Open until 18:00', photo: '/marketing/uploads/places/kids-3-transport.jpg', alt: 'London bus and taxi' }
       ],
       swaps: [
         { name: 'wagamama Southbank', note: 'Six minutes up the Queen’s Walk. Kids’ bowls land before the patience runs out.', rating: '4.3', hours: 'Open until 22:00' },
@@ -512,9 +526,9 @@ class Component extends DCLogic {
       title: 'Lisbon, distilled.',
       caption: 'Chiado to Alfama - day one of two, walking pace.',
       stops: [
-        { time: '09:00', name: 'Manteigaria', addr: 'Rua do Loreto 2, Chiado', price: '£', whisper: 'Skip the famous queue. This one’s better.', note: 'Pastéis de nata straight from the oven, cinnamon on top, counter seats facing the kitchen.', rating: '4.8', hours: 'Open from 08:00', photo: 'uploads/places/lisbon-1-bakery.jpg', alt: 'Bakery counter' },
-        { time: '11:00', name: 'Alfama on foot', addr: 'Sé to Santa Luzia, Alfama', price: 'Free', whisper: 'Get lost here - it’s the point.', note: 'Up from the Sé through the old town, finding the miradouros without the crowds.', rating: '-', hours: 'Golden by 18:00', photo: 'uploads/places/lisbon-2-alfama.jpg', alt: 'Lisbon street with tram' },
-        { time: '20:00', name: 'Taberna do Fado', addr: 'Alfama, Lisboa', price: '££', whisper: 'The night decides itself after this.', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held · 20:00', verdict: true, photo: 'uploads/places/lisbon-3-taberna.jpg', alt: 'Warm tavern dining room' }
+        { time: '09:00', name: 'Manteigaria', addr: 'Rua do Loreto 2, Chiado', price: '£', whisper: 'Skip the famous queue. This one’s better.', note: 'Pastéis de nata straight from the oven, cinnamon on top, counter seats facing the kitchen.', rating: '4.8', hours: 'Open from 08:00', photo: '/marketing/uploads/places/lisbon-1-bakery.jpg', alt: 'Bakery counter' },
+        { time: '11:00', name: 'Alfama on foot', addr: 'Sé to Santa Luzia, Alfama', price: 'Free', whisper: 'Get lost here - it’s the point.', note: 'Up from the Sé through the old town, finding the miradouros without the crowds.', rating: '-', hours: 'Golden by 18:00', photo: '/marketing/uploads/places/lisbon-2-alfama.jpg', alt: 'Lisbon street with tram' },
+        { time: '20:00', name: 'Taberna do Fado', addr: 'Alfama, Lisboa', price: '££', whisper: 'The night decides itself after this.', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held · 20:00', verdict: true, photo: '/marketing/uploads/places/lisbon-3-taberna.jpg', alt: 'Warm tavern dining room' }
       ],
       swaps: [
         { name: 'Taberna do Fado', note: 'Fado sung close enough to feel. Dinner is whatever the kitchen says it is.', rating: '4.9', hours: 'Table held · 20:00' },

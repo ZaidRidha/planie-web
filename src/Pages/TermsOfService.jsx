@@ -1,6 +1,7 @@
 /* Terms of service — static, copy from "Planie Terms.dc.html" (2026-07-24). */
 
 import LegalArticle from "../Components/LegalArticle";
+import { useSeo } from "../utils/seo";
 
 const SECTIONS = [
   { title: "Acceptance", paras: [
@@ -34,6 +35,11 @@ const SECTIONS = [
 ];
 
 export default function TermsOfService() {
+  useSeo({
+    title: "Terms of Service | Planie",
+    description: "The terms that apply when you use Planie.",
+    path: "/terms",
+  });
   return (
     <LegalArticle
       kicker="Legal"
