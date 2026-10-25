@@ -14,7 +14,7 @@ export default function LegalArticle({ kicker, title, updated, sections, footerN
 
       <div style={{ marginTop: 40 }}>
         {sections.map((s) => (
-          <section key={s.title} style={{ padding: "28px 0", borderTop: "1px solid rgba(28,17,20,0.09)" }}>
+          <section key={s.title} id={s.id} style={{ padding: "28px 0", borderTop: "1px solid rgba(28,17,20,0.09)" }}>
             <h2 style={{ ...head, margin: "0 0 14px", fontSize: 22 }}>{s.title}</h2>
             {s.paras.map((p, i) => (
               <p key={i} style={{ margin: "0 0 14px", fontSize: 16, lineHeight: 1.7, opacity: 0.72 }}>{p}</p>

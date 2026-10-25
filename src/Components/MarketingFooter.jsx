@@ -29,6 +29,7 @@ export default function MarketingFooter() {
           <Link className="mk-footer-link" to="/privacy">Privacy</Link>
           <Link className="mk-footer-link" to="/terms">Terms</Link>
           <Link className="mk-footer-link" to="/contact">Contact</Link>
+          <a className="mk-footer-link" href="#cookies" data-cookie-settings>Cookies</a>
           <span className="mk-footer-rule" aria-hidden="true" />
           <a
             className="mk-footer-social"

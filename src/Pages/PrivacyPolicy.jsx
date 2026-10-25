@@ -23,6 +23,11 @@ const SECTIONS = [
     "We share the minimum necessary with partners whose venues appear in your plans — for example, a booking request you choose to send. We never hand over your full profile.",
     "We use trusted service providers (hosting, analytics, payments) bound by contract to protect your data. We do not sell personal data to advertisers.",
   ] },
+  { title: "Cookies", id: "cookies", paras: [
+    "On this website we only use analytics cookies (Google Analytics), and only if you accept them. They tell us which pages people visit and how they move around the site, so we can see what's working. We don't use advertising cookies.",
+    "If you choose “No thanks”, Google Analytics isn't loaded at all. We remember your choice in your browser for 12 months.",
+    <>You can change your mind at any time: <a href="#cookies" data-cookie-settings style={{ fontWeight: 600, color: "var(--nu-red)" }}>change cookie settings</a>.</>,
+  ] },
   { title: "Your choices and rights", paras: [
     "You can access, correct, export or delete your data from your account settings, or by contacting us.",
     "You can turn off location access, opt out of marketing, and close your account at any time.",

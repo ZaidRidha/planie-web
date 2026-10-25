@@ -184,6 +184,9 @@ export default function Footer() {
               <Link to="/contact" className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
                 Contact
               </Link>
+              <a href="#cookies" data-cookie-settings className="text-xs text-[#687076]/70 hover:text-[#FF4040] transition-colors duration-200">
+                Cookies
+              </a>
             </div>
           </div>
         </div>
