@@ -115,7 +115,7 @@
   margin-left: 220px;
   flex: 1;
   padding: 36px 48px 64px;
-  max-width: 1200px;
+  min-width: 0;
 }
 
 /* ── Header ── */
@@ -1075,14 +1075,67 @@
 .pd-ml-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin: 32px 0 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.08);
+}
+
+.pd-ml-toolbar-right {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  flex: 1 1 360px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* Status tabs */
+.pd-ml-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 100px;
+  background: rgba(28, 17, 20, 0.05);
+}
+
+.pd-ml-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: #1C1114;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pd-ml-tab:hover:not(.is-active) {
+  background: rgba(28, 17, 20, 0.06);
+}
+
+.pd-ml-tab.is-active {
+  background: #1C1114;
+  color: #FAF7F1;
+}
+
+.pd-ml-tab-count {
+  opacity: 0.5;
+  font-weight: 500;
 }
 
 .pd-ml-search {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  max-width: 340px;
 }
 
 .pd-ml-search-icon {
@@ -1334,22 +1387,40 @@
 }
 
 .pd-ml-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 60px 20px;
-  color: #C4C9D0;
+  padding: 64px 24px;
+  background: #fff;
+  border: 1px dashed rgba(28, 17, 20, 0.12);
+  border-radius: 16px;
+  color: #9CA3AF;
+}
+
+.pd-ml-empty > svg {
+  box-sizing: content-box;
+  width: 28px;
+  height: 28px;
+  padding: 18px;
+  border-radius: 50%;
+  background: rgba(28, 17, 20, 0.05);
+  color: #6B7280;
 }
 
 .pd-ml-empty h4 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #374151;
-  margin-top: 16px;
-  margin-bottom: 6px;
+  color: #1C1114;
+  margin: 18px 0 6px;
 }
 
 .pd-ml-empty p {
   font-size: 14px;
   color: #9CA3AF;
+  margin: 0;
+  max-width: 320px;
 }
 
 .pd-badge--inactive {
@@ -2432,6 +2503,9 @@
   .pd-billing-invoice-header span:nth-child(3) { display: none; }
   .pd-ml-summary { grid-template-columns: repeat(2, 1fr); }
   .pd-ml-search { max-width: 100%; }
+  .pd-ml-toolbar { margin: 24px 0 20px; padding-bottom: 20px; }
+  .pd-ml-toolbar-right { flex-basis: 100%; justify-content: stretch; }
+  .pd-ml-tabs { border-radius: 16px; }
   .pd-ml-card-meta { flex-direction: column; align-items: flex-start; gap: 2px; }
   .pd-set-field-grid { grid-template-columns: 1fr; }
   .pd-set-danger-content { flex-direction: column; align-items: flex-start; }
@@ -2681,4 +2755,24 @@
   .pd-promo-status {
     margin-left: auto;
   }
+}
+
+/* ── Overview + shared portal: mobile ──
+   Overview is styled inline, so these use !important to override it. */
+@media (max-width: 900px) {
+  .pd-ov-rail { max-width: none !important; flex-basis: 100% !important; }
+}
+
+@media (max-width: 600px) {
+  /* Page titles are 40px inline on every portal page */
+  .pd-main h1 { font-size: 30px !important; line-height: 1.12; }
+
+  /* Metric band: clean 2-up grid, dividers off */
+  .pd-ov-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 24px 16px; }
+  .pd-ov-metrics > div { border-right: none !important; margin-right: 0 !important; padding-right: 0 !important; }
+  .pd-ov-metrics > div > p:nth-child(2) { font-size: 32px !important; }
+
+  /* "Your places" rows: name on its own line, stats + status beneath */
+  .pd-ov-place { grid-template-columns: 1fr 1fr auto !important; gap: 10px 16px !important; padding: 16px 0 !important; }
+  .pd-ov-place > :first-child { grid-column: 1 / -1; }
 }

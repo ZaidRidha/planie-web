@@ -1,0 +1,505 @@
+/* PromotionsTab.css — partner Promotions page, after the handoff
+   (partner-portal-handoff/src/pages/PartnerPromotions.jsx).
+   Ink #1C1114 · porcelain #FAF7F1 · red #FF4040. Every class is pp-. */
+
+@keyframes pp-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pp-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pp-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 64, 64, 0.45); }
+  100% { box-shadow: 0 0 0 8px rgba(255, 64, 64, 0); }
+}
+
+.pp-page {
+  font-family: "Instrument Sans", sans-serif;
+  color: #1C1114;
+  width: 100%;
+}
+.pp-head-font { font-family: "Gabarito", sans-serif; }
+
+/* ——— Header ——— */
+.pp-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.pp-eyebrow {
+  margin: 0 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+.pp-title {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.pp-lede {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  opacity: 0.6;
+  max-width: 62ch;
+}
+.pp-new-btn { padding: 12px 24px !important; }
+
+/* ——— Summary band (hairlines, not cards) ——— */
+.pp-band {
+  margin-top: 40px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.08);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  row-gap: 28px;
+}
+.pp-metric {
+  padding: 4px 20px 8px 0;
+  margin-right: 20px;
+  border-right: 1px solid rgba(28, 17, 20, 0.1);
+  min-width: 0;
+}
+.pp-metric:last-child { border-right: none; margin-right: 0; }
+.pp-metric-label {
+  margin: 0 0 10px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+.pp-metric-value {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 38px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.pp-metric-value--red { color: #FF4040; }
+.pp-metric-sub {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.5;
+}
+
+/* ——— Alerts ——— */
+.pp-alert {
+  margin-top: 28px;
+  background: rgba(255, 64, 64, 0.07);
+  border: 1px solid rgba(255, 64, 64, 0.22);
+  color: #B91C1C;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ——— Offers section ——— */
+.pp-section { margin-top: 56px; }
+.pp-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.pp-h2 {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+}
+
+/* Segmented tabs */
+.pp-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 100px;
+  background: rgba(28, 17, 20, 0.05);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pp-tabs::-webkit-scrollbar { display: none; }
+.pp-tab {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 100px;
+  background: transparent;
+  color: #1C1114;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pp-tab:hover { background: rgba(28, 17, 20, 0.06); }
+.pp-tab--on,
+.pp-tab--on:hover { background: #1C1114; color: #FAF7F1; }
+.pp-tab-count { opacity: 0.5; }
+
+.pp-list { animation: pp-fade 0.35s ease both; }
+
+/* ——— Venue group ——— */
+.pp-venue { margin-top: 36px; }
+.pp-venue:first-child { margin-top: 28px; }
+.pp-venue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.14);
+}
+.pp-venue-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.pp-venue-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(28, 17, 20, 0.05);
+  color: rgba(28, 17, 20, 0.6);
+  display: grid;
+  place-items: center;
+}
+.pp-venue-name {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pp-venue-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 100px;
+  background: rgba(28, 17, 20, 0.06);
+  color: rgba(28, 17, 20, 0.6);
+  flex-shrink: 0;
+}
+.pp-venue-add { padding: 8px 16px !important; font-size: 12.5px !important; flex-shrink: 0; }
+
+/* ——— Promotion row ——— */
+.pp-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.8fr) minmax(110px, 0.8fr) minmax(120px, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 8px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.08);
+  border-radius: 12px;
+  transition: background 0.2s;
+  animation: pp-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pp-row:hover { background: rgba(255, 255, 255, 0.55); }
+
+.pp-offer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.pp-offer-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 17, 20, 0.05);
+  color: rgba(28, 17, 20, 0.55);
+  transition: background 0.2s, color 0.2s;
+}
+.pp-row--active .pp-offer-icon { background: rgba(255, 64, 64, 0.1); color: #FF4040; }
+.pp-offer-text { min-width: 0; }
+.pp-offer-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pp-offer-meta {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pp-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+.pp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.pp-tag {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+  border: 1px solid rgba(28, 17, 20, 0.12);
+  color: rgba(28, 17, 20, 0.65);
+}
+.pp-denied {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #B91C1C;
+}
+
+.pp-cell-main { margin: 0; font-size: 14.5px; font-weight: 600; }
+.pp-cell-sub { margin: 2px 0 0; font-size: 12px; opacity: 0.45; }
+.pp-cell-plain {
+  font-size: 13px;
+  opacity: 0.55;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Status chips */
+.pp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 100px;
+  white-space: nowrap;
+  color: rgba(28, 17, 20, 0.55);
+  background: rgba(28, 17, 20, 0.05);
+}
+.pp-chip--active { color: #FF4040; background: rgba(255, 64, 64, 0.09); }
+.pp-chip--pending { color: rgba(28, 17, 20, 0.7); background: rgba(28, 17, 20, 0.07); }
+.pp-chip--denied { color: #B91C1C; background: transparent; box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.25); }
+.pp-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.pp-chip--active .pp-chip-dot { animation: pp-pulse 2s ease-out infinite; }
+
+/* Actions */
+.pp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pp-act {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 15px;
+  border-radius: 100px;
+  border: 1px solid rgba(28, 17, 20, 0.16);
+  background: transparent;
+  color: #1C1114;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.25s, color 0.2s;
+}
+.pp-act:hover { border-color: #1C1114; }
+.pp-act--fill { background: #1C1114; border-color: #1C1114; color: #FAF7F1; }
+.pp-act--fill:hover { background: #FF4040; border-color: #FF4040; }
+.pp-act--icon { padding: 7px 9px; color: rgba(28, 17, 20, 0.5); }
+.pp-act--icon:hover { color: #FF4040; border-color: rgba(255, 64, 64, 0.45); background: rgba(255, 64, 64, 0.06); }
+
+/* Venue with no promotions */
+.pp-venue-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 8px;
+  border-bottom: 1px solid rgba(28, 17, 20, 0.08);
+  font-size: 13.5px;
+}
+.pp-venue-empty span { opacity: 0.5; }
+.pp-link-btn {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #1C1114;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s, gap 0.2s;
+}
+.pp-link-btn:hover { color: #FF4040; gap: 7px; }
+
+/* Centred empty states */
+.pp-empty {
+  text-align: center;
+  padding: 72px 24px 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: pp-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pp-empty-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: rgba(28, 17, 20, 0.05);
+  display: grid;
+  place-items: center;
+  color: rgba(28, 17, 20, 0.4);
+  margin-bottom: 16px;
+}
+.pp-empty-title {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.pp-empty-sub {
+  margin: 8px 0 0;
+  font-size: 14px;
+  opacity: 0.55;
+  max-width: 42ch;
+  line-height: 1.55;
+}
+.pp-empty-btn { margin-top: 22px; padding: 11px 22px !important; }
+.pp-loading { padding: 48px 8px; font-size: 14px; opacity: 0.5; }
+
+/* ——— Drafts card (Promotions + Overview) ——— */
+.pp-drafts {
+  margin-top: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 16px 48px rgba(28, 17, 20, 0.05);
+  padding: 22px 24px 10px;
+}
+.pp-drafts--overview { margin-top: 0; margin-bottom: 24px; }
+.pp-drafts-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.pp-drafts-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: rgba(255, 64, 64, 0.1);
+  color: #FF4040;
+  display: grid;
+  place-items: center;
+}
+.pp-drafts-title {
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pp-drafts-sub { margin: 2px 0 0; font-size: 12.5px; opacity: 0.5; }
+.pp-draft {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 6px;
+  border-top: 1px solid rgba(28, 17, 20, 0.07);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.pp-draft:hover { background: rgba(255, 255, 255, 0.7); }
+.pp-draft-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.pp-draft-text { min-width: 0; }
+.pp-draft-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pp-draft-meta {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pp-draft-meta svg { flex-shrink: 0; }
+
+/* ——— Mobile ——— */
+@media (max-width: 900px) {
+  .pp-title { font-size: 30px; }
+  .pp-header { align-items: flex-start; }
+  .pp-new-btn { width: 100%; justify-content: center; }
+  .pp-band { margin-top: 28px; padding-bottom: 28px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pp-metric:nth-child(2n) { border-right: none; margin-right: 0; }
+  .pp-metric-value { font-size: 32px; }
+  .pp-section { margin-top: 44px; }
+  .pp-tabs { width: 100%; }
+  .pp-tab { flex: 1 0 auto; justify-content: center; }
+  .pp-venue-head { flex-wrap: wrap; }
+  .pp-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 4px;
+  }
+  .pp-offer { grid-column: 1 / -1; }
+  .pp-chip-cell { justify-self: start; }
+  .pp-actions { grid-column: 1 / -1; justify-content: flex-start; flex-wrap: wrap; }
+  .pp-drafts { padding: 18px 16px 8px; }
+  .pp-draft { flex-direction: column; align-items: stretch; }
+  .pp-draft .pp-actions { justify-content: flex-end; }
+}

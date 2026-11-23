@@ -340,3 +340,63 @@ html.plie-dark [data-noinvert] {
   transition: transform 0.2s;
 }
 #plie-theme-toggle:hover { transform: scale(1.08); }
+
+/* ————— Mobile: sidebar becomes a sticky top bar —————
+   Every partner page renders its own <aside class="pd-sidebar"> with the
+   same shape: <div>(logo + nav)</div> then a footer (sign-out link, or on
+   the dashboard a div with the partner name + sign-out button). On small
+   screens: logo + sign out on row one, a swipeable row of nav pills below. */
+@media (max-width: 900px) {
+  html body .pd-layout { flex-direction: column; }
+  html body .pd-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "logo out" "nav nav";
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 12px;
+    z-index: 60;
+  }
+  html body .pd-sidebar > div:first-child { display: contents; }
+  html body .pd-logo { grid-area: logo; margin: 0; padding: 0; justify-content: flex-start; }
+  html body .pd-logo::after { font-size: 16px; }
+  html body .pd-nav {
+    grid-area: nav;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  html body .pd-nav::-webkit-scrollbar { display: none; }
+  html body .pd-nav .pd-nav-btn {
+    width: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 13.5px;
+  }
+  /* Footer → compact sign-out in the top-right corner */
+  html body .pd-sidebar > :last-child:not(:first-child) {
+    grid-area: out;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  html body .pd-sidebar > div:last-child:not(:first-child) > div { display: none; }
+  html body .pd-sidebar .pd-nav-btn--out {
+    width: auto;
+    padding: 7px 12px;
+    font-size: 13px;
+    border-radius: 100px;
+    border: 1px solid rgba(250, 247, 241, 0.18);
+  }
+  html body .pd-main { margin-left: 0; padding: 24px 18px 56px; width: 100%; }
+}

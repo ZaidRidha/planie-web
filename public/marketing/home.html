@@ -343,7 +343,9 @@
               <p style="margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; color: #1C1114; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ mapCardName }}</p>
               <p style="margin: 3px 0 0; font-size: 12.5px; color: rgba(28,17,20,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ mapCardAddr }}</p>
               <div style="margin-top: 7px; display: flex; align-items: center; gap: 12px; font-size: 13px;">
-                <span style="font-weight: 600; color: #1C1114;">★ {{ mapCardRating }}</span>
+                <sc-if value="{{ mapCardHasRating }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-weight: 600; color: #1C1114;">★ {{ mapCardRating }}</span>
+                </sc-if>
                 <span style="color: rgba(28,17,20,0.4);">{{ mapCardPrice }}</span>
                 <sc-if value="{{ mapCardIsPick }}" hint-placeholder-val="{{ true }}">
                   <span style="color: #FF4040; font-weight: 600; font-size: 12px;">Planie’s pick</span>
@@ -367,13 +369,15 @@
               </sc-if>
               <div style="position: absolute; left: 4px; top: 24px; width: 13px; height: 13px; border-radius: 50%; border: 3px solid {{ st.dotColor }}; background: {{ st.dotFill }}; box-sizing: border-box;"></div>
               <p style="margin: 0 0 14px; font-size: 15px; color: #FF4040; font-weight: 500;">{{ st.whisper }}</p>
-              <div style="display: flex; align-items: baseline; gap: 16px;">
-                <span style="font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: 16px; opacity: 0.5;">{{ st.time }}</span>
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <span style="font-family: 'Gabarito', sans-serif; font-weight: 600; font-size: 16px; line-height: 1; opacity: 0.5; flex-shrink: 0;">{{ st.time }}</span>
                 <h4 style="margin: 0; font-family: 'Gabarito', sans-serif; font-weight: 700; font-size: clamp(24px, 2.6vw, 34px); letter-spacing: -0.015em;">{{ st.name }}</h4>
               </div>
               <p style="margin: 10px 0 0; font-size: 16px; line-height: 1.55; opacity: 0.62; max-width: 46ch;">{{ st.note }}</p>
               <div style="margin-top: 14px; display: flex; align-items: center; gap: 18px; font-size: 14px; opacity: 0.55;">
-                <span>★ {{ st.rating }}</span>
+                <sc-if value="{{ st.hasRating }}" hint-placeholder-val="{{ true }}">
+                  <span>★ {{ st.rating }}</span>
+                </sc-if>
                 <span>{{ st.hours }}</span>
                 <sc-if value="{{ st.verdict }}" hint-placeholder-val="{{ false }}">
                   <span style="color: #FF4040; opacity: 1; font-weight: 600;">Planie’s pick</span>
@@ -675,12 +679,6 @@ class Component extends DCLogic {
       { time: '20:00', name: 'OXO Tower Brasserie', meta: 'table held ★ 4.5', dotColor: '#FF4040', dotFill: '#FF4040', notLast: true },
       { time: '22:15', name: "Queen's Walk", meta: 'sunset · 9 min', dotColor: '#1C1114', dotFill: 'transparent', notLast: false }
     ];
-    const stops = plan.stops.map((s, i) => ({
-      ...s,
-      notLast: i < plan.stops.length - 1,
-      dotColor: s.verdict ? '#FF4040' : '#1C1114',
-      dotFill: s.verdict ? '#FF4040' : 'transparent'
-    }));
     const chips = Object.keys(this.PLANS).map((key) => {
       const active = key === this.state.plan;
       return {
@@ -713,12 +711,20 @@ class Component extends DCLogic {
     // Pressing a pin drives the detail card; until one is pressed the card shows
     // the verdict stop, which is what the plan opens on.
     const shown = plan.stops[this.state.mapSel] || verdictStop;
+    // The itinerary dots follow the same selection as the map pins.
+    const stops = plan.stops.map((s, i) => ({
+      ...s,
+      notLast: i < plan.stops.length - 1,
+      hasRating: !!s.rating && s.rating !== '-',
+      dotColor: s === shown ? '#FF4040' : '#1C1114',
+      dotFill: s === shown ? '#FF4040' : 'transparent'
+    }));
     const mapStops = plan.stops.slice(0, 3).map((s, i) => {
       const on = s === shown;
       return {
         left: cfg.pins[i][0], top: cfg.pins[i][1], grad: GRAD[i],
         photo: s.photo, alt: s.alt || s.name, name: s.name,
-        badge: String(i + 1), badgeBg: s.verdict ? '#FF4040' : '#1C1114',
+        badge: String(i + 1), badgeBg: on ? '#FF4040' : '#1C1114',
         pinBg: on ? '#FF4040' : '#FFFFFF',
         pinShadow: on ? '0 10px 26px rgba(28,17,20,0.34)' : '0 6px 16px rgba(28,17,20,0.28)',
         scale: on ? '1.12' : '1',
@@ -736,6 +742,7 @@ class Component extends DCLogic {
       mapCardName: shown.name,
       mapCardPhoto: shown.photo,
       mapCardRating: shown.rating,
+      mapCardHasRating: !!shown.rating && shown.rating !== '-',
       mapCardPrice: shown.price || '££',
       mapCardIsPick: !!shown.verdict,
       mapCardAddr: shown.addr || plan.caption,

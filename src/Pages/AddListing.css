@@ -166,6 +166,16 @@
 
 .al-currency .al-input {
   padding-left: 28px;
+  padding-right: 92px; /* room for the "per person" suffix */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Hide number spinners: they sat on top of the "per person" suffix */
+.al-currency .al-input::-webkit-outer-spin-button,
+.al-currency .al-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .al-currency-suffix {
