@@ -241,7 +241,23 @@ export default function PartnerLoginPage() {
         @keyframes plaRise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes plaSpin { to { transform: rotate(360deg); } }
         .pla-rise { animation: plaRise 0.5s cubic-bezier(0.22,1,0.36,1) both; }
-        @media (max-width: 900px) { .pla-grid { grid-template-columns: 1fr; } .pla-aside { min-height: auto !important; padding: 32px 28px !important; } .pla-steps { display: none; } }
+        @media (max-width: 900px) {
+          .pla-grid { grid-template-columns: 1fr; min-height: 100dvh; align-content: start; }
+          .pla-aside { position: static !important; height: auto !important; min-height: 0 !important; padding: 20px 22px 24px !important; justify-content: flex-start !important; gap: 18px; }
+          .pla-steps, .pla-quote, .pla-aside-sub { display: none !important; }
+          .pla-aside-h1 { font-size: 28px !important; }
+          .pla-aside-wiz { margin: 0 !important; }
+          .pla-aside-wiz h1 { margin: 0 0 14px !important; font-size: 24px !important; }
+          .pla-main { padding: 28px 20px 48px !important; place-items: start center !important; }
+          .pla-logo { display: none !important; }
+          .pla-h2 { font-size: 26px !important; }
+          .pla-toggle { display: flex !important; width: 100%; margin-bottom: 22px !important; }
+          .pla-toggle > button { flex: 1; }
+        }
+        @media (max-width: 480px) {
+          .pla-two { grid-template-columns: 1fr !important; }
+          .pla-row { flex-direction: column-reverse; }
+        }
       `}</style>
 
       <div className="pla-grid">
@@ -254,13 +270,13 @@ export default function PartnerLoginPage() {
           {mode === "signin" ? (
             <>
               <div>
-                <h1 style={{ ...head, margin: 0, fontWeight: 700, fontSize: "clamp(34px, 3.4vw, 52px)", letterSpacing: "-0.025em", lineHeight: 1.02 }}>Be the place<br />it picks<span style={{ color: RED }}>.</span></h1>
-                <p style={{ margin: "22px 0 0", maxWidth: "42ch", fontSize: 16, lineHeight: 1.65, color: "rgba(250,247,241,0.6)" }}>Sign in to manage listings, placements and performance.</p>
+                <h1 className="pla-aside-h1" style={{ ...head, margin: 0, fontWeight: 700, fontSize: "clamp(34px, 3.4vw, 52px)", letterSpacing: "-0.025em", lineHeight: 1.02 }}>Be the place<br />it picks<span style={{ color: RED }}>.</span></h1>
+                <p className="pla-aside-sub" style={{ margin: "22px 0 0", maxWidth: "42ch", fontSize: 16, lineHeight: 1.65, color: "rgba(250,247,241,0.6)" }}>Sign in to manage listings, placements and performance.</p>
               </div>
-              <p style={{ margin: 0, fontSize: 15, color: "rgba(250,247,241,0.85)", fontStyle: "italic", lineHeight: 1.6 }}>"Planie sends us people who were already on their way."</p>
+              <p className="pla-quote" style={{ margin: 0, fontSize: 15, color: "rgba(250,247,241,0.85)", fontStyle: "italic", lineHeight: 1.6 }}>"Planie sends us people who were already on their way."</p>
             </>
           ) : (
-            <div style={{ margin: "40px 0 auto" }}>
+            <div className="pla-aside-wiz" style={{ margin: "40px 0 auto" }}>
               <p style={{ margin: "0 0 6px", fontSize: 12.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(250,247,241,0.4)" }}>Getting set up · step {step} of 4</p>
               <h1 style={{ ...head, margin: "0 0 36px", fontWeight: 700, fontSize: "clamp(26px, 2.8vw, 38px)", letterSpacing: "-0.02em", lineHeight: 1.05 }}>Put your place on the map.</h1>
               <div className="pla-steps" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -280,13 +296,13 @@ export default function PartnerLoginPage() {
         </aside>
 
         {/* RIGHT */}
-        <main style={{ display: "grid", placeItems: "center", padding: "56px 40px" }}>
+        <main className="pla-main" style={{ display: "grid", placeItems: "center", padding: "56px 40px" }}>
           <div className="pla-rise" key={mode + step} style={{ width: "min(440px, 100%)" }}>
-            <img src={PlanieLogo} alt="Planie" style={{ height: 28, display: "block", marginBottom: 28 }} />
+            <img className="pla-logo" src={PlanieLogo} alt="Planie" style={{ height: 28, display: "block", marginBottom: 28 }} />
 
             {/* mode toggle only before account creation */}
             {!signingUp && (
-              <div style={{ display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", marginBottom: 28 }}>
+              <div className="pla-toggle" style={{ display: "inline-flex", padding: 4, borderRadius: 100, background: "rgba(28,17,20,0.05)", marginBottom: 28 }}>
                 <button style={pill(mode === "signup")} onClick={() => { setMode("signup"); setStep(1); setFormError(null); }}>New partner</button>
                 <button style={pill(mode === "signin")} onClick={() => { setMode("signin"); setFormError(null); }}>Sign in</button>
               </div>
@@ -297,7 +313,7 @@ export default function PartnerLoginPage() {
             {/* ───────── SIGN IN ───────── */}
             {mode === "signin" && (
               <>
-                <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Welcome back.</h2>
+                <h2 className="pla-h2" style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Welcome back.</h2>
                 <p style={{ margin: "0 0 24px", fontSize: 15, opacity: 0.6 }}>Sign in to your partner account.</p>
                 {resetNotice && <div role="status" style={{ margin: "0 0 16px", background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#15803D", borderRadius: 12, padding: "10px 14px", fontSize: 14 }}>{resetNotice}</div>}
                 <label style={label}>Work email</label>
@@ -316,7 +332,7 @@ export default function PartnerLoginPage() {
             {/* ───────── STEP 1: business ───────── */}
             {mode === "signup" && step === 1 && (
               <>
-                <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>First, your business.</h2>
+                <h2 className="pla-h2" style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>First, your business.</h2>
                 <p style={{ margin: "0 0 28px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>This is your Business Profile — the account every venue sits under.</p>
                 <label style={label}>Business name</label>
                 <input className="pla-input" type="text" placeholder="e.g. Sunset Hospitality Group" value={bizName} onChange={(e) => setBizName(e.target.value)} style={{ ...inputStyle, marginBottom: 16 }} />
@@ -338,9 +354,9 @@ export default function PartnerLoginPage() {
             {/* ───────── STEP 2: details + password ───────── */}
             {mode === "signup" && step === 2 && (
               <>
-                <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Secure your account.</h2>
+                <h2 className="pla-h2" style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Secure your account.</h2>
                 <p style={{ margin: "0 0 24px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>Set a password and tell us who you are.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div className="pla-two" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div><label style={label}>Full name</label><input className="pla-input" type="text" placeholder="Your name" value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} /></div>
                   <div><label style={label}>Your role</label><input className="pla-input" type="text" placeholder="e.g. Owner" value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle} /></div>
                 </div>
@@ -364,7 +380,7 @@ export default function PartnerLoginPage() {
             {/* ───────── STEP 3: verify email (auto) ───────── */}
             {mode === "signup" && step === 3 && (
               <>
-                <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Confirm your email.</h2>
+                <h2 className="pla-h2" style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Confirm your email.</h2>
                 <p style={{ margin: "0 0 6px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>Enter the 6-digit code we emailed to</p>
                 <p style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 600, wordBreak: "break-all" }}>{email}</p>
                 <input
@@ -392,7 +408,7 @@ export default function PartnerLoginPage() {
             {mode === "signup" && step === 4 && (
               <>
                 <p className="nu-microlabel" style={{ marginBottom: 6, color: "#15803D", opacity: 1 }}>✓ Account created</p>
-                <h2 style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Add your first venue.</h2>
+                <h2 className="pla-h2" style={{ ...head, margin: "0 0 8px", fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em" }}>Add your first venue.</h2>
                 <p style={{ margin: "0 0 24px", fontSize: 15, opacity: 0.6, lineHeight: 1.6 }}>Each location is its own listing — or skip and do it later from the portal.</p>
                 <label style={label}>Venue name</label>
                 <input className="pla-input" type="text" placeholder="e.g. Sunset Rooftop Bar" value={venueName} onChange={(e) => setVenueName(e.target.value)} style={{ ...inputStyle, marginBottom: 16 }} />
@@ -405,7 +421,7 @@ export default function PartnerLoginPage() {
                 </div>
                 <label style={label}>City</label>
                 <input className="pla-input" type="text" placeholder="e.g. your city" value={venueCity} onChange={(e) => setVenueCity(e.target.value)} style={{ ...inputStyle, marginBottom: 22 }} />
-                <div style={{ display: "flex", gap: 12 }}>
+                <div className="pla-row" style={{ display: "flex", gap: 12 }}>
                   <button type="button" className="pla-out" onClick={skipListing} style={{ flex: 1, boxSizing: "border-box", fontFamily: "'Instrument Sans', sans-serif", fontSize: 15, fontWeight: 600, cursor: "pointer", padding: 15, borderRadius: 100, border: "1px solid rgba(28,17,20,0.16)", background: "transparent", color: INK, transition: "border-color 0.2s" }}>Skip for now</button>
                   <button className="pla-btn" onClick={continueListing} disabled={!step4Valid} style={{ ...primaryBtn, flex: 1, opacity: step4Valid ? 1 : 0.5, cursor: step4Valid ? "pointer" : "not-allowed" }}>Continue{arrow}</button>
                 </div>
